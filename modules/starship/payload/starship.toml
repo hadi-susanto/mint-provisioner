@@ -1,0 +1,7 @@
+# Mint Provisioner Starship Auto Configuration
+# Get editor completions based on the config schema
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# Prevent blank lines, our starship.sh or starship.zsh will intelligently add blank line
+# Starship blank line always applied even for first time initialization, ours doesn't
+add_newline = false
