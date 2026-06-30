@@ -4,12 +4,10 @@
 # Starship post-installation tasks
 #
 
-source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/installer_common.sh"
 
 MODULE="starship"
 USER_HOME=$(get_user_home)
-CONFIG_DIR="${USER_HOME}/.config/mint-provisioner"
 PAYLOAD_DIR="${MODULES_DIR}/${MODULE}/payload"
 
 if [[ "${STARSHIP_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
@@ -25,24 +23,12 @@ fi
 #
 # Copy payloads
 #
-log_info "[$MODULE] Copying shell payloads to $CONFIG_DIR"
-mkdir -p "$CONFIG_DIR"
-
 for filename in "starship.sh" "starship.zsh"; do
-    file="${PAYLOAD_DIR}/${filename}"
-    if [[ -f "$file" ]]; then
-        target="$CONFIG_DIR/$filename"
-        if [[ ! -f "$target" ]] || [[ "$STARSHIP_FORCE_CONFIGURATION" == "true" ]]; then
-            log_info "[$MODULE] Copying $file to $target"
-            cp "$file" "$target"
-        else
-          log_warn "[$MODULE] '$filename' already exists and STARSHIP_FORCE_CONFIGURATION is not true, skipping"
-        fi
-    fi
+    copy_to_config_dir "$MODULE" "${PAYLOAD_DIR}/${filename}" "STARSHIP_FORCE_CONFIGURATION"
 done
 
-add_zsh_source "$MODULE" "${CONFIG_DIR}/starship.zsh"
-add_bash_source "$MODULE" "${CONFIG_DIR}/starship.sh"
+add_zsh_source "$MODULE" "$(get_config_dir)/starship.zsh"
+add_bash_source "$MODULE" "$(get_config_dir)/starship.sh"
 
 #
 # Starship toml check

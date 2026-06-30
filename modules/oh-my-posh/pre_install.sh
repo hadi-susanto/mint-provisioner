@@ -38,7 +38,6 @@ log_info "[$MODULE] Creating state files"
 echo "$binary_download_file" > "$STATE_FILE_BINARY"
 echo "$themes_download_file" > "$STATE_FILE_THEMES"
 
-log_info "[$MODULE] Downloading binary from $binary_url"
 if ! download_from_url "$MODULE" "$binary_url" "$binary_download_file"; then
     log_error "[$MODULE] Binary download failed"
     rm -f "$STATE_FILE_BINARY" "$STATE_FILE_THEMES"
@@ -47,7 +46,6 @@ if ! download_from_url "$MODULE" "$binary_url" "$binary_download_file"; then
     exit 2
 fi
 
-log_info "[$MODULE] Downloading themes from $themes_url"
 if ! download_from_url "$MODULE" "$themes_url" "$themes_download_file"; then
     log_error "[$MODULE] Themes download failed"
     rm -f "$STATE_FILE_BINARY" "$STATE_FILE_THEMES"

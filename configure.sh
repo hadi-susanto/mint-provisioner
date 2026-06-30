@@ -69,7 +69,6 @@ if [[ "$#" -eq 0 ]]; then
         exit 0
     fi
 
-    log_info "Available modules: ${all_modules[*]}"
     read -r -p "Do you want to perform configuration of any installed module? (y/N): " response
     response="${response:-n}"
     if [[ ! "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then

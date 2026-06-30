@@ -7,8 +7,6 @@
 source "${LIB_DIR}/installer_common.sh"
 
 MODULE="oh-my-posh"
-USER_HOME=$(get_user_home)
-CONFIG_DIR="${USER_HOME}/.config/mint-provisioner"
 PAYLOAD_DIR="${MODULES_DIR}/${MODULE}/payload"
 
 if [[ "${OH_MY_POSH_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
@@ -24,23 +22,11 @@ fi
 #
 # Copy payloads
 #
-log_info "[$MODULE] Copying payloads to $CONFIG_DIR"
-mkdir -p "$CONFIG_DIR"
-
 for file in "$PAYLOAD_DIR"/*; do
-    if [[ -f "$file" ]]; then
-        filename=$(basename "$file")
-        target="$CONFIG_DIR/$filename"
-        if [[ ! -f "$target" ]] || [[ "$OH_MY_POSH_FORCE_CONFIGURATION" == "true" ]]; then
-            log_info "[$MODULE] Copying $file to $target"
-            cp "$file" "$target"
-        else
-          log_warn "[$MODULE] target already exists and OH_MY_POSH_FORCE_CONFIGURATION is not true, skipping"
-        fi
-    fi
+    copy_to_config_dir "$MODULE" "$file" "OH_MY_POSH_FORCE_CONFIGURATION"
 done
 
-add_bash_source "$MODULE" "${CONFIG_DIR}/oh-my-posh.sh"
-add_zsh_source "$MODULE" "${CONFIG_DIR}/oh-my-posh.zsh"
+add_bash_source "$MODULE" "$(get_config_dir)/oh-my-posh.sh"
+add_zsh_source "$MODULE" "$(get_config_dir)/oh-my-posh.zsh"
 
 log_info "[$MODULE] oh-my-posh configuration completed"

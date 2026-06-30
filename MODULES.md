@@ -32,7 +32,23 @@ manually add the repositories and the GPG keys via `fetch_and_install_asc_key` i
 the `apt-add-repository` method by setting this variable to `true`.
 
 * **`USE_APT_ADD_REPOSITORY`**: If set to `true`, all modules will use `apt-add-repository` to add repositories.
-* **Supported by**: `pt-fast`, `terminator`.
+* **Supported by**: `apt-fast`, `ghostty`, `terminator`.
+
+### `copy_to_config_dir` (Internal Helper)
+
+Used by modules during the `post_install` phase to copy payload files to the user's configuration directory
+(`~/.config/mint-provisioner`). It handles directory creation and respects the `*_FORCE_CONFIGURATION` settings.
+
+* **Functionality**:
+    * Checks if the source file exists (returns 1 if not).
+    * Creates the configuration directory if it doesn't exist.
+    * Copies the file if it doesn't exist or if force configuration is enabled.
+    * Dynamically resolves the force configuration variable name to provide better logging.
+
+* **Arguments**:
+    1. `module`: Module name.
+    2. `source`: Source file path.
+    3. `force_var`: Name of the environment variable for force configuration (e.g., `GIT_FORCE_CONFIGURATION`).
 
 ### `*_REGEX`
 

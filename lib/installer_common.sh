@@ -7,6 +7,64 @@
 source "${LIB_DIR}/common.sh"
 
 #
+# Get the configuration directory for the current user
+#
+get_config_dir() {
+    local user_home
+    user_home=$(get_user_home)
+
+    echo "${user_home}/.config/mint-provisioner"
+}
+
+#
+# Copy a file to the configuration directory
+# Arguments:
+#   1. module: Module name
+#   2. source: Source file path
+#   3. force_var: Name of the environment variable for force configuration (e.g., GIT_FORCE_CONFIGURATION)
+#
+copy_to_config_dir() {
+    local module="$1"
+    local source="$2"
+    local force_var="$3"
+    local config_dir
+    local filename
+    local target
+    local force_val="${!force_var}"
+
+    if [[ ! -f "$source" ]]; then
+        log_error "[copy_config] [$module] Source file $source does not exist"
+
+        return 1
+    fi
+
+    config_dir=$(get_config_dir)
+    filename=$(basename "$source")
+    target="${config_dir}/${filename}"
+
+    if [[ ! -d "$config_dir" ]]; then
+        mkdir -p "$config_dir"
+    fi
+
+    if [[ ! -f "$target" ]]; then
+        log_info "[copy_config] [$module] copying $source to $target"
+        cp "$source" "$target"
+
+        return 0
+    fi
+
+    if [[ "$force_val" == "true" ]]; then
+        log_warn "[copy_config] [$module] $target already exists, overwrite file because $force_var is true"
+        log_info "[copy_config] [$module] copying $source to $target"
+        cp "$source" "$target"
+
+        return 0
+    fi
+
+    log_warn "[copy_config] [$module] $target already exists, to overwrite existing file please set $force_var to true"
+}
+
+#
 # __add_shell_source <module> <shell_name> <rc_file> <source_file> <caller_func>
 #
 # Adds a source line to the shell's RC file if it doesn't already exist.
