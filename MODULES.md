@@ -28,7 +28,7 @@ customizing the installation flow.
 
 Used to determine whether to use `apt-add-repository` to add repositories. Our script is designed to work with
 `apt-add-repository` but sometime it might not work because of network issues or other reasons. Hence, I decided to
-manually add the repositories and the GPG keys via `fetch_and_install_asc_key` instead. In rare cases, you can enable
+manually add the repositories and the GPG keys via `install_asc_key` instead. In rare cases, you can enable
 the `apt-add-repository` method by setting this variable to `true`.
 
 * **`USE_APT_ADD_REPOSITORY`**: If set to `true`, all modules will use `apt-add-repository` to add repositories.
@@ -55,7 +55,7 @@ Used by modules during the `post_install` phase to copy payload files to the use
 Used usually by GitHub-type modules to dynamically change the regex pattern used to identify and download the correct
 asset from releases.
 
-* **`FLAMESHOT_REGEX`**: Default: `ubuntu-<version>.*\.deb$` (auto-generated based on Ubuntu version).
+* **`FLAMESHOT_REGEX`**: Default: `ubuntu-<version>.?amd64\.(zip|deb)$` (auto-generated based on Ubuntu version).
 * **`KITTY_REGEX`**: Default: `x86_64\.txz$`.
 * **`STARSHIP_REGEX`**: Default: `starship-x86_64-unknown-linux-musl\.tar\.gz$`.
 

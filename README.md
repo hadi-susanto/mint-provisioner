@@ -105,8 +105,8 @@ SOURCE="apt"
 
 The framework provides powerful helpers in `lib/`:
 
-*   **APT/PPA**: `add_ppa_repository`, `fetch_and_install_asc_key`, `apt_install`.
-*   **External**: `github_find_latest_release`, `download_from_url`.
+*   **APT/PPA**: `add_ppa`, `install_asc_key`, `apt_install`.
+*   **External**: `github_find_release`, `download_file`.
 *   **Distro**: `get_mint_version`, `get_mint_codename`, `get_ubuntu_version`, `get_ubuntu_codename`.
 *   **Common**: `can_write`, `run_script`, `is_admin`, `get_user_home`.
 

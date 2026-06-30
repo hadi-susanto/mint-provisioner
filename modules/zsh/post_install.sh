@@ -27,6 +27,10 @@ fi
 log_info "[$MODULE] Default shell changed to zsh successfully"
 log_info "[$MODULE] Don't forget re-login to apply shell changes"
 
+msg="Default shell changed to zsh successfully"
+msg+=$'\n'"Don't forget re-login to apply shell changes"
+post_message "$MODULE" "$msg"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [[ -z "${ZSH_FORCE_CONFIGURATION:-}" ]]; then

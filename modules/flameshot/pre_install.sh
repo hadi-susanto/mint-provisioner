@@ -49,7 +49,7 @@ fi
 log_info "[$MODULE] Finding github latest release using regex: $FLAMESHOT_REGEX"
 
 if ! url="$(
-    github_find_latest_release \
+    github_find_release \
         "$MODULE" \
         flameshot-org \
         flameshot \
@@ -66,7 +66,7 @@ if ! url="$(
     exit 2
 fi
 
-if ! download_from_url "$MODULE" "$url" "$download_temp_file"; then
+if ! download_file "$MODULE" "$url" "$download_temp_file"; then
     log_error "[$MODULE] Download failed"
 
     rm -f "$download_temp_file"

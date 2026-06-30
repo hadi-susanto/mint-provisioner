@@ -3,7 +3,7 @@
 source "${LIB_DIR}/common.sh"
 
 #
-# add_ppa_repository <module> <repository>
+# add_ppa <module> <repository>
 #
 # Adds a PPA repository and refreshes the local APT package index.
 # Existing configuration is left to add-apt-repository (overwrite behavior).
@@ -23,34 +23,34 @@ source "${LIB_DIR}/common.sh"
 #   - log_info()
 #   - log_error()
 #
-add_ppa_repository() {
+add_ppa() {
     local module="$1"
     local repository="$2"
 
     if [[ -z "$module" ]]; then
-        log_error "[add_ppa_repository] Missing module parameter"
+        log_error "[add_ppa] Missing module parameter"
 
         return 1
     fi
 
     if [[ -z "$repository" ]]; then
-        log_error "[add_ppa_repository] [$module] Missing repository parameter"
+        log_error "[add_ppa] [$module] Missing repository parameter"
 
         return 1
     fi
 
-    log_info "[add_ppa_repository] [$module] Adding PPA repository: $repository"
+    log_info "[add_ppa] [$module] Adding PPA repository: $repository"
 
     if ! sudo add-apt-repository -y "$repository"; then
-        log_error "[add_ppa_repository] [$module] Failed to add PPA repository: $repository"
+        log_error "[add_ppa] [$module] Failed to add PPA repository: $repository"
 
         return 1
     fi
 
-    log_info "[add_ppa_repository] [$module] Updating package list(s)"
+    log_info "[add_ppa] [$module] Updating package list(s)"
 
     if ! sudo apt-get update; then
-        log_error "[add_ppa_repository] [$module] Failed to update package list(s)"
+        log_error "[add_ppa] [$module] Failed to update package list(s)"
 
         return 1
     fi
@@ -59,7 +59,7 @@ add_ppa_repository() {
 }
 
 #
-# fetch_and_install_asc_key <module> <asc_url> <uri> <suite> <components>
+# install_asc_key <module> <asc_url> <uri> <suite> <components>
 #
 # Downloads an ASCII-armored GPG signing key, installs it into the APT
 # keyring directory, recreates the repository source definition, and
@@ -94,7 +94,7 @@ add_ppa_repository() {
 #   0            Repository configured successfully.
 #   Non-zero     An error occurred.
 #
-fetch_and_install_asc_key() {
+install_asc_key() {
     local module="$1"
     local asc_url="$2"
     local uri="$3"
@@ -102,31 +102,31 @@ fetch_and_install_asc_key() {
     local components="$5"
 
     if [[ -z "$module" ]]; then
-        log_error "[fetch_and_install_asc_key] Missing module parameter"
+        log_error "[install_asc_key] Missing module parameter"
 
         return 1
     fi
 
     if [[ -z "$asc_url" ]]; then
-        log_error "[fetch_and_install_asc_key] [$module] Missing ASC key URL"
+        log_error "[install_asc_key] [$module] Missing ASC key URL"
 
         return 1
     fi
 
     if [[ -z "$uri" ]]; then
-        log_error "[fetch_and_install_asc_key] [$module] Missing repository URI"
+        log_error "[install_asc_key] [$module] Missing repository URI"
 
         return 1
     fi
 
     if [[ -z "$suite" ]]; then
-        log_error "[fetch_and_install_asc_key] [$module] Missing repository suite"
+        log_error "[install_asc_key] [$module] Missing repository suite"
 
         return 1
     fi
 
     if [[ -z "$components" ]]; then
-        log_error "[fetch_and_install_asc_key] [$module] Missing repository components"
+        log_error "[install_asc_key] [$module] Missing repository components"
 
         return 1
     fi
@@ -138,48 +138,48 @@ fetch_and_install_asc_key() {
     local arch
 
     if ! arch="$(dpkg --print-architecture)"; then
-        log_error "[fetch_and_install_asc_key] [$module] Failed to determine system architecture"
+        log_error "[install_asc_key] [$module] Failed to determine system architecture"
 
         return 1
     fi
 
-    log_info "[fetch_and_install_asc_key] [$module] Preparing APT keyring directory"
+    log_info "[install_asc_key] [$module] Preparing APT keyring directory"
 
     if ! sudo mkdir -p "$keyring_dir"; then
-        log_error "[fetch_and_install_asc_key] [$module] Failed to create keyring directory"
+        log_error "[install_asc_key] [$module] Failed to create keyring directory"
 
         return 1
     fi
 
     if [[ -f "$source_file" ]]; then
-        log_warn "[fetch_and_install_asc_key] [$module] Removing existing source file: $source_file"
+        log_warn "[install_asc_key] [$module] Removing existing source file: $source_file"
 
         if ! sudo rm -f "$source_file"; then
-            log_error "[fetch_and_install_asc_key] [$module] Failed to remove source file"
+            log_error "[install_asc_key] [$module] Failed to remove source file"
 
             return 1
         fi
     fi
 
     if [[ -f "$keyring_file" ]]; then
-        log_warn "[fetch_and_install_asc_key] [$module] Removing existing keyring: $keyring_file"
+        log_warn "[install_asc_key] [$module] Removing existing keyring: $keyring_file"
 
         if ! sudo rm -f "$keyring_file"; then
-            log_error "[fetch_and_install_asc_key] [$module] Failed to remove keyring"
+            log_error "[install_asc_key] [$module] Failed to remove keyring"
 
             return 1
         fi
     fi
 
-    log_info "[fetch_and_install_asc_key] [$module] Downloading ASC key from: $asc_url"
+    log_info "[install_asc_key] [$module] Downloading ASC key from: $asc_url"
 
     if ! curl -fsSL "$asc_url" | sudo gpg --dearmor -o "$keyring_file"; then
-        log_error "[fetch_and_install_asc_key] [$module] Failed to download or install signing key"
+        log_error "[install_asc_key] [$module] Failed to download or install signing key"
 
         return 1
     fi
 
-    log_info "[fetch_and_install_asc_key] [$module] Creating source file: $source_file"
+    log_info "[install_asc_key] [$module] Creating source file: $source_file"
 
     if ! sudo tee "$source_file" >/dev/null <<EOF
 Types: deb
@@ -190,16 +190,16 @@ Signed-By: ${keyring_file}
 Architectures: ${arch}
 EOF
     then
-        log_error "[fetch_and_install_asc_key] [$module] Failed to create source file"
+        log_error "[install_asc_key] [$module] Failed to create source file"
 
         return 1
     fi
 
-    log_info "[fetch_and_install_asc_key] [$module] Repository configuration completed"
-    log_info "[fetch_and_install_asc_key] [$module] Updating package list(s)"
+    log_info "[install_asc_key] [$module] Repository configuration completed"
+    log_info "[install_asc_key] [$module] Updating package list(s)"
 
     if ! sudo apt-get update; then
-        log_error "[fetch_and_install_asc_key] [$module] Failed to update package list(s)"
+        log_error "[install_asc_key] [$module] Failed to update package list(s)"
 
         return 1
     fi
