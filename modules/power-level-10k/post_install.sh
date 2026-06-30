@@ -11,8 +11,8 @@ USER_HOME=$(get_user_home)
 INSTALL_BASE_DIR="${POWERLEVEL10K_INSTALL_DIR:-$INSTALL_DIR/power-level-10k}"
 THEME_FILE="${INSTALL_BASE_DIR}/powerlevel10k.zsh-theme"
 
-if [[ "${POWERLEVEL10K_SKIP_CONFIGURE:-${SKIP_CONFIGURE:-false}}" == "true" ]]; then
-    log_warn "[$MODULE] POWERLEVEL10K_SKIP_CONFIGURE is set to true, skipping configuration"
+if [[ "${POWERLEVEL10K_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
+    log_warn "[$MODULE] POWERLEVEL10K_SKIP_CONFIGURATION is set to true, skipping configuration"
 
     exit 0
 fi
@@ -23,8 +23,8 @@ if ! command -v zsh >/dev/null 2>&1; then
     exit 0
 fi
 
-if [[ -z "${POWERLEVEL10K_FORCE_CONFIGURE:-}" ]]; then
-    POWERLEVEL10K_FORCE_CONFIGURE="${FORCE_CONFIGURE:-false}"
+if [[ -z "${POWERLEVEL10K_FORCE_CONFIGURATION:-}" ]]; then
+    POWERLEVEL10K_FORCE_CONFIGURATION="${FORCE_CONFIGURATION:-false}"
 fi
 
 log_info "[$MODULE] Configuring $MODULE for zsh"
@@ -40,7 +40,7 @@ fi
 SOURCE_LINE="[[ -f \"$THEME_FILE\" ]] && source \"$THEME_FILE\""
 
 if grep -Fq "$SOURCE_LINE" "$RC_FILE"; then
-    if [[ "$POWERLEVEL10K_FORCE_CONFIGURE" == "true" ]]; then
+    if [[ "$POWERLEVEL10K_FORCE_CONFIGURATION" == "true" ]]; then
         # Since it is just one line, we can just let it be or remove and re-add.
         # For simplicity, we can use sed to remove it if it exists and then append it.
         # But grep -Fq then echo is standard here.

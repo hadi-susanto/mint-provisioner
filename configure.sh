@@ -17,10 +17,10 @@ export MODULES_DIR="$ROOT_DIR/modules"
 export STATE_DIR="$ROOT_DIR/state"
 
 #
-# Export FORCE_CONFIGURE and SKIP_CONFIGURE
+# Export FORCE_CONFIGURATION and SKIP_CONFIGURATION
 #
-export FORCE_CONFIGURE=true
-export SKIP_CONFIGURE=false
+export FORCE_CONFIGURATION=true
+export SKIP_CONFIGURATION=false
 
 #
 # Load common helpers

@@ -10,14 +10,14 @@ MODULE="ghostty"
 GHOSTTY_CONFIG_DIR="$(get_user_home)/.config/ghostty"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [[ "${GHOSTTY_SKIP_CONFIGURE:-${SKIP_CONFIGURE:-false}}" == "true" ]]; then
-    log_warn "[$MODULE] GHOSTTY_SKIP_CONFIGURE is set to true, skipping configuration"
+if [[ "${GHOSTTY_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
+    log_warn "[$MODULE] GHOSTTY_SKIP_CONFIGURATION is set to true, skipping configuration"
 
     return 0
 fi
 
-if [[ -z "${GHOSTTY_FORCE_CONFIGURE:-}" ]]; then
-    GHOSTTY_FORCE_CONFIGURE="${FORCE_CONFIGURE:-false}"
+if [[ -z "${GHOSTTY_FORCE_CONFIGURATION:-}" ]]; then
+    GHOSTTY_FORCE_CONFIGURATION="${FORCE_CONFIGURATION:-false}"
 fi
 
 log_info "[$MODULE] Configuring ghostty default behavior based on mint-provisioner"
@@ -34,11 +34,11 @@ log_info "[$MODULE] Copying configuration files to $GHOSTTY_CONFIG_DIR"
 FILE="mint-provisioner.ghostty"
 TARGET="$GHOSTTY_CONFIG_DIR/$FILE"
 
-if [[ ! -f "$TARGET" ]] || [[ "$GHOSTTY_FORCE_CONFIGURE" == "true" ]]; then
+if [[ ! -f "$TARGET" ]] || [[ "$GHOSTTY_FORCE_CONFIGURATION" == "true" ]]; then
     log_info "[$MODULE] Copying $FILE to $GHOSTTY_CONFIG_DIR"
     cp "$SCRIPT_DIR/payload/$FILE" "$TARGET"
 else
-    log_warn "[$MODULE] $FILE already exists and GHOSTTY_FORCE_CONFIGURE is not true, skipping"
+    log_warn "[$MODULE] $FILE already exists and GHOSTTY_FORCE_CONFIGURATION is not true, skipping"
 fi
 
 # 3. Inspect ~/.config/ghostty/config.ghostty and append include if missing

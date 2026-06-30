@@ -10,14 +10,14 @@ MODULE="kitty"
 KITTY_CONFIG_DIR="$(get_user_home)/.config/kitty"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [[ "${KITTY_SKIP_CONFIGURE:-${SKIP_CONFIGURE:-false}}" == "true" ]]; then
-    log_warn "[$MODULE] KITTY_SKIP_CONFIGURE is set to true, skipping configuration"
+if [[ "${KITTY_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
+    log_warn "[$MODULE] KITTY_SKIP_CONFIGURATION is set to true, skipping configuration"
 
     return 0
 fi
 
-if [[ -z "${KITTY_FORCE_CONFIGURE:-}" ]]; then
-    KITTY_FORCE_CONFIGURE="${FORCE_CONFIGURE:-false}"
+if [[ -z "${KITTY_FORCE_CONFIGURATION:-}" ]]; then
+    KITTY_FORCE_CONFIGURATION="${FORCE_CONFIGURATION:-false}"
 fi
 
 log_info "[$MODULE] Configuring kitty default behavior based on mint-provisioner"
@@ -34,11 +34,11 @@ log_info "[$MODULE] Copying configuration files to $KITTY_CONFIG_DIR"
 FILES=("mint-provisioner.kitty" "mint-provisioner.session")
 for FILE in "${FILES[@]}"; do
     TARGET="$KITTY_CONFIG_DIR/$FILE"
-    if [[ ! -f "$TARGET" ]] || [[ "$KITTY_FORCE_CONFIGURE" == "true" ]]; then
+    if [[ ! -f "$TARGET" ]] || [[ "$KITTY_FORCE_CONFIGURATION" == "true" ]]; then
         log_info "[$MODULE] Copying $FILE to $KITTY_CONFIG_DIR"
         cp "$SCRIPT_DIR/payload/$FILE" "$TARGET"
     else
-        log_warn "[$MODULE] $FILE already exists and KITTY_FORCE_CONFIGURE is not true, skipping"
+        log_warn "[$MODULE] $FILE already exists and KITTY_FORCE_CONFIGURATION is not true, skipping"
     fi
 done
 

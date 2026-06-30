@@ -30,12 +30,7 @@ __add_shell_source() {
 
     if [[ ! -f "$rc_file" ]]; then
         log_info "[$caller_func] [$module] Creating $rc_file"
-        if is_admin; then
-            local target_user="${SUDO_USER:-$USER}"
-            sudo -u "$target_user" touch "$rc_file"
-        else
-            touch "$rc_file"
-        fi
+        touch "$rc_file"
     fi
 
     local source_line="[[ -f \"$source_file\" ]] && source \"$source_file\""
@@ -47,12 +42,7 @@ __add_shell_source() {
     fi
 
     log_info "[$caller_func] [$module] Adding $source_file source to $rc_file"
-    if is_admin; then
-        local target_user="${SUDO_USER:-$USER}"
-        echo "$source_line" | sudo -u "$target_user" tee -a "$rc_file" > /dev/null
-    else
-        echo "$source_line" >> "$rc_file"
-    fi
+    echo "$source_line" >> "$rc_file"
 }
 
 #
