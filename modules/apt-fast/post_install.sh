@@ -6,15 +6,15 @@ source "${LIB_DIR}/common.sh"
 
 MODULE="apt-fast"
  
-# Skip configuration if APT_FAST_SKIP_CONFIGURE or SKIP_CONFIGURE is set
-if [[ "${APT_FAST_SKIP_CONFIGURE:-${SKIP_CONFIGURE:-false}}" == "true" ]]; then
-    log_warn "[$MODULE] APT_FAST_SKIP_CONFIGURE is set to true, skipping configuration"
+# Skip configuration if APT_FAST_SKIP_CONFIGURATION or SKIP_CONFIGURATION is set
+if [[ "${APT_FAST_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
+    log_warn "[$MODULE] APT_FAST_SKIP_CONFIGURATION is set to true, skipping configuration"
 
     exit 0
 fi
 
-if [[ -z "${APT_FAST_FORCE_CONFIGURE:-}" ]]; then
-    APT_FAST_FORCE_CONFIGURE="${FORCE_CONFIGURE:-false}"
+if [[ -z "${APT_FAST_FORCE_CONFIGURATION:-}" ]]; then
+    APT_FAST_FORCE_CONFIGURATION="${FORCE_CONFIGURATION:-false}"
 fi
 
 # ZSH Autocompletion
@@ -23,8 +23,8 @@ if command -v zsh >/dev/null 2>&1; then
     ZSH_TARGET_DIR="/usr/share/zsh/functions/Completion/Debian"
     ZSH_TARGET_FILE="$ZSH_TARGET_DIR/_apt-fast"
 
-    if [[ -f "$ZSH_TARGET_FILE" ]] && [[ "$APT_FAST_FORCE_CONFIGURE" != "true" ]]; then
-        log_warn "[$MODULE] Zsh autocompletion for apt-fast already exists. Use APT_FAST_FORCE_CONFIGURE=true to overwrite."
+    if [[ -f "$ZSH_TARGET_FILE" ]] && [[ "$APT_FAST_FORCE_CONFIGURATION" != "true" ]]; then
+        log_warn "[$MODULE] Zsh autocompletion for apt-fast already exists. Use APT_FAST_FORCE_CONFIGURATION=true to overwrite."
     else
         log_info "[$MODULE] Installing zsh autocompletion for apt-fast"
         sudo mkdir -p "$ZSH_TARGET_DIR"
@@ -41,8 +41,8 @@ if command -v bash >/dev/null 2>&1; then
     BASH_TARGET_DIR="/etc/bash_completion.d/"
     BASH_TARGET_FILE="$BASH_TARGET_DIR/apt-fast"
 
-    if [[ -f "$BASH_TARGET_FILE" ]] && [[ "$APT_FAST_FORCE_CONFIGURE" != "true" ]]; then
-        log_warn "[$MODULE] Bash autocompletion for apt-fast already exists. Use APT_FAST_FORCE_CONFIGURE=true to overwrite."
+    if [[ -f "$BASH_TARGET_FILE" ]] && [[ "$APT_FAST_FORCE_CONFIGURATION" != "true" ]]; then
+        log_warn "[$MODULE] Bash autocompletion for apt-fast already exists. Use APT_FAST_FORCE_CONFIGURATION=true to overwrite."
     else
         log_info "[$MODULE] Installing bash autocompletion for apt-fast"
         sudo mkdir -p "$BASH_TARGET_DIR"

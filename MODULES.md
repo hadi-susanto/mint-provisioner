@@ -5,22 +5,22 @@ customizing the installation flow.
 
 ## 📦 Module List
 
-| Module            | Source    | Description                                                                                                                                   | Supported ENV Variables                                                                                                                   |
-|:------------------|:----------|:----------------------------------------------------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------|
-| `alacritty`       | Native    | A cross-platform, GPU-accelerated terminal emulator.                                                                                          | -                                                                                                                                         |
-| `apt-fast`        | LaunchPad | A shell script wrapper for apt that can drastically improve apt download speeds by downloading packages from multiple mirrors simultaneously. | `APT_FAST_USE_APT_ADD_REPOSITORY`,`APT_FAST_SKIP_CONFIGURE`, `APT_FAST_FORCE_CONFIGURE`                                                   |
-| `eza`             | PPA       | A modern replacement for `ls`.                                                                                                                | `EZA_SKIP_CONFIGURE`, `EZA_FORCE_CONFIGURE`                                                                                               |
-| `flameshot`       | GitHub    | Powerful yet simple-to-use screenshot software.                                                                                               | `FLAMESHOT_REGEX`                                                                                                                         |
-| `ghostty`         | LaunchPad | A fast, feature-rich, GPU-accelerated terminal emulator.                                                                                      | `GHOSTTY_USE_APT_ADD_REPOSITORY`, `GHOSTTY_SKIP_CONFIGURE`, `GHOSTTY_FORCE_CONFIGURE`                                                     |
-| `git`             | Native    | Distributed version control system.                                                                                                           | `GIT_SKIP_CONFIGURE`, `GIT_FORCE_CONFIGURE`                                                                                               |
-| `kitty`           | GitHub    | A fast, feature-rich, GPU-based terminal emulator.                                                                                            | `KITTY_REGEX`, `KITTY_INSTALL_DIR`, `KITTY_SKIP_CONFIGURE`, `KITTY_FORCE_CONFIGURE`, `KITTY_INSTALL_OPEN_HANDLER`                         |
-| `nerd-font`       | GitHub    | Iconic font aggregator, collection, & patcher.                                                                                                | `NERD_FONT_FAMILY`                                                                                                                        |
-| `oh-my-posh`      | External  | A prompt theme engine for any shell.                                                                                                          | `OH_MY_POSH_SUFFIX`, `OH_MY_POSH_INSTALL_DIR`, `OH_MY_POSH_THEMES_INSTALL_DIR`, `OH_MY_POSH_SKIP_CONFIGURE`, `OH_MY_POSH_FORCE_CONFIGURE` |
-| `power-level-10k` | GitHub    | A theme for Zsh that emphasizes speed, flexibility and out-of-the-box experience.                                                             | `POWERLEVEL10K_INSTALL_DIR`, `POWERLEVEL10K_SKIP_CONFIGURE`, `POWERLEVEL10K_FORCE_CONFIGURE`                                              |
-| `starship`        | GitHub    | The minimal, blazing-fast, and infinitely customizable prompt for any shell!                                                                  | `STARSHIP_REGEX`, `STARSHIP_INSTALL_DIR`, `STARSHIP_SKIP_CONFIGURE`, `STARSHIP_FORCE_CONFIGURE`                                           |
-| `sys-config`      | Native    | Special module to confiure existing Linux Mint installation, it **don't install anything** so please use `configure.sh` to initiate it.       | -                                                                                                                                         |
-| `terminator`      | LaunchPad | Multiple terminals in one window.                                                                                                             | `TERMINATOR_USE_APT_ADD_REPOSITORY`                                                                                                       |
-| `zsh`             | Native    | The Z shell (zsh) is a Unix shell that can be used as an interactive login shell and as a powerful command interpreter for shell scripting.   | `ZSH_SKIP_CONFIGURE`, `ZSH_FORCE_CONFIGURE`                                                                                               |
+| Module            | Source    | Description                                                                                                                                   | Supported ENV Variables                                                                                                                           |
+|:------------------|:----------|:----------------------------------------------------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `alacritty`       | Native    | A cross-platform, GPU-accelerated terminal emulator.                                                                                          | -                                                                                                                                                 |
+| `apt-fast`        | LaunchPad | A shell script wrapper for apt that can drastically improve apt download speeds by downloading packages from multiple mirrors simultaneously. | `APT_FAST_USE_APT_ADD_REPOSITORY`,`APT_FAST_SKIP_CONFIGURATION`, `APT_FAST_FORCE_CONFIGURATION`                                                   |
+| `eza`             | PPA       | A modern replacement for `ls`.                                                                                                                | `EZA_SKIP_CONFIGURATION`, `EZA_FORCE_CONFIGURATION`                                                                                               |
+| `flameshot`       | GitHub    | Powerful yet simple-to-use screenshot software.                                                                                               | `FLAMESHOT_REGEX`                                                                                                                                 |
+| `ghostty`         | LaunchPad | A fast, feature-rich, GPU-accelerated terminal emulator.                                                                                      | `GHOSTTY_USE_APT_ADD_REPOSITORY`, `GHOSTTY_SKIP_CONFIGURATION`, `GHOSTTY_FORCE_CONFIGURATION`                                                     |
+| `git`             | Native    | Distributed version control system.                                                                                                           | `GIT_SKIP_CONFIGURATION`, `GIT_FORCE_CONFIGURATION`                                                                                               |
+| `kitty`           | GitHub    | A fast, feature-rich, GPU-based terminal emulator.                                                                                            | `KITTY_REGEX`, `KITTY_INSTALL_DIR`, `KITTY_SKIP_CONFIGURATION`, `KITTY_FORCE_CONFIGURATION`, `KITTY_INSTALL_OPEN_HANDLER`                         |
+| `nerd-font`       | GitHub    | Iconic font aggregator, collection, & patcher.                                                                                                | `NERD_FONT_FAMILY`                                                                                                                                |
+| `oh-my-posh`      | External  | A prompt theme engine for any shell.                                                                                                          | `OH_MY_POSH_SUFFIX`, `OH_MY_POSH_INSTALL_DIR`, `OH_MY_POSH_THEMES_INSTALL_DIR`, `OH_MY_POSH_SKIP_CONFIGURATION`, `OH_MY_POSH_FORCE_CONFIGURATION` |
+| `power-level-10k` | GitHub    | A theme for Zsh that emphasizes speed, flexibility and out-of-the-box experience.                                                             | `POWERLEVEL10K_INSTALL_DIR`, `POWERLEVEL10K_SKIP_CONFIGURATION`, `POWERLEVEL10K_FORCE_CONFIGURATION`                                              |
+| `starship`        | GitHub    | The minimal, blazing-fast, and infinitely customizable prompt for any shell!                                                                  | `STARSHIP_REGEX`, `STARSHIP_INSTALL_DIR`, `STARSHIP_SKIP_CONFIGURATION`, `STARSHIP_FORCE_CONFIGURATION`                                           |
+| `sys-config`      | Native    | Special module to confiure existing Linux Mint installation, it **don't install anything** so please use `configure.sh` to initiate it.       | -                                                                                                                                                 |
+| `terminator`      | LaunchPad | Multiple terminals in one window.                                                                                                             | `TERMINATOR_USE_APT_ADD_REPOSITORY`                                                                                                               |
+| `zsh`             | Native    | The Z shell (zsh) is a Unix shell that can be used as an interactive login shell and as a powerful command interpreter for shell scripting.   | `ZSH_SKIP_CONFIGURATION`, `ZSH_FORCE_CONFIGURATION`                                                                                               |
 
 ## 🛠️ Configuration Details
 
@@ -62,19 +62,19 @@ software (like DEB or PPA). By default, it uses an `INSTALL_DIR` that shares the
 Used to change the installation directory for the themes of the `oh-my-posh` module. By default, it uses a `themes`
 folder inside the `OH_MY_POSH_INSTALL_DIR`.
 
-### `*_SKIP_CONFIGURE`
+### `*_SKIP_CONFIGURATION`
 
 Used mostly in modules that have a `post_install` phase to skip the automatic configuration of the installed software.
 
-* **`SKIP_CONFIGURE`**: If set to `true`, all modules will skip their configuration phase.
+* **`SKIP_CONFIGURATION`**: If set to `true`, all modules will skip their configuration phase.
 * **Supported by**: `apt-fast`, `eza`, `git`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `zsh`.
 
-### `*_FORCE_CONFIGURE`
+### `*_FORCE_CONFIGURATION`
 
 Used during the `post_install` phase to forcefully overwrite existing configuration files with the default ones provided
 by the module.
 
-* **`FORCE_CONFIGURE`**: If set to `true`, all modules will overwrite their configurations. This is used by the
+* **`FORCE_CONFIGURATION`**: If set to `true`, all modules will overwrite their configurations. This is used by the
   `reconfigure.sh` script.
 * **Supported by**: `apt-fast`, `eza`, `ghostty`, `git`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `zsh`.
 

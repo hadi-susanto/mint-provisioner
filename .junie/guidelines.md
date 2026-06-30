@@ -64,8 +64,7 @@ These guidelines are established to maintain consistency and quality across the 
 - (Optional) After the skip check, define the `*_FORCE_CONFIGURATION` and `FORCE_CONFIGURATION` variables for use in the script.
 - Configuration and symbolic links in `post_install.sh` MUST respect the skip configuration settings.
 
-- For any module phase, for file operations (e.g., copy, extract, etc.), unless the target is the `.config` folder, assess write privilege with the `can_write` function. Prepend `sudo` if `can_write` returns non-zero.
-- Always check for the existence of the source file/directory before creating a symbolic link.
+- Always check for the existence of the source file/directory before creating a symbolic link. Do log_error if the file/directory does not exist.
 
 - Example for single binary (in `post_install.sh`):
   ```bash
@@ -78,6 +77,8 @@ These guidelines are established to maintain consistency and quality across the 
   log_info "[$MODULE] Creating symbolic links"
   if [[ -f "$MODULE_INSTALL_DIR/binary-name" ]]; then
       sudo ln -sf "$MODULE_INSTALL_DIR/binary-name" /usr/local/bin/
+  else
+      log_error "[$MODULE] Binary not found at $MODULE_INSTALL_DIR/binary-name"
   fi
   ```
 
@@ -114,7 +115,7 @@ These guidelines are established to maintain consistency and quality across the 
 - **Guard Clauses**: For any logic or loops, prefer guard clauses whenever possible to reduce nesting and improve code clarity.
   - *Example:*
     ```bash
-    if [[ "${SKIP_CONFIGURE:-false}" == "true" ]]; then
+    if [[ "${SKIP_CONFIGURATION:-false}" == "true" ]]; then
         log_warn "Skipping configuration"
 
         exit 0

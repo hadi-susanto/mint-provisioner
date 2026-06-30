@@ -12,14 +12,14 @@ USER_HOME=$(get_user_home)
 CONFIG_DIR="${USER_HOME}/.config/mint-provisioner"
 PAYLOAD_DIR="${MODULES_DIR}/${MODULE}/payload"
 
-if [[ "${EZA_SKIP_CONFIGURE:-${SKIP_CONFIGURE:-false}}" == "true" ]]; then
-    log_warn "[$MODULE] EZA_SKIP_CONFIGURE is set to true, skipping configuration"
+if [[ "${EZA_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
+    log_warn "[$MODULE] EZA_SKIP_CONFIGURATION is set to true, skipping configuration"
 
     return 0
 fi
 
-if [[ -z "${EZA_FORCE_CONFIGURE:-}" ]]; then
-    EZA_FORCE_CONFIGURE="${FORCE_CONFIGURE:-false}"
+if [[ -z "${EZA_FORCE_CONFIGURATION:-}" ]]; then
+    EZA_FORCE_CONFIGURATION="${FORCE_CONFIGURATION:-false}"
 fi
 
 #
@@ -27,18 +27,18 @@ fi
 #
 log_info "[$MODULE] Copying payloads to $CONFIG_DIR"
 if [[ ! -d "$CONFIG_DIR" ]]; then
-    sudo -u "$TARGET_USER" mkdir -p "$CONFIG_DIR"
+   mkdir -p "$CONFIG_DIR"
 fi
 
 for file in "$PAYLOAD_DIR"/*; do
     if [[ -f "$file" ]]; then
         filename=$(basename "$file")
         target="$CONFIG_DIR/$filename"
-        if [[ ! -f "$target" ]] || [[ "$EZA_FORCE_CONFIGURE" == "true" ]]; then
+        if [[ ! -f "$target" ]] || [[ "$EZA_FORCE_CONFIGURATION" == "true" ]]; then
             log_info "[$MODULE] Copying $file to $target"
-            sudo -u "$TARGET_USER" cp "$file" "$target"
+            cp "$file" "$target"
         else
-          log_warn "[$MODULE] target already exists and EZA_FORCE_CONFIGURE is not true, skipping"
+          log_warn "[$MODULE] target already exists and EZA_FORCE_CONFIGURATION is not true, skipping"
         fi
     fi
 done
