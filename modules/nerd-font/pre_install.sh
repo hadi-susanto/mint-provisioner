@@ -47,7 +47,7 @@ regex="${font_name}\.zip$"
 log_info "[$MODULE] Resolving latest release"
 
 if ! url="$(
-    github_find_latest_release \
+    github_find_release \
         "$MODULE" \
         ryanoasis \
         nerd-fonts \
@@ -71,7 +71,7 @@ if ! printf '%s\n' "$download_file" > "$STATE_FILE"; then
     exit 3
 fi
 
-if ! download_from_url "$MODULE" "$url" "$download_file"; then
+if ! download_file "$MODULE" "$url" "$download_file"; then
     log_error "[$MODULE] Download failed"
     rm -f "$STATE_FILE"
     rm -f "$download_file"

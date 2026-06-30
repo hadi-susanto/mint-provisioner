@@ -34,18 +34,18 @@ These guidelines are established to maintain consistency and quality across the 
       - `external`: When the source is downloaded directly from vendor site / outside GitHub.
 
 ### 📦 PPA and Launchpad Modules
-- For any PPA or Launchpad type modules where the URL and GPG key ID are provided, the `pre_install.sh` MUST implement the `fetch_and_install_asc_key` variant as the default method.
+- For any PPA or Launchpad type modules where the URL and GPG key ID are provided, the `pre_install.sh` MUST implement the `install_asc_key` variant as the default method.
 - It should also support a fallback to the `add-ppa_repository` command if `*_USE_APT_ADD_REPOSITORY` (or the global `USE_APT_ADD_REPOSITORY`) environment variable is set to `true`.
 - Example pattern for `pre_install.sh`:
   ```bash
   if [[ "${MODULE_NAME_USE_APT_ADD_REPOSITORY:-${USE_APT_ADD_REPOSITORY:-false}}" == "true" ]]; then
       log_info "[$MODULE] configuring PPA with add-ppa-repository command"
-      add_ppa_repository "$MODULE" "ppa:user/repo"
+      add_ppa "$MODULE" "ppa:user/repo"
   else
       source "${LIB_DIR}/distro.sh"
 
-      log_info "[$MODULE] configuring PPA with fetch_and_install_asc_key command"
-      fetch_and_install_asc_key \
+      log_info "[$MODULE] configuring PPA with install_asc_key command"
+      install_asc_key \
           "$MODULE" \
           "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xGPG_KEY_ID" \
           "https://ppa.launchpadcontent.net/user/repo/ubuntu" \

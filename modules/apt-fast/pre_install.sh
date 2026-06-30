@@ -6,12 +6,12 @@ MODULE="apt-fast"
 
 if [[ "${APT_FAST_USE_APT_ADD_REPOSITORY:-${USE_APT_ADD_REPOSITORY:-false}}" == "true" ]]; then
     log_info "[$MODULE] configuring PPA with add-ppa-repository command"
-    add_ppa_repository apt-fast ppa:apt-fast/stable
+    add_ppa apt-fast ppa:apt-fast/stable
 else
     source "${LIB_DIR}/distro.sh"
 
-    log_info "[$MODULE] configuring PPA with fetch_and_install_asc_key command"
-    fetch_and_install_asc_key \
+    log_info "[$MODULE] configuring PPA with install_asc_key command"
+    install_asc_key \
         "$MODULE" \
         "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xBC5934FD3DEBD4DAEA544F791E2824A7F22B44BD" \
         "https://ppa.launchpadcontent.net/apt-fast/stable/ubuntu" \
