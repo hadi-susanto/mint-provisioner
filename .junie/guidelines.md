@@ -123,3 +123,5 @@ These guidelines are established to maintain consistency and quality across the 
 
     # Continue with main logic...
     ```
+
+- **Privilege Management**: Use `can_write` and `sudo` primarily during the `install` phase when modifying system directories. Avoid using them in `post_install` or other phases that deal with user-owned directories (like `~/.config`) unless specifically required.

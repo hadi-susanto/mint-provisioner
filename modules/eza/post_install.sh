@@ -7,9 +7,6 @@
 source "${LIB_DIR}/installer_common.sh"
 
 MODULE="eza"
-TARGET_USER="${SUDO_USER:-$USER}"
-USER_HOME=$(get_user_home)
-CONFIG_DIR="${USER_HOME}/.config/mint-provisioner"
 PAYLOAD_DIR="${MODULES_DIR}/${MODULE}/payload"
 
 if [[ "${EZA_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
@@ -25,25 +22,11 @@ fi
 #
 # Copy payloads
 #
-log_info "[$MODULE] Copying payloads to $CONFIG_DIR"
-if [[ ! -d "$CONFIG_DIR" ]]; then
-   mkdir -p "$CONFIG_DIR"
-fi
-
 for file in "$PAYLOAD_DIR"/*; do
-    if [[ -f "$file" ]]; then
-        filename=$(basename "$file")
-        target="$CONFIG_DIR/$filename"
-        if [[ ! -f "$target" ]] || [[ "$EZA_FORCE_CONFIGURATION" == "true" ]]; then
-            log_info "[$MODULE] Copying $file to $target"
-            cp "$file" "$target"
-        else
-          log_warn "[$MODULE] target already exists and EZA_FORCE_CONFIGURATION is not true, skipping"
-        fi
-    fi
+    copy_to_config_dir "$MODULE" "$file" "EZA_FORCE_CONFIGURATION"
 done
 
-add_bash_source "$MODULE" "${CONFIG_DIR}/eza-aliases.sh"
-add_zsh_source "$MODULE" "${CONFIG_DIR}/eza-aliases.sh"
+add_bash_source "$MODULE" "$(get_config_dir)/eza-aliases.sh"
+add_zsh_source "$MODULE" "$(get_config_dir)/eza-aliases.sh"
 
 log_info "[$MODULE] eza configuration completed"

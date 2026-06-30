@@ -66,9 +66,6 @@ if ! url="$(
     exit 2
 fi
 
-log_info "[$MODULE] Download URL: $url"
-log_info "[$MODULE] Download destination: $download_temp_file"
-
 if ! download_from_url "$MODULE" "$url" "$download_temp_file"; then
     log_error "[$MODULE] Download failed"
 
