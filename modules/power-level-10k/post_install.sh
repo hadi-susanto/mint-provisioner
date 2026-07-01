@@ -8,8 +8,10 @@ source "${LIB_DIR}/common.sh"
 
 MODULE="power-level-10k"
 USER_HOME=$(get_user_home)
-INSTALL_BASE_DIR="${POWERLEVEL10K_INSTALL_DIR:-$INSTALL_DIR/power-level-10k}"
-THEME_FILE="${INSTALL_BASE_DIR}/powerlevel10k.zsh-theme"
+if [[ -z "${POWERLEVEL10K_INSTALL_DIR:-}" ]]; then
+    POWERLEVEL10K_INSTALL_DIR="$INSTALL_DIR/power-level-10k"
+fi
+THEME_FILE="${POWERLEVEL10K_INSTALL_DIR}/powerlevel10k.zsh-theme"
 
 if [[ "${POWERLEVEL10K_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
     log_warn "[$MODULE] POWERLEVEL10K_SKIP_CONFIGURATION is set to true, skipping configuration"

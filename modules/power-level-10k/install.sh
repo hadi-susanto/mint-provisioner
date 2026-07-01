@@ -37,3 +37,12 @@ if ! $SUDO_CMD git clone --depth 1 "$REPO_URL" "$POWERLEVEL10K_INSTALL_DIR"; the
 fi
 
 log_info "[$MODULE] Installation completed successfully"
+
+if command -v zsh >/dev/null 2>&1; then
+    exit 0
+fi
+
+# Zsh not found, tell the user
+log_warn "[$MODULE] Zsh not found. Power Level 10k is Zsh theme, you will need Zsh for this to work."
+post_message "$MODULE" "Zsh non installed on your system. You can install it using mint-provisioner: './install.sh zsh'"
+post_message "$MODULE" "Once installed please run ./configure.sh power-level-10k to integrate existing installation"

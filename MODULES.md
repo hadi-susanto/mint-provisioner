@@ -9,6 +9,7 @@ customizing the installation flow.
 |:-------------------|:----------|:----------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------|
 | `adb`              | External  | Android Debug Bridge (ADB) and Fastboot from Google's platform-tools              | `ADB_INSTALL_DIR`                                                                                                                                 |
 | `alacritty`        | Native    | A cross-platform, GPU-accelerated terminal emulator.                              | -                                                                                                                                                 |
+| `apache-maven`     | External  | Java build automation and dependency management tool.                             | `APACHE_MAVEN_INSTALL_DIR`                                                                                                                        |
 | `apt-fast`         | Launchpad | APT wrapper with parallel package downloads for faster installation.              | `APT_FAST_USE_APT_ADD_REPOSITORY`,`APT_FAST_SKIP_CONFIGURATION`, `APT_FAST_FORCE_CONFIGURATION`                                                   |
 | `cryptomator`      | PPA       | Free open-source client-side encryption for your cloud files                      | `CRYPTOMATOR_USE_APT_ADD_REPOSITORY`                                                                                                              |
 | `double-commander` | PPA       | A cross-platform open source dual-pane file manager inspired by Total Commander.  | `DOUBLE_COMMANDER_GUI`                                                                                                                            |
@@ -79,7 +80,7 @@ Used to change the installation directory for modules that perform "manual" inst
 software (like DEB or PPA). By default, it uses an `INSTALL_DIR` that shares the same base root as the
 `mint-provisioner` repository.
 
-* **Supported by**: `adb`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`.
+* **Supported by**: `adb`, `apache-maven`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`.
 
 ### `OH_MY_POSH_THEMES_INSTALL_DIR`
 

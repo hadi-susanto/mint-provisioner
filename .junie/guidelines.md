@@ -155,19 +155,22 @@ These guidelines are established to maintain consistency and quality across the 
 
   MODULE="my-module"
   STATE_FILE="${STATE_DIR}/my-module.path"
-  INSTALL_DIR_VAR="${MY_MODULE_INSTALL_DIR:-${INSTALL_DIR}/my-module}"
+  
+  if [[ -z "${MY_MODULE_INSTALL_DIR:-}" ]]; then
+      MY_MODULE_INSTALL_DIR="$INSTALL_DIR/my-module"
+  fi
 
   read -r ARCHIVE_FILE < "$STATE_FILE"
 
   SUDO_CMD=""
-  if ! can_write "$(dirname "$INSTALL_DIR_VAR")"; then
+  if ! can_write "$(dirname "$MY_MODULE_INSTALL_DIR")"; then
       SUDO_CMD="sudo"
   fi
 
-  $SUDO_CMD mkdir -p "$INSTALL_DIR_VAR"
+  $SUDO_CMD mkdir -p "$MY_MODULE_INSTALL_DIR"
   # ... extraction logic ...
   
-  add_to_path "$MODULE" "$INSTALL_DIR_VAR"
+  add_to_path "$MODULE" "$MY_MODULE_INSTALL_DIR"
   ```
 
 ### 💻 Coding Style
