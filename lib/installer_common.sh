@@ -198,4 +198,7 @@ EOF
 )
 
     echo "$content" | sudo tee "$profile_script" > /dev/null
+
+    log_warn "[$module] PATH has been updated. You may need to log out and log back in for the changes to take effect."
+    post_message "$module" "New directory added to PATH: $source_path. Please relogin to apply changes."
 }
