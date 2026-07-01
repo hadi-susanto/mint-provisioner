@@ -4,7 +4,7 @@
 # Installs starship from a previously downloaded .tar.gz archive.
 #
 
-source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/installer_common.sh"
 
 MODULE="starship"
 STATE_FILE="${STATE_DIR}/starship.path"
@@ -56,7 +56,10 @@ if ! $SUDO_CMD chmod +x "$STARSHIP_INSTALL_DIR/starship"; then
 fi
 
 log_info "[$MODULE] Creating symbolic links"
-# Create symbolic link to add starship to PATH
-sudo ln -sf "$STARSHIP_INSTALL_DIR/starship" /usr/local/bin/
+if [[ "$STARSHIP_INSTALL_DIR" != "$(symlink_location)" ]]; then
+    symlink_binary "$MODULE" "$STARSHIP_INSTALL_DIR/starship"
+else
+    log_info "[$MODULE] Install directory matches symlink location, skipping symlink creation"
+fi
 
 log_info "[$MODULE] Installation completed successfully"
