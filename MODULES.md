@@ -7,7 +7,7 @@ customizing the installation flow.
 
 | Module             | Source    | Description                                                                       | Supported ENV Variables                                                                                                                           |
 |:-------------------|:----------|:----------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------|
-| `adb`              | External  | Android Debug Bridge (ADB) and Fastboot from Google's platform-tools              | `ADB_INSTALL_DIR`                                                                                                                                 |
+| `adb`              | External  | Android Debug Bridge (ADB) and Fastboot from Google's platform-tools.             | `ADB_INSTALL_DIR`                                                                                                                                 |
 | `alacritty`        | Native    | A cross-platform, GPU-accelerated terminal emulator.                              | -                                                                                                                                                 |
 | `apache-maven`     | External  | Java build automation and dependency management tool.                             | `APACHE_MAVEN_INSTALL_DIR`                                                                                                                        |
 | `apt-fast`         | Launchpad | APT wrapper with parallel package downloads for faster installation.              | `APT_FAST_USE_APT_ADD_REPOSITORY`,`APT_FAST_SKIP_CONFIGURATION`, `APT_FAST_FORCE_CONFIGURATION`                                                   |
@@ -23,6 +23,7 @@ customizing the installation flow.
 | `nerd-font`        | GitHub    | Iconic font aggregator, collection, and patcher with many glyphs.                 | `NERD_FONT_FAMILY`                                                                                                                                |
 | `oh-my-posh`       | External  | A highly customizable prompt theme engine for any shell.                          | `OH_MY_POSH_SUFFIX`, `OH_MY_POSH_INSTALL_DIR`, `OH_MY_POSH_THEMES_INSTALL_DIR`, `OH_MY_POSH_SKIP_CONFIGURATION`, `OH_MY_POSH_FORCE_CONFIGURATION` |
 | `power-level-10k`  | GitHub    | A high-performance Zsh theme with an easy-to-use configuration wizard.            | `POWERLEVEL10K_INSTALL_DIR`, `POWERLEVEL10K_SKIP_CONFIGURATION`, `POWERLEVEL10K_FORCE_CONFIGURATION`                                              |
+| `sdkman`           | External  | Tool for managing parallel versions of multiple JVM related SDK.                  | `SDKMAN_INSTALL_DIR`, `SDKMAN_PLATFORM`, `SDKMAN_SKIP_CONFIGURATION`, `SDKMAN_FORCE_CONFIGURATION`                                                |
 | `starship`         | GitHub    | The minimal, blazing-fast, and infinitely customizable prompt for any shell!      | `STARSHIP_REGEX`, `STARSHIP_INSTALL_DIR`, `STARSHIP_SKIP_CONFIGURATION`, `STARSHIP_FORCE_CONFIGURATION`                                           |
 | `sunflower`        | GitHub    | A highly customizable twin-panel file manager for Linux with support for plugins. | `SUNFLOWER_REGEX`                                                                                                                                 |
 | `sys-config`       | Native    | Configure existing Linux Mint (GRUB, sudoers, plymouth, etc.)                     | -                                                                                                                                                 |
@@ -80,7 +81,7 @@ Used to change the installation directory for modules that perform "manual" inst
 software (like DEB or PPA). By default, it uses an `INSTALL_DIR` that shares the same base root as the
 `mint-provisioner` repository.
 
-* **Supported by**: `adb`, `apache-maven`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`.
+* **Supported by**: `adb`, `apache-maven`, `kitty`, `oh-my-posh`, `power-level-10k`, `sdkman`, `starship`.
 
 ### `OH_MY_POSH_THEMES_INSTALL_DIR`
 
@@ -92,7 +93,8 @@ folder inside the `OH_MY_POSH_INSTALL_DIR`.
 Used mostly in modules that have a `post_install` phase to skip the automatic configuration of the installed software.
 
 * **`SKIP_CONFIGURATION`**: If set to `true`, all modules will skip their configuration phase.
-* **Supported by**: `apt-fast`, `eza`, `git`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `zsh`.
+* **Supported by**: `apt-fast`, `eza`, `git`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `sdkman`,
+  `starship`, `zsh`.
 
 ### `*_FORCE_CONFIGURATION`
 
@@ -101,7 +103,8 @@ by the module.
 
 * **`FORCE_CONFIGURATION`**: If set to `true`, all modules will overwrite their configurations. This is used by the
   `reconfigure.sh` script.
-* **Supported by**: `apt-fast`, `eza`, `ghostty`, `git`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `zsh`.
+* **Supported by**: `apt-fast`, `eza`, `ghostty`, `git`, `kitty`, `oh-my-posh`, `power-level-10k`, `sdkman`,
+  `starship`, `zsh`.
 
 ### `DOUBLE_COMMANDER_GUI`
 
@@ -124,3 +127,10 @@ Flag to install the `kitty-open.desktop` file, registering it as an application 
 
 * **Default**: `false`
 * **Allowed values**: `true`, `false`.
+
+### `SDKMAN_PLATFORM`
+
+Used by the `sdkman` module to specify the target platform for downloading SDKMAN! binaries.
+
+* **Default**: `linuxx64`
+* **Supported by**: `sdkman`.
