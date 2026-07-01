@@ -9,10 +9,12 @@ customizing the installation flow.
 |:------------------|:----------|:-------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------|
 | `alacritty`       | Native    | A cross-platform, GPU-accelerated terminal emulator.                           | -                                                                                                                                                 |
 | `apt-fast`        | Launchpad | APT wrapper with parallel package downloads for faster installation.           | `APT_FAST_USE_APT_ADD_REPOSITORY`,`APT_FAST_SKIP_CONFIGURATION`, `APT_FAST_FORCE_CONFIGURATION`                                                   |
+| `cryptomator`     | Launchpad | Free open-source client-side encryption for your cloud files                   | `CRYPTOMATOR_USE_APT_ADD_REPOSITORY`                                                                                                              |
 | `eza`             | PPA       | A modern, feature-rich replacement for `ls`.                                   | `EZA_SKIP_CONFIGURATION`, `EZA_FORCE_CONFIGURATION`                                                                                               |
 | `flameshot`       | GitHub    | Powerful yet simple-to-use screenshot software.                                | `FLAMESHOT_REGEX`                                                                                                                                 |
 | `ghostty`         | Launchpad | A fast, feature-rich, GPU-accelerated terminal emulator.                       | `GHOSTTY_USE_APT_ADD_REPOSITORY`, `GHOSTTY_SKIP_CONFIGURATION`, `GHOSTTY_FORCE_CONFIGURATION`                                                     |
 | `git`             | Native    | The ubiquitous distributed version control system.                             | `GIT_SKIP_CONFIGURATION`, `GIT_FORCE_CONFIGURATION`                                                                                               |
+| `keepass-xc`      | Launchpad | Cross-platform community-driven port of KeePass                                | `KEEPASS_XC_USE_APT_ADD_REPOSITORY`                                                                                                               |
 | `kitty`           | GitHub    | A fast, feature-rich, GPU-based terminal emulator.                             | `KITTY_REGEX`, `KITTY_INSTALL_DIR`, `KITTY_SKIP_CONFIGURATION`, `KITTY_FORCE_CONFIGURATION`, `KITTY_INSTALL_OPEN_HANDLER`                         |
 | `nerd-font`       | GitHub    | Iconic font aggregator, collection, and patcher with many glyphs.              | `NERD_FONT_FAMILY`                                                                                                                                |
 | `oh-my-posh`      | External  | A highly customizable prompt theme engine for any shell.                       | `OH_MY_POSH_SUFFIX`, `OH_MY_POSH_INSTALL_DIR`, `OH_MY_POSH_THEMES_INSTALL_DIR`, `OH_MY_POSH_SKIP_CONFIGURATION`, `OH_MY_POSH_FORCE_CONFIGURATION` |
@@ -32,7 +34,7 @@ manually add the repositories and the GPG keys via `install_asc_key` instead. In
 the `apt-add-repository` method by setting this variable to `true`.
 
 * **`USE_APT_ADD_REPOSITORY`**: If set to `true`, all modules will use `apt-add-repository` to add repositories.
-* **Supported by**: `apt-fast`, `ghostty`, `terminator`.
+* **Supported by**: `apt-fast`, `cryptomator`, `ghostty`, `keepass-xc`, `terminator`.
 
 ### `copy_to_config_dir` (Internal Helper)
 
