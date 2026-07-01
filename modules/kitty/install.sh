@@ -4,7 +4,7 @@
 # Installs kitty from a previously downloaded .txz archive.
 #
 
-source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/installer_common.sh"
 
 MODULE="kitty"
 STATE_FILE="${STATE_DIR}/kitty.path"
@@ -50,8 +50,12 @@ if ! $SUDO_CMD tar --overwrite -xJf "$ARCHIVE_FILE" -C "$KITTY_INSTALL_DIR"; the
 fi
 
 log_info "[$MODULE] Creating symbolic links"
-# Create symbolic links to add kitty and kitten to PATH
-sudo ln -sf "$KITTY_INSTALL_DIR/bin/kitty" "$KITTY_INSTALL_DIR/bin/kitten" /usr/local/bin/
+if [[ "$KITTY_INSTALL_DIR" != "$(symlink_location)" ]]; then
+    symlink_binary "$MODULE" "$KITTY_INSTALL_DIR/bin/kitty"
+    symlink_binary "$MODULE" "$KITTY_INSTALL_DIR/bin/kitten"
+else
+    log_info "[$MODULE] Install directory matches symlink location, skipping symlink creation"
+fi
 
 if [[ -z "${KITTY_INSTALL_OPEN_HANDLER:-}" ]]; then
     KITTY_INSTALL_OPEN_HANDLER="false"

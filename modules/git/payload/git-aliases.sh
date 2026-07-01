@@ -1,13 +1,20 @@
 alias gcm="git commit -m"
 alias gp="git push"
 alias gb="git branch"
-alias gbr="git branch -r"
-alias gbd="git branch -d"
-alias gbD="git branch -D"
-alias gbdr="git branch -dr"
+alias gbr="git branch --remote"
+alias gba="git branch --all"
+alias gbd="git branch --delete"
+alias gbD="git branch --delete --force"
+alias gbdr="git branch --delete --remote"
+alias gco="git checkout"
+alias gcor="git checkout --recurse-submodules"
+alias gsw="git switch"
+alias gswc="git switch --create"
+alias gf="git fetch"
+alias gfo="git fetch origin"
 
 # Push current branch to origin and set upstream
 gpsup() {
     local branch=$(git rev-parse --abbrev-ref HEAD)
-    git push -u origin "$branch"
+    git push --set-upstream origin "$branch"
 }

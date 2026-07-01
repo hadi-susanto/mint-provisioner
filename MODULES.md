@@ -5,22 +5,27 @@ customizing the installation flow.
 
 ## 📦 Module List
 
-| Module            | Source    | Description                                                                    | Supported ENV Variables                                                                                                                           |
-|:------------------|:----------|:-------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------|
-| `alacritty`       | Native    | A cross-platform, GPU-accelerated terminal emulator.                           | -                                                                                                                                                 |
-| `apt-fast`        | Launchpad | APT wrapper with parallel package downloads for faster installation.           | `APT_FAST_USE_APT_ADD_REPOSITORY`,`APT_FAST_SKIP_CONFIGURATION`, `APT_FAST_FORCE_CONFIGURATION`                                                   |
-| `eza`             | PPA       | A modern, feature-rich replacement for `ls`.                                   | `EZA_SKIP_CONFIGURATION`, `EZA_FORCE_CONFIGURATION`                                                                                               |
-| `flameshot`       | GitHub    | Powerful yet simple-to-use screenshot software.                                | `FLAMESHOT_REGEX`                                                                                                                                 |
-| `ghostty`         | Launchpad | A fast, feature-rich, GPU-accelerated terminal emulator.                       | `GHOSTTY_USE_APT_ADD_REPOSITORY`, `GHOSTTY_SKIP_CONFIGURATION`, `GHOSTTY_FORCE_CONFIGURATION`                                                     |
-| `git`             | Native    | The ubiquitous distributed version control system.                             | `GIT_SKIP_CONFIGURATION`, `GIT_FORCE_CONFIGURATION`                                                                                               |
-| `kitty`           | GitHub    | A fast, feature-rich, GPU-based terminal emulator.                             | `KITTY_REGEX`, `KITTY_INSTALL_DIR`, `KITTY_SKIP_CONFIGURATION`, `KITTY_FORCE_CONFIGURATION`, `KITTY_INSTALL_OPEN_HANDLER`                         |
-| `nerd-font`       | GitHub    | Iconic font aggregator, collection, and patcher with many glyphs.              | `NERD_FONT_FAMILY`                                                                                                                                |
-| `oh-my-posh`      | External  | A highly customizable prompt theme engine for any shell.                       | `OH_MY_POSH_SUFFIX`, `OH_MY_POSH_INSTALL_DIR`, `OH_MY_POSH_THEMES_INSTALL_DIR`, `OH_MY_POSH_SKIP_CONFIGURATION`, `OH_MY_POSH_FORCE_CONFIGURATION` |
-| `power-level-10k` | GitHub    | A high-performance Zsh theme with an easy-to-use configuration wizard.         | `POWERLEVEL10K_INSTALL_DIR`, `POWERLEVEL10K_SKIP_CONFIGURATION`, `POWERLEVEL10K_FORCE_CONFIGURATION`                                              |
-| `starship`        | GitHub    | The minimal, blazing-fast, and infinitely customizable prompt for any shell!   | `STARSHIP_REGEX`, `STARSHIP_INSTALL_DIR`, `STARSHIP_SKIP_CONFIGURATION`, `STARSHIP_FORCE_CONFIGURATION`                                           |
-| `sys-config`      | Native    | Configure existing Linux Mint (GRUB, sudoers, plymouth, etc.)                  | -                                                                                                                                                 |
-| `terminator`      | Launchpad | Feature-rich terminal emulator that supports multiple terminals in one window. | `TERMINATOR_USE_APT_ADD_REPOSITORY`                                                                                                               |
-| `zsh`             | Native    | A powerful shell designed for interactive use and scripting.                   | `ZSH_SKIP_CONFIGURATION`, `ZSH_FORCE_CONFIGURATION`                                                                                               |
+| Module             | Source    | Description                                                                       | Supported ENV Variables                                                                                                                           |
+|:-------------------|:----------|:----------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `alacritty`        | Native    | A cross-platform, GPU-accelerated terminal emulator.                              | -                                                                                                                                                 |
+| `apt-fast`         | Launchpad | APT wrapper with parallel package downloads for faster installation.              | `APT_FAST_USE_APT_ADD_REPOSITORY`,`APT_FAST_SKIP_CONFIGURATION`, `APT_FAST_FORCE_CONFIGURATION`                                                   |
+| `cryptomator`      | PPA       | Free open-source client-side encryption for your cloud files                      | `CRYPTOMATOR_USE_APT_ADD_REPOSITORY`                                                                                                              |
+| `double-commander` | PPA       | A cross-platform open source dual-pane file manager inspired by Total Commander.  | `DOUBLE_COMMANDER_GUI`                                                                                                                            |
+| `eza`              | PPA       | A modern, feature-rich replacement for `ls`.                                      | `EZA_SKIP_CONFIGURATION`, `EZA_FORCE_CONFIGURATION`                                                                                               |
+| `flameshot`        | GitHub    | Powerful yet simple-to-use screenshot software.                                   | `FLAMESHOT_REGEX`                                                                                                                                 |
+| `ghostty`          | Launchpad | A fast, feature-rich, GPU-accelerated terminal emulator.                          | `GHOSTTY_USE_APT_ADD_REPOSITORY`, `GHOSTTY_SKIP_CONFIGURATION`, `GHOSTTY_FORCE_CONFIGURATION`                                                     |
+| `git`              | Native    | The ubiquitous distributed version control system.                                | `GIT_SKIP_CONFIGURATION`, `GIT_FORCE_CONFIGURATION`                                                                                               |
+| `keepass-xc`       | PPA       | Cross-platform community-driven port of KeePass                                   | `KEEPASS_XC_USE_APT_ADD_REPOSITORY`                                                                                                               |
+| `kitty`            | GitHub    | A fast, feature-rich, GPU-based terminal emulator.                                | `KITTY_REGEX`, `KITTY_INSTALL_DIR`, `KITTY_SKIP_CONFIGURATION`, `KITTY_FORCE_CONFIGURATION`, `KITTY_INSTALL_OPEN_HANDLER`                         |
+| `mu-commander`     | GitHub    | A lightweight, cross-platform file manager with a dual-pane interface.            | `MUCOMMANDER_REGEX`                                                                                                                               |
+| `nerd-font`        | GitHub    | Iconic font aggregator, collection, and patcher with many glyphs.                 | `NERD_FONT_FAMILY`                                                                                                                                |
+| `oh-my-posh`       | External  | A highly customizable prompt theme engine for any shell.                          | `OH_MY_POSH_SUFFIX`, `OH_MY_POSH_INSTALL_DIR`, `OH_MY_POSH_THEMES_INSTALL_DIR`, `OH_MY_POSH_SKIP_CONFIGURATION`, `OH_MY_POSH_FORCE_CONFIGURATION` |
+| `power-level-10k`  | GitHub    | A high-performance Zsh theme with an easy-to-use configuration wizard.            | `POWERLEVEL10K_INSTALL_DIR`, `POWERLEVEL10K_SKIP_CONFIGURATION`, `POWERLEVEL10K_FORCE_CONFIGURATION`                                              |
+| `starship`         | GitHub    | The minimal, blazing-fast, and infinitely customizable prompt for any shell!      | `STARSHIP_REGEX`, `STARSHIP_INSTALL_DIR`, `STARSHIP_SKIP_CONFIGURATION`, `STARSHIP_FORCE_CONFIGURATION`                                           |
+| `sunflower`        | GitHub    | A highly customizable twin-panel file manager for Linux with support for plugins. | `SUNFLOWER_REGEX`                                                                                                                                 |
+| `sys-config`       | Native    | Configure existing Linux Mint (GRUB, sudoers, plymouth, etc.)                     | -                                                                                                                                                 |
+| `terminator`       | Launchpad | Feature-rich terminal emulator that supports multiple terminals in one window.    | `TERMINATOR_USE_APT_ADD_REPOSITORY`                                                                                                               |
+| `zsh`              | Native    | A powerful shell designed for interactive use and scripting.                      | `ZSH_SKIP_CONFIGURATION`, `ZSH_FORCE_CONFIGURATION`                                                                                               |
 
 ## 🛠️ Configuration Details
 
@@ -32,7 +37,7 @@ manually add the repositories and the GPG keys via `install_asc_key` instead. In
 the `apt-add-repository` method by setting this variable to `true`.
 
 * **`USE_APT_ADD_REPOSITORY`**: If set to `true`, all modules will use `apt-add-repository` to add repositories.
-* **Supported by**: `apt-fast`, `ghostty`, `terminator`.
+* **Supported by**: `apt-fast`, `cryptomator`, `double-commander`, `ghostty`, `keepass-xc`, `terminator`.
 
 ### `copy_to_config_dir` (Internal Helper)
 
@@ -56,8 +61,10 @@ Used usually by GitHub-type modules to dynamically change the regex pattern used
 asset from releases.
 
 * **`FLAMESHOT_REGEX`**: Default: `ubuntu-<version>.?amd64\.(zip|deb)$` (auto-generated based on Ubuntu version).
+* **`MUCOMMANDER_REGEX`**: Default: `mucommander_.*_x86_64\.deb`.
 * **`KITTY_REGEX`**: Default: `x86_64\.txz$`.
 * **`STARSHIP_REGEX`**: Default: `starship-x86_64-unknown-linux-musl\.tar\.gz$`.
+* **`SUNFLOWER_REGEX`**: Default: `sunflower-.*\.all\.deb`.
 
 ### `*_SUFFIX`
 
@@ -94,10 +101,24 @@ by the module.
   `reconfigure.sh` script.
 * **Supported by**: `apt-fast`, `eza`, `ghostty`, `git`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `zsh`.
 
-### Others ENV
+### `DOUBLE_COMMANDER_GUI`
 
-Environment variables that are specific to certain modules and not covered by the categories above.
+Used by the `double-commander` module to specify which GUI variant to install.
 
-* **`NERD_FONT_FAMILY`**: Specifies the font family to install for the `nerd-font` module.
-* **`KITTY_INSTALL_OPEN_HANDLER`**: If set to `true`, the `kitty-open.desktop` file will be installed. (default:
-  `false`)
+* **Default**: `doublecmd-gtk`
+* **Allowed values**: `doublecmd-gtk`, `doublecmd-qt`, `doublecmd-qt6`.
+
+### `NERD_FONT_FAMILY`
+
+Specifies the font family to install for the `nerd-font` module.
+
+* **Default**: `Inconsolata`
+* **Allowed values**: Please check the [Nerd Fonts Releases](https://github.com/ryanoasis/nerd-fonts/releases/latest)
+  website for a complete list of available fonts.
+
+### `KITTY_INSTALL_OPEN_HANDLER`
+
+Flag to install the `kitty-open.desktop` file, registering it as an application to open files with the `kitty` terminal.
+
+* **Default**: `false`
+* **Allowed values**: `true`, `false`.

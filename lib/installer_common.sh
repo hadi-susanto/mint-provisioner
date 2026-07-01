@@ -126,3 +126,76 @@ add_zsh_source() {
 
     __add_shell_source "$module" "zsh" "${user_home}/.zshrc" "$source_file" "add_zsh_source"
 }
+
+#
+# Get the location where symbolic links for binaries are created
+#
+symlink_location() {
+    echo "/usr/local/bin"
+}
+
+#
+# Create a symbolic link for a binary in /usr/local/bin
+# Arguments:
+#   1. module: Module name
+#   2. source_binary: Path to the source binary
+#
+symlink_binary() {
+    local module="$1"
+    local source_binary="$2"
+    local dest_dir
+    dest_dir=$(symlink_location)
+
+    if [[ ! -f "$source_binary" ]]; then
+        log_error "[symlink_binary] [$module] Source file $source_binary does not exist"
+
+        return 1
+    fi
+
+    if [[ ! -x "$source_binary" ]]; then
+        log_error "[symlink_binary] [$module] Source file $source_binary is not executable"
+
+        return 1
+    fi
+
+    log_info "[symlink_binary] [$module] Creating symbolic link for $source_binary in $dest_dir"
+    sudo ln -sf "$source_binary" "${dest_dir}/"
+}
+
+#
+# Add a directory to the PATH environment variable
+# Arguments:
+#   1. module: Module name
+#   2. source_path: Path to the directory to add to PATH
+#
+add_to_path() {
+    local module="$1"
+    local source_path="$2"
+
+    if [[ ! -d "$source_path" ]]; then
+        log_error "[add_to_path] [$module] Source path $source_path is not a directory"
+
+        return 1
+    fi
+
+    # Check if directory is empty
+    if [[ -z "$(ls -A "$source_path")" ]]; then
+        log_error "[add_to_path] [$module] Source path $source_path is empty"
+
+        return 1
+    fi
+
+    local profile_script="/etc/profile.d/99-path-${module}.sh"
+    log_info "[add_to_path] [$module] Registering $source_path to $profile_script"
+
+    local content
+    content=$(cat <<EOF
+case ":\$PATH:" in
+  *":${source_path}:"*) ;;
+  *) export PATH="${source_path}:\$PATH" ;;
+esac
+EOF
+)
+
+    echo "$content" | sudo tee "$profile_script" > /dev/null
+}

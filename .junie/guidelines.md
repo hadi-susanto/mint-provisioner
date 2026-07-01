@@ -34,9 +34,11 @@ These guidelines are established to maintain consistency and quality across the 
       - `external`: When the source is downloaded directly from vendor site / outside GitHub.
 
 ### 📦 PPA and Launchpad Modules
-- For any PPA or Launchpad type modules where the URL and GPG key ID are provided, the `pre_install.sh` MUST implement the `install_asc_key` variant as the default method.
-- It should also support a fallback to the `add-ppa_repository` command if `*_USE_APT_ADD_REPOSITORY` (or the global `USE_APT_ADD_REPOSITORY`) environment variable is set to `true`.
-- Example pattern for `pre_install.sh`:
+- If both the PPA format (e.g., `ppa:user/repo`) and ASC key information (URL and GPG key ID) are provided, the `pre_install.sh` MUST implement both methods, defaulting to `install_asc_key` unless `*_USE_APT_ADD_REPOSITORY` (or the global `USE_APT_ADD_REPOSITORY`) is set to `true`.
+- Otherwise, the `pre_install.sh` MUST implement ONLY what is provided:
+  - If ONLY the PPA format is provided, use the `add_ppa` command.
+  - If ONLY the ASC key/direct URI is provided, use the `install_asc_key` command without checking for `*_USE_APT_ADD_REPOSITORY`.
+- Example pattern for `pre_install.sh` (Both PPA and ASC key provided):
   ```bash
   if [[ "${MODULE_NAME_USE_APT_ADD_REPOSITORY:-${USE_APT_ADD_REPOSITORY:-false}}" == "true" ]]; then
       log_info "[$MODULE] configuring PPA with add-ppa-repository command"
@@ -52,6 +54,25 @@ These guidelines are established to maintain consistency and quality across the 
           "$(get_ubuntu_codename)" \
           "main"
   fi
+  ```
+
+- Example pattern for `pre_install.sh` (Only PPA format):
+  ```bash
+  log_info "[$MODULE] configuring PPA with add-ppa-repository command"
+  add_ppa "$MODULE" "ppa:user/repo"
+  ```
+
+- Example pattern for `pre_install.sh` (Non-PPA format):
+  ```bash
+  source "${LIB_DIR}/distro.sh"
+
+  log_info "[$MODULE] configuring PPA with install_asc_key command"
+  install_asc_key \
+      "$MODULE" \
+      "https://example.com/repo.key" \
+      "https://example.com/ubuntu" \
+      "$(get_ubuntu_codename)" \
+      "main"
   ```
 
 ### 📦 Binary Installation and Path Management
@@ -92,6 +113,28 @@ These guidelines are established to maintain consistency and quality across the 
 
   ADB_PATH_SH="${CONFIG_DIR}/adb-path.sh"
   # ... creation of path script and sourcing ...
+  ```
+
+### 📦 GitHub and External .deb Modules
+- For modules that download `.deb` files from GitHub releases:
+    - `pre_install.sh` SHOULD handle the downloading of the asset and store the absolute path of the downloaded file in a state file (e.g., `${STATE_DIR}/<module-name>.path`).
+    - Use `github_find_release` and `download_file` from `lib/installer_external.sh`.
+    - `install.sh` SHOULD read the path from the state file and perform the installation using `apt_install` with the absolute path to the `.deb` file.
+- Example for `pre_install.sh`:
+  ```bash
+  source "$LIB_DIR/installer_external.sh"
+  # ... mktemp for download_temp_file ...
+  if ! url="$(github_find_release "$MODULE" "$OWNER" "$REPO" "$REGEX")"; then
+      exit 2
+  fi
+  download_file "$MODULE" "$url" "$download_temp_file"
+  printf '%s\n' "$download_temp_file" > "$STATE_FILE"
+  ```
+- Example for `install.sh`:
+  ```bash
+  source "${LIB_DIR}/installer_apt.sh"
+  read -r DEB_FILE < "$STATE_FILE"
+  apt_install "$DEB_FILE"
   ```
 
 ### 💻 Coding Style
