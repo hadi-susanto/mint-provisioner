@@ -11,7 +11,7 @@
 #
 
 # shellcheck source=/dev/null
-source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/installer_apt.sh"
 
 MODULE="flameshot"
 STATE_FILE="${STATE_DIR}/flameshot.path"
@@ -34,12 +34,14 @@ case "$DEB_FILE" in
         ;;
     *)
         log_error "[$MODULE] Expected a .deb file, got: ${DEB_FILE}"
+
         exit 2
         ;;
 esac
 
 if [[ ! -f "$DEB_FILE" ]]; then
     log_error "[$MODULE] Package file not found: ${DEB_FILE}"
+
     exit 2
 fi
 
@@ -62,8 +64,9 @@ if [[ -f "$DEB_FILE" ]]; then
     fi
 fi
 
-if ! sudo apt-get install -y "$DEB_FILE"; then
+if ! apt_install "$DEB_FILE"; then
     log_error "[$MODULE] Package installation failed"
+
     exit 3
 fi
 

@@ -125,13 +125,6 @@ install_asc_key() {
         return 1
     fi
 
-    if [[ -z "$components" ]]; then
-        log_error "[install_asc_key] [$module] Missing repository components"
-
-        return 1
-    fi
-
-
     local keyring_dir="/etc/apt/keyrings"
     local keyring_file="${keyring_dir}/${module}.gpg"
     local source_file="/etc/apt/sources.list.d/${module}.sources"
