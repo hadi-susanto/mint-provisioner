@@ -63,3 +63,5 @@ else
 fi
 
 log_info "[$MODULE] Installation completed successfully"
+post_message "$MODULE" "starship is require nerd-font to be installed, please ensure you have nerd font installed."
+post_message "$MODULE" "to install you can use mint-provisioner to install one."

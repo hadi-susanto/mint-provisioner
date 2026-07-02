@@ -115,26 +115,62 @@ These guidelines are established to maintain consistency and quality across the 
   # ... creation of path script and sourcing ...
   ```
 
-### 📦 GitHub and External .deb Modules
-- For modules that download `.deb` files from GitHub releases:
-    - `pre_install.sh` SHOULD handle the downloading of the asset and store the absolute path of the downloaded file in a state file (e.g., `${STATE_DIR}/<module-name>.path`).
+### 📦 GitHub and External Modules (Archive and .deb)
+- For modules that download `.deb` files or archives (.zip, .txz) from GitHub releases or external URLs:
+    - `pre_install.sh` MUST handle the downloading of the asset and store the absolute path of the downloaded file in a state file (e.g., `${STATE_DIR}/<module-name>.path`).
     - Use `github_find_release` and `download_file` from `lib/installer_external.sh`.
-    - `install.sh` SHOULD read the path from the state file and perform the installation using `apt_install` with the absolute path to the `.deb` file.
-- Example for `pre_install.sh`:
+    - `install.sh` MUST read the path from the state file, perform the installation or extraction, and handle path registration.
+    - If it's a `.deb` file, use `apt_install` with the absolute path.
+    - If it's an archive:
+        - If it contains a **suite of binaries** or a complex structure, extract it to a dedicated subdirectory in `INSTALL_DIR` and use `add_to_path` from `lib/installer_common.sh` for system-wide availability.
+        - If it contains a **single binary** (or a few primary ones), extract it to a dedicated subdirectory in `INSTALL_DIR` and create symbolic links `symlink_binary` from `lib/installer_common.sh`.
+
+- Example for `pre_install.sh` (GitHub Release):
   ```bash
   source "$LIB_DIR/installer_external.sh"
-  # ... mktemp for download_temp_file ...
+
+  MODULE="my-module"
+  STATE_FILE="$STATE_DIR/my-module.path"
+
+  if ! download_file="$(mktemp --suffix=.deb)"; then
+      exit 1
+  fi
+
   if ! url="$(github_find_release "$MODULE" "$OWNER" "$REPO" "$REGEX")"; then
+      rm -f "$download_file"
       exit 2
   fi
-  download_file "$MODULE" "$url" "$download_temp_file"
-  printf '%s\n' "$download_temp_file" > "$STATE_FILE"
+
+  printf '%s\n' "$download_file" > "$STATE_FILE"
+
+  if ! download_file "$MODULE" "$url" "$download_file"; then
+      rm -f "$STATE_FILE" "$download_file"
+      exit 3
+  fi
   ```
-- Example for `install.sh`:
+
+- Example for `install.sh` (Archive with `add_to_path`):
   ```bash
-  source "${LIB_DIR}/installer_apt.sh"
-  read -r DEB_FILE < "$STATE_FILE"
-  apt_install "$DEB_FILE"
+  source "${LIB_DIR}/installer_common.sh"
+
+  MODULE="my-module"
+  STATE_FILE="${STATE_DIR}/my-module.path"
+  
+  if [[ -z "${MY_MODULE_INSTALL_DIR:-}" ]]; then
+      MY_MODULE_INSTALL_DIR="$INSTALL_DIR/my-module"
+  fi
+
+  read -r ARCHIVE_FILE < "$STATE_FILE"
+
+  SUDO_CMD=""
+  if ! can_write "$(dirname "$MY_MODULE_INSTALL_DIR")"; then
+      SUDO_CMD="sudo"
+  fi
+
+  $SUDO_CMD mkdir -p "$MY_MODULE_INSTALL_DIR"
+  # ... extraction logic ...
+  
+  add_to_path "$MODULE" "$MY_MODULE_INSTALL_DIR"
   ```
 
 ### 💻 Coding Style
