@@ -14,7 +14,7 @@ fi
 log_info "[$MODULE] Installing to $POWERLEVEL10K_INSTALL_DIR"
 
 SUDO_CMD=""
-if ! can_write "$(dirname "$(dirname "$POWERLEVEL10K_INSTALL_DIR")")"; then
+if ! can_write "$(dirname "$POWERLEVEL10K_INSTALL_DIR")"; then
     SUDO_CMD="sudo"
 fi
 
@@ -30,6 +30,7 @@ if [[ -d "$POWERLEVEL10K_INSTALL_DIR" ]]; then
     exit 0
 fi
 
+REPO_URL="https://github.com/romkatv/powerlevel10k.git"
 if ! $SUDO_CMD git clone --depth 1 "$REPO_URL" "$POWERLEVEL10K_INSTALL_DIR"; then
     log_error "[$MODULE] Failed to clone repository: $REPO_URL"
 
