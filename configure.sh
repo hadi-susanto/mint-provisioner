@@ -23,6 +23,31 @@ export FORCE_CONFIGURATION=true
 export SKIP_CONFIGURATION=false
 
 #
+# Ensure STATE_DIR is exists and indeed a directory
+#
+if [[ -e "$STATE_DIR" ]] && [[ ! -d "$STATE_DIR" ]]; then
+    log_error "[framework] STATE_DIR exists but is not a directory: $STATE_DIR"
+
+    exit 1
+fi
+
+if [[ ! -d "$STATE_DIR" ]]; then
+    log_info "[framework] Creating STATE_DIR: $STATE_DIR"
+
+    if ! mkdir -p "$STATE_DIR"; then
+        log_error "[framework] Failed to create STATE_DIR"
+
+        exit 2
+    fi
+fi
+
+if [[ ! -w "$STATE_DIR" ]]; then
+    log_error "[framework] STATE_DIR is not writable: $STATE_DIR"
+
+    exit 3
+fi
+
+#
 # Load common helpers
 #
 source "${LIB_DIR}/common.sh"
