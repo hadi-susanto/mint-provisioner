@@ -11,22 +11,27 @@ customizing the installation flow.
 | `alacritty`        | Native    | A cross-platform, GPU-accelerated terminal emulator.                              | -                                                                                                                                                 |
 | `apache-maven`     | External  | Java build automation and dependency management tool.                             | `APACHE_MAVEN_INSTALL_DIR`                                                                                                                        |
 | `bat`              | GitHub    | A `cat` clone with syntax highlighting and Git integration.                       | `BAT_REGEX`, `BAT_FAST_SKIP_CONFIGURATION`, `BAT_FAST_FORCE_CONFIGURATION`                                                                        |
+| `bottom`           | GitHub    | A customizable cross-platform graphical process/system monitor for the terminal.  | `BOTTOM_REGEX`                                                                                                                                    |
 | `apt-fast`         | Launchpad | APT wrapper with parallel package downloads for faster installation.              | `APT_FAST_USE_APT_ADD_REPOSITORY`,`APT_FAST_SKIP_CONFIGURATION`, `APT_FAST_FORCE_CONFIGURATION`                                                   |
 | `cryptomator`      | PPA       | Free open-source client-side encryption for your cloud files                      | `CRYPTOMATOR_USE_APT_ADD_REPOSITORY`                                                                                                              |
 | `double-commander` | PPA       | A cross-platform open source dual-pane file manager inspired by Total Commander.  | `DOUBLE_COMMANDER_GUI`                                                                                                                            |
 | `du-analyzer`      | GitHub    | Fast disk usage analyzer with interactive output and easy exploration.            | `DU_ANALYZER_REGEX`, `DU_ANALYZER_INSTALL_DIR`                                                                                                    |
 | `du-rust`          | GitHub    | Fast and intuitive disk usage viewer with colorful tree output.                   | `DU_RUST_REGEX`, `DU_RUST_INSTALL_DIR`                                                                                                            |
 | `duf`              | GitHub    | Modern and lightweight disk usage/free space utility with clear output.           | `DUF_REGEX`, `DUF_INSTALL_DIR`                                                                                                                    |
+| `delta`            | GitHub    | Syntax-highlighting pager for Git and unified diffs.                              | `DELTA_REGEX`, `DELTA_INSTALL_DIR`, `DELTA_SKIP_CONFIGURATION`, `DELTA_FORCE_CONFIGURATION`                                                       |
 | `eza`              | PPA       | A modern, feature-rich replacement for `ls`.                                      | `EZA_SKIP_CONFIGURATION`, `EZA_FORCE_CONFIGURATION`                                                                                               |
 | `flameshot`        | GitHub    | Powerful yet simple-to-use screenshot software.                                   | `FLAMESHOT_REGEX`                                                                                                                                 |
 | `ghostty`          | Launchpad | A fast, feature-rich, GPU-accelerated terminal emulator.                          | `GHOSTTY_USE_APT_ADD_REPOSITORY`, `GHOSTTY_SKIP_CONFIGURATION`, `GHOSTTY_FORCE_CONFIGURATION`                                                     |
 | `git`              | Native    | The ubiquitous distributed version control system.                                | `GIT_SKIP_CONFIGURATION`, `GIT_FORCE_CONFIGURATION`                                                                                               |
+| `git-ui`           | GitHub    | Blazing fast terminal UI for Git with keyboard-driven workflows.                  | `GIT_UI_REGEX`, `GIT_UI_INSTALL_DIR`, `GIT_UI_SKIP_CONFIGURATION`, `GIT_UI_FORCE_CONFIGURATION`                                                   |
 | `keepass-xc`       | PPA       | Cross-platform community-driven port of KeePass                                   | `KEEPASS_XC_USE_APT_ADD_REPOSITORY`                                                                                                               |
 | `kitty`            | GitHub    | A fast, feature-rich, GPU-based terminal emulator.                                | `KITTY_REGEX`, `KITTY_INSTALL_DIR`, `KITTY_SKIP_CONFIGURATION`, `KITTY_FORCE_CONFIGURATION`, `KITTY_INSTALL_OPEN_HANDLER`                         |
 | `mu-commander`     | GitHub    | A lightweight, cross-platform file manager with a dual-pane interface.            | `MUCOMMANDER_REGEX`                                                                                                                               |
 | `nerd-font`        | GitHub    | Iconic font aggregator, collection, and patcher with many glyphs.                 | `NERD_FONT_FAMILY`                                                                                                                                |
 | `oh-my-posh`       | External  | A highly customizable prompt theme engine for any shell.                          | `OH_MY_POSH_SUFFIX`, `OH_MY_POSH_INSTALL_DIR`, `OH_MY_POSH_THEMES_INSTALL_DIR`, `OH_MY_POSH_SKIP_CONFIGURATION`, `OH_MY_POSH_FORCE_CONFIGURATION` |
 | `power-level-10k`  | GitHub    | A high-performance Zsh theme with an easy-to-use configuration wizard.            | `POWERLEVEL10K_INSTALL_DIR`, `POWERLEVEL10K_SKIP_CONFIGURATION`, `POWERLEVEL10K_FORCE_CONFIGURATION`                                              |
+| `lazy-git`         | GitHub    | Terminal UI for Git that makes staging, commits, and history browsing fast.       | `LAZY_GIT_REGEX`, `LAZY_GIT_INSTALL_DIR`, `LAZY_GIT_SKIP_CONFIGURATION`, `LAZY_GIT_FORCE_CONFIGURATION`                                           |
+| `procs`            | GitHub    | Modern replacement for ps with human-friendly process filtering and output.       | `PROCS_REGEX`, `PROCS_INSTALL_DIR`                                                                                                                |
 | `sdkman`           | External  | Tool for managing parallel versions of multiple JVM related SDK.                  | `SDKMAN_INSTALL_DIR`, `SDKMAN_PLATFORM`, `SDKMAN_SKIP_CONFIGURATION`, `SDKMAN_FORCE_CONFIGURATION`                                                |
 | `starship`         | GitHub    | The minimal, blazing-fast, and infinitely customizable prompt for any shell!      | `STARSHIP_REGEX`, `STARSHIP_INSTALL_DIR`, `STARSHIP_SKIP_CONFIGURATION`, `STARSHIP_FORCE_CONFIGURATION`                                           |
 | `sunflower`        | GitHub    | A highly customizable twin-panel file manager for Linux with support for plugins. | `SUNFLOWER_REGEX`                                                                                                                                 |
@@ -68,12 +73,17 @@ Used usually by GitHub-type modules to dynamically change the regex pattern used
 asset from releases.
 
 * **`BAT_REGEX`**: Default: `bat_.*_amd64\.deb$`.
+* **`BOTTOM_REGEX`**: Default: `bottom-musl_.*_amd64\.deb`.
+* **`DELTA_REGEX`**: Default: `delta-.*-x86_64-unknown-linux-musl\.tar\.gz$`.
 * **`DU_ANALYZER_REGEX`**: Default: `dua-.*-x86_64-unknown-linux-musl\.tar\.gz$`.
 * **`DU_RUST_REGEX`**: Default: `dust-.*-x86_64-unknown-linux-musl\.tar\.gz$`.
 * **`DUF_REGEX`**: Default: `duf_.*_linux_x86_64\.tar\.gz$`.
 * **`FLAMESHOT_REGEX`**: Default: `ubuntu-<version>.?amd64\.(zip|deb)$` (auto-generated based on Ubuntu version).
+* **`GIT_UI_REGEX`**: Default: `gitui-linux-x86_64\.tar\.gz$`.
 * **`KITTY_REGEX`**: Default: `x86_64\.txz$`.
+* **`LAZY_GIT_REGEX`**: Default: `lazygit_.*_linux_x86_64\.tar\.gz$`.
 * **`MUCOMMANDER_REGEX`**: Default: `mucommander_.*_x86_64\.deb`.
+* **`PROCS_REGEX`**: Default: `procs-.*-x86_64-linux\.zip$`.
 * **`STARSHIP_REGEX`**: Default: `starship-x86_64-unknown-linux-musl\.tar\.gz$`.
 * **`SUNFLOWER_REGEX`**: Default: `sunflower-.*\.all\.deb`.
 
@@ -89,8 +99,8 @@ Used to change the installation directory for modules that perform "manual" inst
 software (like DEB or PPA). By default, it uses an `INSTALL_DIR` that shares the same base root as the
 `mint-provisioner` repository.
 
-* **Supported by**: `adb`, `apache-maven`, `du-analyzer`, `du-rust`, `duf`, `kitty`, `oh-my-posh`,
-  `power-level-10k`, `sdkman`, `starship`.
+* **Supported by**: `adb`, `apache-maven`, `delta`, `du-analyzer`, `du-rust`, `duf`, `git-ui`, `kitty`,
+  `lazy-git`, `oh-my-posh`, `power-level-10k`, `procs`, `sdkman`, `starship`.
 
 ### `OH_MY_POSH_THEMES_INSTALL_DIR`
 
@@ -102,8 +112,8 @@ folder inside the `OH_MY_POSH_INSTALL_DIR`.
 Used mostly in modules that have a `post_install` phase to skip the automatic configuration of the installed software.
 
 * **`SKIP_CONFIGURATION`**: If set to `true`, all modules will skip their configuration phase.
-* **Supported by**: `apt-fast`, `bat`, `eza`, `git`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `sdkman`,
-  `starship`, `zsh`.
+* **Supported by**: `apt-fast`, `bat`, `delta`, `eza`, `ghostty`, `git`, `git-ui`, `kitty`, `lazy-git`, `oh-my-posh`,
+  `power-level-10k`, `sdkman`, `starship`, `zsh`.
 
 ### `*_FORCE_CONFIGURATION`
 
@@ -112,8 +122,8 @@ by the module.
 
 * **`FORCE_CONFIGURATION`**: If set to `true`, all modules will overwrite their configurations. This is used by the
   `reconfigure.sh` script.
-* **Supported by**: `apt-fast`, `bat`, `eza`, `ghostty`, `git`, `kitty`, `oh-my-posh`, `power-level-10k`, `sdkman`,
-  `starship`, `zsh`.
+* **Supported by**: `apt-fast`, `bat`, `delta`, `eza`, `ghostty`, `git`, `git-ui`, `kitty`, `lazy-git`, `oh-my-posh`,
+  `power-level-10k`, `sdkman`, `starship`, `zsh`.
 
 ### `DOUBLE_COMMANDER_GUI`
 
