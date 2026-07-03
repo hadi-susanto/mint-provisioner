@@ -26,6 +26,7 @@ source "${LIB_DIR}/common.sh"
 #
 if [[ -e "$STATE_DIR" ]] && [[ ! -d "$STATE_DIR" ]]; then
     log_error "[framework] STATE_DIR exists but is not a directory: $STATE_DIR"
+
     exit 1
 fi
 
@@ -34,15 +35,16 @@ if [[ ! -d "$STATE_DIR" ]]; then
 
     if ! mkdir -p "$STATE_DIR"; then
         log_error "[framework] Failed to create STATE_DIR"
+
         exit 2
     fi
 fi
 
 if [[ ! -w "$STATE_DIR" ]]; then
     log_error "[framework] STATE_DIR is not writable: $STATE_DIR"
+
     exit 3
 fi
-
 
 #
 # Now metadata parser will be used to parse metadata before installing to print header

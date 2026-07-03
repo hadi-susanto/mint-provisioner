@@ -32,7 +32,7 @@ log_info "[$MODULE] Extracting $ARCHIVE_FILE to $APACHE_MAVEN_INSTALL_DIR"
 $SUDO_CMD mkdir -p "$APACHE_MAVEN_INSTALL_DIR"
 
 # Extract while stripping the top-level directory (e.g., apache-maven-3.9.16/)
-if ! $SUDO_CMD tar -xzf "$ARCHIVE_FILE" -C "$APACHE_MAVEN_INSTALL_DIR" --strip-components=1; then
+if ! $SUDO_CMD tar --overwrite -xzf "$ARCHIVE_FILE" -C "$APACHE_MAVEN_INSTALL_DIR" --strip-components=1; then
     log_error "[$MODULE] Extraction failed"
 
     exit 3
