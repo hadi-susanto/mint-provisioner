@@ -10,9 +10,13 @@ customizing the installation flow.
 | `adb`              | External  | Android Debug Bridge (ADB) and Fastboot from Google's platform-tools.             | `ADB_INSTALL_DIR`                                                                                                                                 |
 | `alacritty`        | Native    | A cross-platform, GPU-accelerated terminal emulator.                              | -                                                                                                                                                 |
 | `apache-maven`     | External  | Java build automation and dependency management tool.                             | `APACHE_MAVEN_INSTALL_DIR`                                                                                                                        |
+| `bat`              | GitHub    | A `cat` clone with syntax highlighting and Git integration.                       | `BAT_REGEX`, `BAT_FAST_SKIP_CONFIGURATION`, `BAT_FAST_FORCE_CONFIGURATION`                                                                        |
 | `apt-fast`         | Launchpad | APT wrapper with parallel package downloads for faster installation.              | `APT_FAST_USE_APT_ADD_REPOSITORY`,`APT_FAST_SKIP_CONFIGURATION`, `APT_FAST_FORCE_CONFIGURATION`                                                   |
 | `cryptomator`      | PPA       | Free open-source client-side encryption for your cloud files                      | `CRYPTOMATOR_USE_APT_ADD_REPOSITORY`                                                                                                              |
 | `double-commander` | PPA       | A cross-platform open source dual-pane file manager inspired by Total Commander.  | `DOUBLE_COMMANDER_GUI`                                                                                                                            |
+| `du-analyzer`      | GitHub    | Fast disk usage analyzer with interactive output and easy exploration.            | `DU_ANALYZER_REGEX`, `DU_ANALYZER_INSTALL_DIR`                                                                                                    |
+| `du-rust`          | GitHub    | Fast and intuitive disk usage viewer with colorful tree output.                   | `DU_RUST_REGEX`, `DU_RUST_INSTALL_DIR`                                                                                                            |
+| `duf`              | GitHub    | Modern and lightweight disk usage/free space utility with clear output.           | `DUF_REGEX`, `DUF_INSTALL_DIR`                                                                                                                    |
 | `eza`              | PPA       | A modern, feature-rich replacement for `ls`.                                      | `EZA_SKIP_CONFIGURATION`, `EZA_FORCE_CONFIGURATION`                                                                                               |
 | `flameshot`        | GitHub    | Powerful yet simple-to-use screenshot software.                                   | `FLAMESHOT_REGEX`                                                                                                                                 |
 | `ghostty`          | Launchpad | A fast, feature-rich, GPU-accelerated terminal emulator.                          | `GHOSTTY_USE_APT_ADD_REPOSITORY`, `GHOSTTY_SKIP_CONFIGURATION`, `GHOSTTY_FORCE_CONFIGURATION`                                                     |
@@ -63,9 +67,13 @@ Used by modules during the `post_install` phase to copy payload files to the use
 Used usually by GitHub-type modules to dynamically change the regex pattern used to identify and download the correct
 asset from releases.
 
+* **`BAT_REGEX`**: Default: `bat_.*_amd64\.deb$`.
+* **`DU_ANALYZER_REGEX`**: Default: `dua-.*-x86_64-unknown-linux-musl\.tar\.gz$`.
+* **`DU_RUST_REGEX`**: Default: `dust-.*-x86_64-unknown-linux-musl\.tar\.gz$`.
+* **`DUF_REGEX`**: Default: `duf_.*_linux_x86_64\.tar\.gz$`.
 * **`FLAMESHOT_REGEX`**: Default: `ubuntu-<version>.?amd64\.(zip|deb)$` (auto-generated based on Ubuntu version).
-* **`MUCOMMANDER_REGEX`**: Default: `mucommander_.*_x86_64\.deb`.
 * **`KITTY_REGEX`**: Default: `x86_64\.txz$`.
+* **`MUCOMMANDER_REGEX`**: Default: `mucommander_.*_x86_64\.deb`.
 * **`STARSHIP_REGEX`**: Default: `starship-x86_64-unknown-linux-musl\.tar\.gz$`.
 * **`SUNFLOWER_REGEX`**: Default: `sunflower-.*\.all\.deb`.
 
@@ -81,7 +89,8 @@ Used to change the installation directory for modules that perform "manual" inst
 software (like DEB or PPA). By default, it uses an `INSTALL_DIR` that shares the same base root as the
 `mint-provisioner` repository.
 
-* **Supported by**: `adb`, `apache-maven`, `kitty`, `oh-my-posh`, `power-level-10k`, `sdkman`, `starship`.
+* **Supported by**: `adb`, `apache-maven`, `du-analyzer`, `du-rust`, `duf`, `kitty`, `oh-my-posh`,
+  `power-level-10k`, `sdkman`, `starship`.
 
 ### `OH_MY_POSH_THEMES_INSTALL_DIR`
 
@@ -93,7 +102,7 @@ folder inside the `OH_MY_POSH_INSTALL_DIR`.
 Used mostly in modules that have a `post_install` phase to skip the automatic configuration of the installed software.
 
 * **`SKIP_CONFIGURATION`**: If set to `true`, all modules will skip their configuration phase.
-* **Supported by**: `apt-fast`, `eza`, `git`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `sdkman`,
+* **Supported by**: `apt-fast`, `bat`, `eza`, `git`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `sdkman`,
   `starship`, `zsh`.
 
 ### `*_FORCE_CONFIGURATION`
@@ -103,7 +112,7 @@ by the module.
 
 * **`FORCE_CONFIGURATION`**: If set to `true`, all modules will overwrite their configurations. This is used by the
   `reconfigure.sh` script.
-* **Supported by**: `apt-fast`, `eza`, `ghostty`, `git`, `kitty`, `oh-my-posh`, `power-level-10k`, `sdkman`,
+* **Supported by**: `apt-fast`, `bat`, `eza`, `ghostty`, `git`, `kitty`, `oh-my-posh`, `power-level-10k`, `sdkman`,
   `starship`, `zsh`.
 
 ### `DOUBLE_COMMANDER_GUI`

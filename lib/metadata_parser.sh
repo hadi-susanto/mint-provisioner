@@ -160,7 +160,9 @@ list_available_modules() {
     index=1
     while IFS= read -r module_dir; do
         declare -A metadata=()
-        parse_config "$module_dir" metadata
+        if ! parse_config "$module_dir" metadata; then
+            continue
+        fi
 
         module_name="$(basename "$module_dir")"
 
