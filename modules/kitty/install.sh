@@ -32,7 +32,7 @@ fi
 log_info "[$MODULE] Extracting content to $KITTY_INSTALL_DIR"
 
 SUDO_CMD=""
-if ! can_write "$(dirname "$KITTY_INSTALL_DIR")"; then
+if ! can_write "$KITTY_INSTALL_DIR"; then
     SUDO_CMD="sudo"
 fi
 

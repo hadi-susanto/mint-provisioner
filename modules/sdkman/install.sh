@@ -32,7 +32,7 @@ fi
 log_info "[$MODULE] Installing SDKMAN! to $SDKMAN_INSTALL_DIR"
 
 SUDO_CMD=""
-if ! can_write "$(dirname "$SDKMAN_INSTALL_DIR")"; then
+if ! can_write "$SDKMAN_INSTALL_DIR"; then
     SUDO_CMD="sudo"
 fi
 

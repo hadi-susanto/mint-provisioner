@@ -163,7 +163,7 @@ These guidelines are established to maintain consistency and quality across the 
   read -r ARCHIVE_FILE < "$STATE_FILE"
 
   SUDO_CMD=""
-  if ! can_write "$(dirname "$MY_MODULE_INSTALL_DIR")"; then
+  if ! can_write "$MY_MODULE_INSTALL_DIR"; then
       SUDO_CMD="sudo"
   fi
 

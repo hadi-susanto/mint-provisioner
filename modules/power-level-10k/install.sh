@@ -14,11 +14,11 @@ fi
 log_info "[$MODULE] Installing to $POWERLEVEL10K_INSTALL_DIR"
 
 SUDO_CMD=""
-if ! can_write "$(dirname "$POWERLEVEL10K_INSTALL_DIR")"; then
+if ! can_write "$POWERLEVEL10K_INSTALL_DIR"; then
     SUDO_CMD="sudo"
 fi
 
-if ! $SUDO_CMD mkdir -p "$(dirname "$POWERLEVEL10K_INSTALL_DIR")"; then
+if ! $SUDO_CMD mkdir -p "$POWERLEVEL10K_INSTALL_DIR"; then
     log_error "[$MODULE] Failed to create parent directory for: $POWERLEVEL10K_INSTALL_DIR"
 
     exit 1

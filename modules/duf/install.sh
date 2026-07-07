@@ -24,7 +24,7 @@ if [[ -z "${DUF_INSTALL_DIR:-}" ]]; then
 fi
 
 SUDO_CMD=""
-if ! can_write "$(dirname "$DUF_INSTALL_DIR")"; then
+if ! can_write "$DUF_INSTALL_DIR"; then
     SUDO_CMD="sudo"
 fi
 

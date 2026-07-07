@@ -24,7 +24,7 @@ if [[ -z "${PROCS_INSTALL_DIR:-}" ]]; then
 fi
 
 SUDO_CMD=""
-if ! can_write "$(dirname "$PROCS_INSTALL_DIR")"; then
+if ! can_write "$PROCS_INSTALL_DIR"; then
     SUDO_CMD="sudo"
 fi
 

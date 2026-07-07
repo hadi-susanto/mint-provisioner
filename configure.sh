@@ -23,6 +23,11 @@ export FORCE_CONFIGURATION=true
 export SKIP_CONFIGURATION=false
 
 #
+# Load common helpers
+#
+source "${LIB_DIR}/common.sh"
+
+#
 # Ensure STATE_DIR is exists and indeed a directory
 #
 if [[ -e "$STATE_DIR" ]] && [[ ! -d "$STATE_DIR" ]]; then
@@ -46,11 +51,6 @@ if [[ ! -w "$STATE_DIR" ]]; then
 
     exit 3
 fi
-
-#
-# Load common helpers
-#
-source "${LIB_DIR}/common.sh"
 
 #
 # Privilege check (similar to install.sh)

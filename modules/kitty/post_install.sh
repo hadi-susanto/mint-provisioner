@@ -8,7 +8,7 @@ source "${LIB_DIR}/common.sh"
 
 MODULE="kitty"
 KITTY_CONFIG_DIR="$(get_user_home)/.config/kitty"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PAYLOAD_DIR="${MODULES_DIR}/${MODULE}/payload"
 
 if [[ "${KITTY_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
     log_warn "[$MODULE] KITTY_SKIP_CONFIGURATION is set to true, skipping configuration"
@@ -36,7 +36,7 @@ for FILE in "${FILES[@]}"; do
     TARGET="$KITTY_CONFIG_DIR/$FILE"
     if [[ ! -f "$TARGET" ]] || [[ "$KITTY_FORCE_CONFIGURATION" == "true" ]]; then
         log_info "[$MODULE] Copying $FILE to $KITTY_CONFIG_DIR"
-        cp "$SCRIPT_DIR/payload/$FILE" "$TARGET"
+        cp "$PAYLOAD_DIR/$FILE" "$TARGET"
     else
         log_warn "[$MODULE] $FILE already exists and KITTY_FORCE_CONFIGURATION is not true, skipping"
     fi

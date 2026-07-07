@@ -24,7 +24,7 @@ if [[ -z "${DELTA_INSTALL_DIR:-}" ]]; then
 fi
 
 SUDO_CMD=""
-if ! can_write "$(dirname "$DELTA_INSTALL_DIR")"; then
+if ! can_write "$DELTA_INSTALL_DIR"; then
     SUDO_CMD="sudo"
 fi
 

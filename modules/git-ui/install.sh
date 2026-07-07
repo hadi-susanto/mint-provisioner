@@ -24,7 +24,7 @@ if [[ -z "${GIT_UI_INSTALL_DIR:-}" ]]; then
 fi
 
 SUDO_CMD=""
-if ! can_write "$(dirname "$GIT_UI_INSTALL_DIR")"; then
+if ! can_write "$GIT_UI_INSTALL_DIR"; then
     SUDO_CMD="sudo"
 fi
 

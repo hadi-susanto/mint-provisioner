@@ -24,7 +24,7 @@ if [[ -z "${DU_ANALYZER_INSTALL_DIR:-}" ]]; then
 fi
 
 SUDO_CMD=""
-if ! can_write "$(dirname "$DU_ANALYZER_INSTALL_DIR")"; then
+if ! can_write "$DU_ANALYZER_INSTALL_DIR"; then
     SUDO_CMD="sudo"
 fi
 

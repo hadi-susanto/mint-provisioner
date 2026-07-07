@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 source "${LIB_DIR}/common.sh"
 
 MODULE="apt-fast"
+PAYLOAD_DIR="${MODULES_DIR}/${MODULE}/payload"
  
 # Skip configuration if APT_FAST_SKIP_CONFIGURATION or SKIP_CONFIGURATION is set
 if [[ "${APT_FAST_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
@@ -19,7 +18,7 @@ fi
 
 # ZSH Autocompletion
 if command -v zsh >/dev/null 2>&1; then
-    ZSH_SOURCE_FILE="$SCRIPT_DIR/payload/zsh-autocompletion"
+    ZSH_SOURCE_FILE="$PAYLOAD_DIR/zsh-autocompletion"
     ZSH_TARGET_DIR="/usr/share/zsh/functions/Completion/Debian"
     ZSH_TARGET_FILE="$ZSH_TARGET_DIR/_apt-fast"
 
@@ -37,7 +36,7 @@ fi
 
 # Bash Autocompletion
 if command -v bash >/dev/null 2>&1; then
-    BASH_SOURCE_FILE="$SCRIPT_DIR/payload/bash-autocompletion"
+    BASH_SOURCE_FILE="$PAYLOAD_DIR/bash-autocompletion"
     BASH_TARGET_DIR="/etc/bash_completion.d/"
     BASH_TARGET_FILE="$BASH_TARGET_DIR/apt-fast"
 

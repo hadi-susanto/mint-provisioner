@@ -24,7 +24,7 @@ if [[ -z "${LAZY_GIT_INSTALL_DIR:-}" ]]; then
 fi
 
 SUDO_CMD=""
-if ! can_write "$(dirname "$LAZY_GIT_INSTALL_DIR")"; then
+if ! can_write "$LAZY_GIT_INSTALL_DIR"; then
     SUDO_CMD="sudo"
 fi
 

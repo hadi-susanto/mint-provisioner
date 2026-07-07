@@ -24,7 +24,7 @@ if [[ ! -f "$ARCHIVE_FILE" ]]; then
 fi
 
 SUDO_CMD=""
-if ! can_write "$(dirname "$APACHE_MAVEN_INSTALL_DIR")"; then
+if ! can_write "$APACHE_MAVEN_INSTALL_DIR"; then
     SUDO_CMD="sudo"
 fi
 

@@ -3,6 +3,7 @@
 source "${LIB_DIR}/installer_common.sh"
 
 MODULE="zsh"
+PAYLOAD_DIR="${MODULES_DIR}/${MODULE}/payload"
 
 # Determine the target user (the one who invoked sudo, or the current user)
 TARGET_USER="${SUDO_USER:-$USER}"
@@ -31,15 +32,13 @@ msg="Default shell changed to zsh successfully"
 msg+=$'\n'"Don't forget re-login to apply shell changes"
 post_message "$MODULE" "$msg"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 if [[ -z "${ZSH_FORCE_CONFIGURATION:-}" ]]; then
     ZSH_FORCE_CONFIGURATION="${FORCE_CONFIGURATION:-false}"
 fi
 
 # 1. Copy payload files
 PAYLOAD_FILE="general-config.zsh"
-copy_to_config_dir "$MODULE" "$SCRIPT_DIR/payload/$PAYLOAD_FILE" "ZSH_FORCE_CONFIGURATION"
+copy_to_config_dir "$MODULE" "$PAYLOAD_DIR/$PAYLOAD_FILE" "ZSH_FORCE_CONFIGURATION"
 
 # 2. Inspect ~/.zshrc and append source if missing
 add_zsh_source "$MODULE" "$(get_config_dir)/$PAYLOAD_FILE"
