@@ -27,18 +27,20 @@ Mint Provisioner is designed to simplify the post-installation setup of Linux Mi
 │   ├── common.sh              # Logging and utility functions
 │   ├── distro.sh              # OS and Upstream detection
 │   ├── installer_apt.sh       # APT, PPA, and GPG key helpers
+│   ├── installer_common.sh    # Common helpers for installation and shell integration
 │   ├── installer_external.sh  # GitHub release and URL downloaders
 │   ├── metadata_parser.sh     # Module config parsing
 │   ├── module_configurer.sh   # Configuration management logic
 │   └── module_installer.sh    # Installation lifecycle logic
-└── modules/                   # Software modules
-    └── <module-name>/
-        ├── metadata.conf      # Module information (Name, Source, Desc)
-        ├── is_installed.sh    # Check if software exists (Mandatory)
-        ├── pre_install.sh     # Prerequisites (Optional)
-        ├── install.sh         # Core installation (Mandatory)
-        ├── post_install.sh    # Configuration (Optional)
-        └── cleanup.sh         # Post-install cleanup (Optional)
+└── modules/                           # Software modules
+    └── <category-name>/
+        └── <module-name>/
+            ├── metadata.conf          # Module information (Name, Source, Desc)
+            ├── is_installed.sh        # Check if software exists (Mandatory)
+            ├── pre_install.sh         # Prerequisites (Optional)
+            ├── install.sh             # Core installation (Mandatory)
+            ├── post_install.sh        # Configuration (Optional)
+            └── cleanup.sh             # Post-install cleanup (Optional)
 ```
 
 ## 🔄 Installation Lifecycle
@@ -60,15 +62,20 @@ Run the script without arguments to see what can be installed:
 ```
 
 ### Install specific modules
-Pass the module directory names as arguments:
+Pass canonical module IDs (`category/module`) as arguments. Flat module names are also accepted when uniquely resolvable:
 ```bash
-./install.sh <module> [module...]
+./install.sh <category/module> [category/module...]
+```
+
+Example:
+```bash
+./install.sh software-engineering/git terminal-experience/eza
 ```
 
 ### Configure modules
 Re-run configuration for installed modules:
 ```bash
-./configure.sh <module> [module...]
+./configure.sh <category/module> [category/module...]
 ```
 If no arguments are provided, it will prompt to iterate through all available modules.
 
@@ -88,7 +95,7 @@ Many modules support override variables (e.g., `STARSHIP_REGEX`). See [MODULES.m
 
 ## ➕ Adding a New Module
 
-1.  Create a new directory in `modules/`.
+1.  Create a new directory in `modules/<category-name>/`.
 2.  Add a `metadata.conf` with `NAME`, `DESCRIPTION`, and `SOURCE`.
 3.  Implement `is_installed.sh` (must return `0` if installed, `1` if not).
 4.  Implement `install.sh`.
@@ -108,7 +115,7 @@ The framework provides powerful helpers in `lib/`:
 *   **APT/PPA**: `add_ppa`, `install_asc_key`, `apt_install`.
 *   **External**: `github_find_release`, `download_file`.
 *   **Distro**: `get_mint_version`, `get_mint_codename`, `get_ubuntu_version`, `get_ubuntu_codename`.
-*   **Common**: `can_write`, `run_script`, `is_admin`, `get_user_home`.
+*   **Common**: `can_write`, `run_script`, `is_admin`, `get_user_home`, and much more.
 
 ## 📜 License
 

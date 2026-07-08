@@ -231,7 +231,7 @@ run_installation() {
         #
         # Load module config into metadata
         #
-        parse_config "$MODULES_DIR/$module" metadata
+        parse_config "$module" metadata
 
         start_time="$(date +%s)"
 

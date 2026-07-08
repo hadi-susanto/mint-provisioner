@@ -51,28 +51,6 @@ if [[ ! -w "$STATE_DIR" ]]; then
 
     exit 3
 fi
-
-#
-# Privilege check (similar to install.sh)
-#
-if is_admin; then
-    log_warn "This script is running with administrative privileges (e.g., sudo)."
-    log_warn "It is better to run under user context, the script will use sudo whenever it's required."
-else
-    log_info "Usually (re)configuration will not require administrative privileges, but in some cases"
-    log_info "we may need (eg: clearing font cache) hence we asked for escalated privileges"
-
-    read -r -p "Do you want to automatically escalate privileges? (y/N): " response
-    response="${response:-n}"
-    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
-        log_info "Acquiring sudo privileges..."
-        sudo -v || {
-            log_error "Failed to escalate privileges."
-            exit 1
-        }
-    fi
-fi
-
 #
 # Determine modules to configure
 #
@@ -103,21 +81,9 @@ if [[ "$#" -eq 0 ]]; then
     fi
     modules_to_configure=("${all_modules[@]}")
 else
-    # Check modules existence
-    missing_modules=()
-    for module in "$@"; do
-        if [[ ! -d "$MODULES_DIR/$module" ]]; then
-            missing_modules+=("$module")
-        else
-            modules_to_configure+=("$module")
-        fi
-    done
-
-    if [[ "${#missing_modules[@]}" -gt 0 ]]; then
-        log_error "The following modules do not exist:"
-        for module in "${missing_modules[@]}"; do
-            log_error "  - $module"
-        done
+    if ! resolve_module_selectors modules_to_configure "$@"; then
+        log_warn "Aborting modules (re)configuration due to unresolved selector(s)..."
+        log_info "Please run ./configure.sh to see all available module(s)"
 
         exit 1
     fi
@@ -134,6 +100,28 @@ if [[ ! "$confirm_response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
 
     exit 0
 fi
+
+#
+# Privilege check (similar to install.sh)
+#
+if is_admin; then
+    log_warn "This script is running with administrative privileges (e.g., sudo)."
+    log_warn "It is better to run under user context, the script will use sudo whenever it's required."
+else
+    log_info "Usually (re)configuration will not require administrative privileges, but in some cases"
+    log_info "we may need (eg: clearing font cache) hence we asked for escalated privileges"
+
+    read -r -p "Do you want to automatically escalate privileges? (y/N): " response
+    response="${response:-n}"
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        log_info "Acquiring sudo privileges..."
+        sudo -v || {
+            log_error "Failed to escalate privileges."
+            exit 1
+        }
+    fi
+fi
+
 
 #
 # Execute modules (re)configuration logic from dedicated lib/module_configurer.sh
