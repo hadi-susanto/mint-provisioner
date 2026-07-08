@@ -23,7 +23,7 @@ Currently available categories:
 
 * [Software Engineering](./SOFTWARE-ENGINEERING.md)
 * Terminal Experience
-* System Administration
+* [System Administration](./SYSTEM-ADMINISTRATION.md)
 * Desktop Utilities
 
 Refer to the corresponding category document for detailed information about each module, including:
