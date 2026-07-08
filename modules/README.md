@@ -22,7 +22,7 @@ As the number of supported modules continues to grow, they are grouped into cate
 Currently available categories:
 
 * [Software Engineering](./SOFTWARE-ENGINEERING.md)
-* Terminal Experience
+* [Terminal Experience](./TERMINAL-EXPERIENCE.md)
 * [System Administration](./SYSTEM-ADMINISTRATION.md)
 * Desktop Utilities
 

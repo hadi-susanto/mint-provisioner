@@ -5,9 +5,6 @@
 # Theme
 theme = GitHub Dark
 
-# Start maximized
-maximize = true
-
 # Never restore previous tabs/splits/windows
 # (works on macOS, ignored on Linux)
 window-save-state = never
