@@ -1,4 +1,4 @@
-# 💻 Terminal Experience (`terminal-experience`)
+# 💻 Terminal Experience (`terminal`)
 
 Terminal Experience modules enhance the command-line environment by providing modern terminal emulators, improved
 command-line utilities, shell enhancements, and productivity tools. Together, they create a faster, more intuitive, and

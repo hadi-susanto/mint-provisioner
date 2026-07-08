@@ -21,10 +21,10 @@ As the number of supported modules continues to grow, they are grouped into cate
 
 Currently available categories:
 
-* [Software Engineering](./SOFTWARE-ENGINEERING.md)
-* [Terminal Experience](./TERMINAL-EXPERIENCE.md)
-* [System Administration](./SYSTEM-ADMINISTRATION.md)
-* [Desktop Utilities](./DESKTOP-UTILITIES.md)
+* [Software Engineering](./DEVELOPMENT.md)
+* [Terminal Experience](./TERMINAL.md)
+* [System Administration](./SYS-ADM.md)
+* [Desktop Utilities](./DESKTOP.md)
 
 Refer to the corresponding category document for detailed information about each module, including:
 

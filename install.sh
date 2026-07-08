@@ -61,7 +61,7 @@ if [[ "$#" -eq 0 ]]; then
     echo "  ./install.sh <module> [module...]"
     echo ""
     echo "Example:"
-    echo "  ./install.sh software-engineering/git terminal-experience/eza"
+    echo "  ./install.sh development/git terminal/eza"
 
     exit 0
 fi

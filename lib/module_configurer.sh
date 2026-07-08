@@ -106,7 +106,7 @@ run_configuration() {
         #
         # Load module config into metadata
         #
-        parse_config "$module" metadata
+        parse_module_config "$module" metadata
 
         start_time="$(date +%s)"
 

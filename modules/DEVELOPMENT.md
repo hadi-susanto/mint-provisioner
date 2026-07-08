@@ -1,4 +1,4 @@
-# 🛠️ Software Engineering (`software-engineering`)
+# 🛠️ Software Engineering (`development`)
 
 Software Engineering modules provide a complete development environment for Linux Mint. They include tools for source
 control, build automation, SDK management, Android development, and modern terminal-based Git workflows.

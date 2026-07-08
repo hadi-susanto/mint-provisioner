@@ -1,4 +1,4 @@
-# 🖥️ Desktop Utilities (`desktop-utilities`)
+# 🖥️ Desktop Utilities (`desktop`)
 
 Desktop Utilities modules provide graphical applications that improve everyday productivity on Linux Mint. They include tools for secure file storage, file management, screenshots, and other desktop-centric workflows.
 

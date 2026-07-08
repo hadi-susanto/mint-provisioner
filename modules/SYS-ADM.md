@@ -1,4 +1,4 @@
-# ⚙️ System Administration (`system-administration`)
+# ⚙️ System Administration (`sys-adm`)
 
 System Administration modules provide tools for monitoring, analyzing, and managing Linux systems. They help inspect resource usage, analyze disk consumption, optimize package management, and improve day-to-day system administration tasks. Several modules also integrate with the provisioner by installing shell completions or configurable installation options.
 

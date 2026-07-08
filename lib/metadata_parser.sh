@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #
-# parse_config <canonical_module_id> <result_array_name>
+# parse_module_config <canonical_module_id> <result_array_name>
 #
 # Parses a module metadata.conf file and stores the configuration
 # values into the specified associative array.
@@ -12,18 +12,18 @@
 #
 # Example:
 #
-#   modules/desktop-utilities/flameshot/metadata.conf
+#   modules/desktop/flameshot/metadata.conf
 #
 #       NAME="Flameshot"
 #       DESCRIPTION="Screenshot tool"
 #       SOURCE="github"
 #
 #   declare -A metadata
-#   parse_config "desktop-utilities/flameshot" metadata
+#   parse_module_config "desktop/flameshot" metadata
 #
-#   echo "${metadata[desktop-utilities/flameshot.NAME]}"
-#   echo "${metadata[desktop-utilities/flameshot.DESCRIPTION]}"
-#   echo "${metadata[desktop-utilities/flameshot.SOURCE]}"
+#   echo "${metadata[desktop/flameshot.NAME]}"
+#   echo "${metadata[desktop/flameshot.DESCRIPTION]}"
+#   echo "${metadata[desktop/flameshot.SOURCE]}"
 #
 # Parameters:
 #   canonical_module_id - Canonical module identifier: <category>/<module>
@@ -40,26 +40,26 @@
 #   DESCRIPTION
 #   SOURCE
 #
-parse_config() {
+parse_module_config() {
     local canonical_module_id="$1"
     local result_name="$2"
     local module_dir="$MODULES_DIR/$canonical_module_id"
     local config_file="${module_dir}/metadata.conf"
 
     if ! is_canonical_module_id "$canonical_module_id"; then
-        log_error "[parse_config] Invalid module id (must be category/module): $canonical_module_id"
+        log_error "[parse_module_config] Invalid module id (must be category/module): $canonical_module_id"
 
         return 1
     fi
 
     if [[ ! -d "$module_dir" ]]; then
-        log_error "[parse_config] Module not found: $canonical_module_id"
+        log_error "[parse_module_config] Module not found: $canonical_module_id"
 
         return 1
     fi
 
     if [[ ! -f "$config_file" ]]; then
-        log_error "[parse_config] Config not found: $config_file"
+        log_error "[parse_module_config] Config not found: $config_file"
         return 1
     fi
 
@@ -102,7 +102,53 @@ parse_config() {
 
     for k in "${required_keys[@]}"; do
         if [[ -z "${result[$canonical_module_id.$k]:-}" ]]; then
-            log_error "[parse_config] Missing required key: $k in $config_file"
+            log_error "[parse_module_config] Missing required key: $k in $config_file"
+            return 1
+        fi
+    done
+}
+
+parse_category_config() {
+    local category_name="$1"
+    local result_name="$2"
+    local category_dir="$MODULES_DIR/$category_name"
+    local config_file="${category_dir}/metadata.conf"
+
+    if [[ ! -d "$category_dir" ]]; then
+        log_error "[parse_category_config] Category not found: $category_name"
+
+        return 1
+    fi
+
+    if [[ ! -f "$config_file" ]]; then
+        log_error "[parse_category_config] Config not found: $config_file"
+
+        return 1
+    fi
+
+    declare -n result="$result_name"
+
+    local key value
+    while IFS='=' read -r key value; do
+        key="$(trim "$key")"
+        value="$(trim "$value")"
+
+        [[ -z "$key" ]] && continue
+        [[ "$key" == \#* ]] && continue
+
+        value="${value#\"}"
+        value="${value%\"}"
+
+        result["$category_name.$key"]="$value"
+
+    done < "$config_file"
+
+    local required_keys=("NAME" "DESCRIPTION")
+    local k
+    for k in "${required_keys[@]}"; do
+        if [[ -z "${result[$category_name.$k]:-}" ]]; then
+            log_error "[parse_category_config] Missing required key: $k in $config_file"
+
             return 1
         fi
     done
@@ -268,7 +314,7 @@ list_available_modules() {
         status="$(get_module_status "$canonical_id")"
 
         declare -A metadata=()
-        if ! parse_config "$canonical_id" metadata; then
+        if ! parse_module_config "$canonical_id" metadata; then
             continue
         fi
 
@@ -279,13 +325,20 @@ list_available_modules() {
             current_category="$category_name"
             index=1
 
-            printf "\n%-3s %-32s %-12s %-12s %s\n" \
-                "No" "$category_name Module" "Source" "Status" "Description" >&"$output_fd"
-            printf "%-3s %-32s %-12s %-12s %s\n" \
-                "---" "--------------------------------" "------------" "------------" "----------------------------------------" >&"$output_fd"
+            declare -A category_metadata=()
+            local category_label="$category_name"
+            if parse_category_config "$category_name" category_metadata; then
+                category_label="${category_metadata[$category_name.NAME]}"
+            fi
+
+            printf "\nModule Category: %s\n" "$category_label" >&"$output_fd"
+
+            printf "%3s | %-20s | %-12s | %-12s | %s\n" \
+                "No" "Name" "Source" "Status" "Description" >&"$output_fd"
+            printf "%s\n" "---------------------------------------------------------------------------------------------------" >&"$output_fd"
         fi
 
-        printf "%3s %-32s %-12s %-12s %s\n" \
+        printf "%3s | %-20s | %-12s | %-12s | %s\n" \
             "$index" \
             "$module_name" \
             "${metadata[$canonical_id.SOURCE]:-N/A}" \

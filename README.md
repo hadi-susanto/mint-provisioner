@@ -69,7 +69,7 @@ Pass canonical module IDs (`category/module`) as arguments. Flat module names ar
 
 Example:
 ```bash
-./install.sh software-engineering/git terminal-experience/eza
+./install.sh development/git terminal/eza
 ```
 
 ### Configure modules
