@@ -24,7 +24,7 @@ Currently available categories:
 * [Software Engineering](./SOFTWARE-ENGINEERING.md)
 * [Terminal Experience](./TERMINAL-EXPERIENCE.md)
 * [System Administration](./SYSTEM-ADMINISTRATION.md)
-* Desktop Utilities
+* [Desktop Utilities](./DESKTOP-UTILITIES.md)
 
 Refer to the corresponding category document for detailed information about each module, including:
 
