@@ -82,31 +82,9 @@ If no arguments are provided, it will prompt to iterate through all available mo
 ### Administrative Privileges
 The framework requires `sudo` for most operations. If not running as root, `install.sh` will prompt to escalate privileges.
 
-## ⚙️ Configuration
+## 📦 Modules / Softwares
 
-The framework and modules can be configured via environment variables.
-
-### Global Variables
-*   `FORCE_INSTALL=true`: Forces reinstallation of modules even if they are already detected as installed.
-*   `INSTALL_DIR`: The base directory where external software is installed (defaults to the parent directory of the project root).
-
-### Module-Specific Variables
-Many modules support override variables (e.g., `STARSHIP_REGEX`). See [MODULES.md](MODULES.md) for a full list of available modules and their specific configuration options.
-
-## ➕ Adding a New Module
-
-1.  Create a new directory in `modules/<category-name>/`.
-2.  Add a `metadata.conf` with `NAME`, `DESCRIPTION`, and `SOURCE`.
-3.  Implement `is_installed.sh` (must return `0` if installed, `1` if not).
-4.  Implement `install.sh`.
-5.  (Optional) Add `pre_install.sh` for repositories or `post_install.sh` for configuration.
-
-### Example `metadata.conf`:
-```ini
-NAME="MyTool"
-DESCRIPTION="A cool utility"
-SOURCE="apt"
-```
+This framework supports a wide range of software modules, please refer to [modules/README.md](modules/README.md) for a complete list.
 
 ## 🧰 Library Helpers
 
