@@ -3,7 +3,8 @@
 source "${LIB_DIR}/installer_common.sh"
 
 MODULE="git-ui"
-PAYLOAD_DIR="${MODULES_DIR}/${MODULE}/payload"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PAYLOAD_DIR="$SCRIPT_DIR/payload"
 
 if [[ "${GIT_UI_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
     log_warn "[$MODULE] GIT_UI_SKIP_CONFIGURATION is set to true, skipping configuration"

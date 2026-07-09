@@ -8,7 +8,8 @@ source "${LIB_DIR}/common.sh"
 
 MODULE="kitty"
 KITTY_CONFIG_DIR="$(get_user_home)/.config/kitty"
-PAYLOAD_DIR="${MODULES_DIR}/${MODULE}/payload"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PAYLOAD_DIR="$SCRIPT_DIR/payload"
 
 if [[ "${KITTY_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
     log_warn "[$MODULE] KITTY_SKIP_CONFIGURATION is set to true, skipping configuration"

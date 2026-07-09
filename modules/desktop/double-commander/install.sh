@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 source "${LIB_DIR}/installer_apt.sh"
-source "${MODULES_DIR}/double-commander/helper.sh"
+source "${SCRIPT_DIR}/helper.sh"
 
 VARIANT=$(double_commander_gui)
 

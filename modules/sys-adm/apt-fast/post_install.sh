@@ -3,8 +3,9 @@
 source "${LIB_DIR}/common.sh"
 
 MODULE="apt-fast"
-PAYLOAD_DIR="${MODULES_DIR}/${MODULE}/payload"
- 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PAYLOAD_DIR="$SCRIPT_DIR/payload"
+
 # Skip configuration if APT_FAST_SKIP_CONFIGURATION or SKIP_CONFIGURATION is set
 if [[ "${APT_FAST_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
     log_warn "[$MODULE] APT_FAST_SKIP_CONFIGURATION is set to true, skipping configuration"

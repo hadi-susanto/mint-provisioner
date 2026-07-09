@@ -7,6 +7,8 @@
 source "${LIB_DIR}/installer_common.sh"
 
 MODULE="sdkman"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PAYLOAD_DIR="$SCRIPT_DIR/payload"
 
 if [[ "${SDKMAN_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
     log_warn "[$MODULE] Skipping configuration as requested"
@@ -25,7 +27,7 @@ fi
 log_info "[$MODULE] Configuring SDKMAN!"
 
 # Copy config from payload to SDKMAN install dir if it exists
-PAYLOAD_CONFIG="${MODULES_DIR}/sdkman/payload/config"
+PAYLOAD_CONFIG="${PAYLOAD_DIR}/config"
 TARGET_CONFIG="${SDKMAN_INSTALL_DIR}/etc/config"
 
 log_info "[$MODULE] Copying configuration file to $TARGET_CONFIG"

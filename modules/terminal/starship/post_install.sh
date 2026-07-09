@@ -8,7 +8,8 @@ source "${LIB_DIR}/installer_common.sh"
 
 MODULE="starship"
 USER_HOME=$(get_user_home)
-PAYLOAD_DIR="${MODULES_DIR}/${MODULE}/payload"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PAYLOAD_DIR="$SCRIPT_DIR/payload"
 
 if [[ "${STARSHIP_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
     log_warn "[$MODULE] STARSHIP_SKIP_CONFIGURATION is set to true, skipping configuration"

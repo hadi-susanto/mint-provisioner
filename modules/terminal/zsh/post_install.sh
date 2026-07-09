@@ -3,7 +3,8 @@
 source "${LIB_DIR}/installer_common.sh"
 
 MODULE="zsh"
-PAYLOAD_DIR="${MODULES_DIR}/${MODULE}/payload"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PAYLOAD_DIR="$SCRIPT_DIR/payload"
 
 # Determine the target user (the one who invoked sudo, or the current user)
 TARGET_USER="${SUDO_USER:-$USER}"

@@ -333,12 +333,12 @@ list_available_modules() {
 
             printf "\nModule Category: %s\n" "$category_label" >&"$output_fd"
 
-            printf "%3s | %-20s | %-12s | %-12s | %s\n" \
+            printf "%3s | %-16s | %-10s | %-8s | %s\n" \
                 "No" "Name" "Source" "Status" "Description" >&"$output_fd"
             printf "%s\n" "---------------------------------------------------------------------------------------------------" >&"$output_fd"
         fi
 
-        printf "%3s | %-20s | %-12s | %-12s | %s\n" \
+        printf "%3s | %-16s | %-10s | %-8s | %s\n" \
             "$index" \
             "$module_name" \
             "${metadata[$canonical_id.SOURCE]:-N/A}" \
