@@ -47,33 +47,34 @@ if [[ ! -w "$STATE_DIR" ]]; then
 fi
 
 #
-# Now metadata.conf parser will be used to parse metadata.conf before installing to print header
+# Load library required for installation
 #
-source "$LIB_DIR/metadata_parser.sh"
+source "$LIB_DIR/module_installer.sh"
 
 #
-# No arguments -> list modules
+# No arguments -> default to show help
 #
 if [[ "$#" -eq 0 ]]; then
-    list_available_modules > /dev/null
-
-    echo "Usage:"
-    echo "  ./install.sh <module> [module...]"
-    echo ""
-    echo "Example:"
-    echo "  ./install.sh development/git terminal/eza"
+    installer_usage
 
     exit 0
+fi
+#
+# Options or arguments mainly used to show help or other function outside install things
+# just exit when some options was found
+#
+if process_installer_options "$@"; then
+  exit 0
 fi
 
 #
 # Resolve selectors to canonical module ids
 #
 resolved_modules=()
-
+log_info "Resolving any <module> into <category>/<module>..."
 if ! resolve_module_selectors resolved_modules "$@"; then
     log_warn "Aborting installation due to unresolved module selector(s)..."
-    log_info "Please run ./install.sh to see all available module(s)"
+    log_info "Please run './install.sh --list' to see all available module(s)"
 
     exit 1
 fi
@@ -104,5 +105,4 @@ fi
 #
 # Installation mode
 #
-source "$LIB_DIR/module_installer.sh"
 run_installation "${resolved_modules[@]}"

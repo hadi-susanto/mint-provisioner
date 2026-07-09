@@ -1,18 +1,26 @@
 #!/usr/bin/env bash
 
 #
-# Colors
+# Colors only applicable when we directly print to the console
 #
-COLOR_RED='\033[0;31m'
-COLOR_YELLOW='\033[0;33m'
-COLOR_RESET='\033[0m'
+if [[ -t 1 ]]; then
+    COLOR_GREEN=$'\033[0;32m'
+    COLOR_RED=$'\033[0;31m'
+    COLOR_YELLOW=$'\033[0;33m'
+    COLOR_RESET=$'\033[0m'
+else
+    COLOR_GREEN=''
+    COLOR_RED=''
+    COLOR_YELLOW=''
+    COLOR_RESET=''
+fi
 
 #
 # Logging to stderr to prevent stdout cluttering
 # stdout output will be stdin for other process
 #
 log_info() {
-    printf '[INFO]  %s\n' "$*" >&2
+    printf "[INFO]  %s\n" "$*" >&2
 }
 
 log_warn() {
