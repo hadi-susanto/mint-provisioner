@@ -88,7 +88,7 @@ __print_category_header() {
     fi
 
     printf " -= %s =- [id: %s]\n" "$category_name" "$category_id"
-    printf "%s\n" "---------------------------------------------------------------------------------------------------"
+    printf "%s\n" "----------------------------------------------------------------------"
 }
 
 __print_module_row() {
@@ -119,8 +119,6 @@ __print_module_row() {
 list_available_modules() {
     local category_dir
     local first_category=true
-
-    printf " ** AVAILABLE MODULES **\n\n"
 
     while IFS= read -r category_dir; do
         local category_id

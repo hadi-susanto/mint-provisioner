@@ -72,20 +72,6 @@ process_configurer_options() {
   return 1
 }
 
-__print_category_header() {
-    local category_id="$1"
-
-    declare -A category_metadata=()
-    local category_name="category_id"
-
-    if parse_category_config "$category_id" category_metadata; then
-        category_name="${category_metadata[$category_id.NAME]}"
-    fi
-
-    printf " -= %s =- [id: %s]\n" "$category_name" "$category_id"
-    printf "%s\n" "---------------------------------------------------------------------------------------------------"
-}
-
 __print_module_row() {
     local index="$1"
     local category_id="$2"
@@ -109,25 +95,19 @@ __print_module_row() {
 
 list_installed_modules() {
     local category_dir
-    local first_category=true
     local has_output_array=$(( $# == 1 ))
     if (( has_output_array )); then
         declare -n installed_modules_ref="$1"
         installed_modules_ref=()
     fi
 
-    printf " ** INSTALLED MODULES **\n\n"
+    printf " ** INSTALLED MODULES **\n"
 
+    local index=1
     while IFS= read -r category_dir; do
         local category_id
         category_id="${category_dir##*/}"
 
-        if [[ "$first_category" == false ]]; then
-            printf "\n"
-        fi
-        __print_category_header "$category_id"
-
-        local index=1
         local module_dir
         while IFS= read -r module_dir; do
             local module_id
@@ -143,11 +123,6 @@ list_installed_modules() {
 
             ((index++))
         done < <(list_modules_by_category "$category_id")
-
-        first_category=false
-        if (( index == 1 )); then
-            printf "There is no modules under $category_id category. This is not your fault, just empty category...\n"
-        fi
     done < <(list_categories)
 
     return 0
