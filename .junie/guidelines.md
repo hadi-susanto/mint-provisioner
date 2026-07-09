@@ -8,7 +8,7 @@ These guidelines are established to maintain consistency and quality across the 
 ### 🏗️ Module Pattern
 - Any new module pattern should follow the convention similar to the existing modules. A standard module directory should look like this:
   ```text
-  modules/<module-name>/
+  modules/<category-name>/<module-name>/
   ├── metadata.conf      # Mandatory: NAME, DESCRIPTION, SOURCE
   ├── is_installed.sh    # Mandatory: Check if software exists (exit 0 if installed, 1 if not)
   ├── pre_install.sh     # Optional: Prerequisites (PPA, GPG keys, etc.)
@@ -163,7 +163,7 @@ These guidelines are established to maintain consistency and quality across the 
   read -r ARCHIVE_FILE < "$STATE_FILE"
 
   SUDO_CMD=""
-  if ! can_write "$(dirname "$MY_MODULE_INSTALL_DIR")"; then
+  if ! can_write "$MY_MODULE_INSTALL_DIR"; then
       SUDO_CMD="sudo"
   fi
 

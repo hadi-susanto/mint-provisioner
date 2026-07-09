@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+#
+# Now we need metadata since installing phase will read some metadata
+#
+source "$LIB_DIR/metadata_parser.sh"
 
 #
 # Module lifecycle definitions
@@ -16,10 +20,139 @@ readonly OPTIONAL_PHASES=(
     cleanup
 )
 
+installer_usage() {
+    cat <<'EOF'
+Usage:
+  ./install.sh [OPTIONS] [MODULE...]
+
+Options:
+  -h, --help
+      Show this help message and exit.
+
+  -l, --list
+      List all available modules and exit.
+
+Arguments:
+  MODULE
+      Module to install.
+
+      Modules can be specified using either format:
+
+        <category>/<module>
+        <module>
+
+Examples:
+  ./install.sh cli/git
+  ./install.sh git
+  ./install.sh gui/flameshot term/kitty dev/sdkman
+  ./install.sh flameshot term/kitty sdkman
+
+Notes:
+  * Conflicting module name should be resolved by <category>/<module>
+  * Modules can also be browsed online with more details at:
+
+        https://github.com/hadi-susanto/mint-provisioner/tree/main/modules
+EOF
+}
+
+process_installer_options() {
+  local arg
+
+  for arg in "$@"; do
+    case "$arg" in
+      -h|--help)
+        installer_usage
+
+        return 0
+        ;;
+
+      -l|--list)
+        list_available_modules
+
+        return 0
+        ;;
+    esac
+  done
+
+  return 1
+}
+
+__print_category_header() {
+    local category_id="$1"
+
+    declare -A category_metadata=()
+    local category_name="category_id"
+
+    if parse_category_config "$category_id" category_metadata; then
+        category_name="${category_metadata[$category_id.NAME]}"
+    fi
+
+    printf " -= %s =- [id: %s]\n" "$category_name" "$category_id"
+    printf "%s\n" "----------------------------------------------------------------------"
+}
+
+__print_module_row() {
+    local index="$1"
+    local category_id="$2"
+    local module_id="$3"
+    local canonical_id="$category_id/$module_id"
+
+    local status
+    local status_icon
+
+    get_module_status "$canonical_id"
+    status="$?"
+    status_icon="$(get_module_status_icon "$status")"
+
+    declare -A metadata=()
+    if ! parse_module_config "$canonical_id" metadata; then
+        return 1
+    fi
+
+    printf "%3d. [%s] %s [id: %s] [source: %s]\n" \
+        "$index" "$status_icon" "${metadata[$canonical_id.NAME]:-N/A}" "$canonical_id" "${metadata[$canonical_id.SOURCE]:-N/A}"
+    printf "     %s\n" "${metadata[$canonical_id.DESCRIPTION]:-N/A}"
+
+    return 0
+}
+
+list_available_modules() {
+    local category_dir
+    local first_category=true
+
+    while IFS= read -r category_dir; do
+        local category_id
+        category_id="${category_dir##*/}"
+
+        if [[ "$first_category" == false ]]; then
+            printf "\n"
+        fi
+        __print_category_header "$category_id"
+
+        local index=1
+        local module_dir
+        while IFS= read -r module_dir; do
+            local module_id
+            module_id="${module_dir##*/}"
+
+            __print_module_row "$index" "$category_id" "$module_id"
+
+            ((index++))
+        done < <(list_modules_by_category "$category_id")
+
+        first_category=false
+        if (( index == 1 )); then
+            printf "There is no modules under $category_id category. This is not your fault, just empty category...\n"
+        fi
+    done < <(list_categories)
+
+    return 0
+}
+
 #
-# print_header <name> <source> <description>
+# __print_header <name> <source> <description>
 #
-print_header() {
+__print_header() {
     local name="$1"
     local source="$2"
     local description="$3"
@@ -35,9 +168,9 @@ print_header() {
 }
 
 #
-# print_footer <name> <duration_seconds>
+# __print_footer <name> <duration_seconds>
 #
-print_footer() {
+__print_footer() {
     local name="$1"
     local duration="$2"
 
@@ -231,16 +364,16 @@ run_installation() {
         #
         # Load module config into metadata
         #
-        parse_config "$MODULES_DIR/$module" metadata
+        parse_module_config "$module" metadata
 
         start_time="$(date +%s)"
 
-        print_header \
+        __print_header \
             "${metadata[$module.NAME]:-$module}" \
             "${metadata[$module.SOURCE]:-N/A}" \
             "${metadata[$module.DESCRIPTION]:-}"
 
-        log_info "[run_installation] Perform installation module: $module..."
+        log_info "[installer] Perform installation module: $module..."
 
         #
         # Execute module installation
@@ -256,7 +389,7 @@ run_installation() {
 
         metadata["$module.time"]="$duration"
 
-        print_footer "$module" "$duration"
+        __print_footer "$module" "$duration"
 
         echo ""
     done
@@ -302,11 +435,11 @@ run_installation() {
                 echo ""
             fi
 
-            local module_name
-            module_name=$(basename "$file" .messages)
-            
+            local module_id
+            module_id=$(basename "$file" .messages)
+
             # Print module name in bold if possible
-            printf "\e[1m[%s]:\e[0m\n" "$module_name"
+            printf "\e[1m[%s]:\e[0m\n" "$module_id"
             cat "$file"
         done
         echo "=================================================="

@@ -47,45 +47,34 @@ if [[ ! -w "$STATE_DIR" ]]; then
 fi
 
 #
-# Now metadata parser will be used to parse metadata before installing to print header
+# Load library required for installation
 #
-source "$LIB_DIR/metadata_parser.sh"
+source "$LIB_DIR/module_installer.sh"
 
 #
-# No arguments -> list modules
+# No arguments -> default to show help
 #
 if [[ "$#" -eq 0 ]]; then
-    list_available_modules > /dev/null
-
-    echo "Usage:"
-    echo "  ./install.sh <module> [module...]"
-    echo ""
-    echo "Example:"
-    echo "  ./install.sh apt-fast eza flameshot"
+    installer_usage
 
     exit 0
 fi
+#
+# Options or arguments mainly used to show help or other function outside install things
+# just exit when some options was found
+#
+if process_installer_options "$@"; then
+  exit 0
+fi
 
 #
-# Checking modules existence
+# Resolve selectors to canonical module ids
 #
-missing_modules=()
-
-for module in "$@"; do
-    if [[ ! -d "$MODULES_DIR/$module" ]]; then
-        missing_modules+=("$module")
-    fi
-done
-
-if [[ "${#missing_modules[@]}" -gt 0 ]]; then
-    log_error "The following modules do not exist:"
-
-    for module in "${missing_modules[@]}"; do
-        log_error "  - $module"
-    done
-
-    log_warn "Aborting installation..."
-    log_info "Please run ./install.sh to see all available module(s)"
+resolved_modules=()
+log_info "Resolving any <module> into <category>/<module>..."
+if ! resolve_module_selectors resolved_modules "$@"; then
+    log_warn "Aborting installation due to unresolved module selector(s)..."
+    log_info "Please run './install.sh --list' to see all available module(s)"
 
     exit 1
 fi
@@ -101,11 +90,13 @@ else
 
     read -r -p "Do you want to automatically escalate privileges? (Y/n): " response
     response="${response:-y}"
+
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
         log_info "Acquiring sudo privileges..."
 
         sudo -v || {
             log_error "Failed to escalate privileges."
+
             exit 1
         }
     fi
@@ -114,5 +105,4 @@ fi
 #
 # Installation mode
 #
-source "$LIB_DIR/module_installer.sh"
-run_installation "$@"
+run_installation "${resolved_modules[@]}"

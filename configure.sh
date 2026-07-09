@@ -23,6 +23,11 @@ export FORCE_CONFIGURATION=true
 export SKIP_CONFIGURATION=false
 
 #
+# Load common helpers
+#
+source "${LIB_DIR}/common.sh"
+
+#
 # Ensure STATE_DIR is exists and indeed a directory
 #
 if [[ -e "$STATE_DIR" ]] && [[ ! -d "$STATE_DIR" ]]; then
@@ -46,11 +51,75 @@ if [[ ! -w "$STATE_DIR" ]]; then
 
     exit 3
 fi
+#
+# Determine modules to configure
+#
+source "$LIB_DIR/module_configurer.sh"
 
 #
-# Load common helpers
+# No arguments -> default to show help
 #
-source "${LIB_DIR}/common.sh"
+if [[ "$#" -eq 0 ]]; then
+    configurer_usage
+
+    exit 0
+fi
+
+#
+# Options or arguments mainly used to show help, list installed modules,
+# or other actions outside the configuration process.
+# Exit immediately when the requested action has been completed.
+#
+PROCESS_ALL_INSTALLED=false
+
+process_configurer_options "$@" || result=$?
+result="${result:-0}"
+
+case "$result" in
+    0)
+        exit 0
+        ;;
+    2)
+        PROCESS_ALL_INSTALLED=true
+        ;;
+    *)
+        log_error "Unable to proceed, unexpected $result while processing CLI arguments"
+        ;;
+esac
+
+# Reach here means at least one module given or --all option given
+declare -a modules_to_configure=()
+if [[ "$PROCESS_ALL_INSTALLED" == true ]]; then
+    list_installed_modules modules_to_configure
+    printf "\n"
+
+    read -r -p "Are you sure you want to (re)configure all above modules? (y/N): " confirm_response
+    confirm_response="${confirm_response:-n}"
+    if [[ ! "$confirm_response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        log_info "Aborting modules (re)configuration..."
+
+        exit 0
+    fi
+else
+    if ! resolve_module_selectors modules_to_configure "$@"; then
+        log_warn "Aborting modules (re)configuration due to unresolved selector(s)..."
+        log_info "Please run ./configurer.sh --list to see all installed module(s)"
+
+        exit 1
+    fi
+fi
+
+#
+# Warning and confirmation prompt
+#
+log_warn "This script will overwrite existing configurations with Mint Provisioner defaults."
+read -r -p "Are you sure you want to continue? (y/N): " confirm_response
+confirm_response="${confirm_response:-n}"
+if [[ ! "$confirm_response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+    log_info "Aborting modules (re)configuration..."
+
+    exit 0
+fi
 
 #
 # Privilege check (similar to install.sh)
@@ -73,70 +142,8 @@ else
     fi
 fi
 
-#
-# Determine modules to configure
-#
-source "$LIB_DIR/metadata_parser.sh"
-modules_to_configure=()
-
-if [[ "$#" -eq 0 ]]; then
-    log_info "No modules specified. Iterating over all available modules..."
-    
-    # Get list of all modules
-    all_modules=()
-    while IFS= read -r module; do
-        all_modules+=("$module")
-    done < <(list_available_modules)
-
-    if [[ ${#all_modules[@]} -eq 0 ]]; then
-        log_warn "No modules found in $MODULES_DIR"
-
-        exit 0
-    fi
-
-    read -r -p "Do you want to perform configuration of any installed module? (y/N): " response
-    response="${response:-n}"
-    if [[ ! "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
-        log_info "Aborting modules (re)configuration..."
-
-        exit 0
-    fi
-    modules_to_configure=("${all_modules[@]}")
-else
-    # Check modules existence
-    missing_modules=()
-    for module in "$@"; do
-        if [[ ! -d "$MODULES_DIR/$module" ]]; then
-            missing_modules+=("$module")
-        else
-            modules_to_configure+=("$module")
-        fi
-    done
-
-    if [[ "${#missing_modules[@]}" -gt 0 ]]; then
-        log_error "The following modules do not exist:"
-        for module in "${missing_modules[@]}"; do
-            log_error "  - $module"
-        done
-
-        exit 1
-    fi
-fi
-
-#
-# Warning and confirmation prompt
-#
-log_warn "This script will overwrite existing configurations with Mint Provisioner defaults."
-read -r -p "Are you sure you want to continue? (y/N): " confirm_response
-confirm_response="${confirm_response:-n}"
-if [[ ! "$confirm_response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
-    log_info "Aborting modules (re)configuration..."
-
-    exit 0
-fi
 
 #
 # Execute modules (re)configuration logic from dedicated lib/module_configurer.sh
 #
-source "$LIB_DIR/module_configurer.sh"
 run_configuration "${modules_to_configure[@]}"

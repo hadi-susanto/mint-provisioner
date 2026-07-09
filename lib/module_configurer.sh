@@ -1,13 +1,137 @@
 #!/usr/bin/env bash
 
 #
-# (Re)Configuration lifecycle definitions
+# Now we need metadata since configuring phase will read some metadata
 #
+source "$LIB_DIR/metadata_parser.sh"
+
+configurer_usage() {
+    cat <<'EOF'
+Usage:
+  ./configurer.sh [OPTIONS] [MODULE...]
+
+Options:
+  -h, --help
+      Show this help message and exit.
+
+  -l, --list
+      List all installed modules and exit.
+
+  -a, --all
+      Configure all installed modules.
+
+Arguments:
+  MODULE
+      Installed module to configure.
+
+      Modules can be specified using either format:
+
+        <category>/<module>
+        <module>
+
+Examples:
+  ./configurer.sh cli/git
+  ./configurer.sh git
+  ./configurer.sh gui/flameshot term/kitty dev/sdkman
+  ./configurer.sh flameshot term/kitty sdkman
+  ./configurer.sh --all
+
+Notes:
+  * Conflicting module name should be resolved by <category>/<module>
+  * Modules can also be browsed online with more details at:
+
+        https://github.com/hadi-susanto/mint-provisioner/tree/main/modules
+EOF
+}
+
+process_configurer_options() {
+  local arg
+
+  for arg in "$@"; do
+    case "$arg" in
+      -h|--help)
+        configurer_usage
+
+        return 0
+        ;;
+
+      -l|--list)
+        list_installed_modules
+
+        return 0
+        ;;
+
+      -a|--all)
+        log_info "Enabling configuring all installed modules"
+
+        return 2
+        ;;
+    esac
+  done
+
+  return 1
+}
+
+__print_module_row() {
+    local index="$1"
+    local category_id="$2"
+    local module_id="$3"
+    local canonical_id="$category_id/$module_id"
+
+    if ! get_module_status "$canonical_id"; then
+        return 1
+    fi
+
+    declare -A metadata=()
+    if ! parse_module_config "$canonical_id" metadata; then
+        return 1
+    fi
+
+    printf "%3d. %s [id: %s] [source: %s]\n" \
+        "$index" "${metadata[$canonical_id.NAME]:-N/A}" "$canonical_id" "${metadata[$canonical_id.SOURCE]:-N/A}"
+
+    return 0
+}
+
+list_installed_modules() {
+    local category_dir
+    local has_output_array=$(( $# == 1 ))
+    if (( has_output_array )); then
+        declare -n installed_modules_ref="$1"
+        installed_modules_ref=()
+    fi
+
+    printf " ** INSTALLED MODULES **\n"
+
+    local index=1
+    while IFS= read -r category_dir; do
+        local category_id
+        category_id="${category_dir##*/}"
+
+        local module_dir
+        while IFS= read -r module_dir; do
+            local module_id
+            module_id="${module_dir##*/}"
+
+            if ! __print_module_row "$index" "$category_id" "$module_id"; then
+                continue
+            fi
+
+            if (( has_output_array )); then
+                installed_modules_ref+=("$category_id/$module_id")
+            fi
+
+            ((index++))
+        done < <(list_modules_by_category "$category_id")
+    done < <(list_categories)
+
+    return 0
+}
 
 #
-# print_header <name> <source> <description>
+# __print_header <name> <source> <description>
 #
-print_header() {
+__print_header() {
     local name="$1"
     local source="$2"
     local description="$3"
@@ -23,9 +147,9 @@ print_header() {
 }
 
 #
-# print_footer <name> <duration_seconds>
+# __print_footer <name> <duration_seconds>
 #
-print_footer() {
+__print_footer() {
     local name="$1"
     local duration="$2"
 
@@ -106,11 +230,11 @@ run_configuration() {
         #
         # Load module config into metadata
         #
-        parse_config "$MODULES_DIR/$module" metadata
+        parse_module_config "$module" metadata
 
         start_time="$(date +%s)"
 
-        print_header \
+        __print_header \
             "${metadata[$module.NAME]:-$module}" \
             "${metadata[$module.SOURCE]:-N/A}" \
             "${metadata[$module.DESCRIPTION]:-}"
@@ -131,7 +255,7 @@ run_configuration() {
 
         metadata["$module.time"]="$duration"
 
-        print_footer "${metadata[$module.NAME]:-$module}" "$duration"
+        __print_footer "${metadata[$module.NAME]:-$module}" "$duration"
 
         echo ""
     done
@@ -177,11 +301,11 @@ run_configuration() {
                 echo ""
             fi
 
-            local module_name
-            module_name=$(basename "$file" .messages)
-            
+            local module_id
+            module_id=$(basename "$file" .messages)
+
             # Print module name in bold if possible
-            printf "\e[1m[%s]:\e[0m\n" "$module_name"
+            printf "\e[1m[%s]:\e[0m\n" "$module_id"
             cat "$file"
         done
         echo "=================================================="
