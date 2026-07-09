@@ -47,7 +47,7 @@ if [[ ! -w "$STATE_DIR" ]]; then
 fi
 
 #
-# Now metadata parser will be used to parse metadata before installing to print header
+# Now metadata.conf parser will be used to parse metadata.conf before installing to print header
 #
 source "$LIB_DIR/metadata_parser.sh"
 

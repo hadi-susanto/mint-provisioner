@@ -1,8 +1,6 @@
-# 💻 Terminal Experience (`terminal`)
+# `>_` Terminal (`term`)
 
-Terminal Experience modules enhance the command-line environment by providing modern terminal emulators, improved
-command-line utilities, shell enhancements, and productivity tools. Together, they create a faster, more intuitive, and
-visually appealing terminal workflow.
+Terminal emulators, shells, prompts, themes, and tools that enhance the terminal experience. This category includes software such as **Kitty**, **Ghostty**, **Alacritty**, **Terminator**, **Zsh**, **Starship**, **Oh My Posh**, and **Powerlevel10k**.
 
 ---
 
@@ -24,113 +22,6 @@ None.
 ### Official Website
 
 https://alacritty.org/
-
----
-
-## Bat (`bat`)
-
-Bat is a modern replacement for the traditional `cat` command. It adds syntax highlighting, Git integration, line
-numbers, automatic paging, and many other quality-of-life improvements while remaining compatible with most `cat`
-workflows.
-
-### Installation Method
-
-**GitHub latest release (.deb)**
-
-Downloads the latest AMD64 Debian package from the official GitHub releases page and installs it using APT.
-
-### Supported ENV
-
-- `BAT_REGEX`
-    - Regular expression used to locate the GitHub release asset.
-    - Default:
-      `bat_.*_amd64\.deb$`
-
-- `BAT_SKIP_CONFIGURATION`
-    - Skip post-install configuration.
-    - Default: `${SKIP_CONFIGURATION}`
-
-- `BAT_FORCE_CONFIGURATION`
-    - Overwrite existing configuration.
-    - Default: `${FORCE_CONFIGURATION}`
-
-### Post-install Configuration
-
-#### Installed Configuration
-
-- Installs `bat-aliases.sh` into the provisioner's configuration directory.
-- Configures the default Bat theme to **Dracula**.
-- Configures `MANPAGER` so `man` pages are automatically rendered using Bat with syntax highlighting.
-
-#### Shell Integration
-
-- Registers the configuration for **Bash**.
-- Registers the configuration for **Zsh**.
-
-#### Shell Aliases
-
-| Alias | Expands To           |
-|-------|----------------------|
-| `cat` | `bat --paging=never` |
-
-#### Shell Functions
-
-| Function       | Description                                                                                                                                                   |
-|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `bat-help`     | Displays the help output of any command using Bat syntax highlighting. If called without arguments, it renders help text from standard input.                 |
-| `git-bat-diff` | Displays all modified tracked files in the current Git repository using `bat --diff`. If Git is not installed, an informative error message is shown instead. |
-
-### Official Website
-
-https://github.com/sharkdp/bat
-
----
-
-## Eza (`eza`)
-
-Eza is a modern replacement for the classic `ls` command. It provides icons, Git status, file type colors, tree view,
-improved sorting, and rich metadata while remaining familiar to existing `ls` users.
-
-### Installation Method
-
-**External APT repository**
-
-### Supported ENV
-
-- `EZA_SKIP_CONFIGURATION`
-    - Skip post-install configuration.
-    - Default: `${SKIP_CONFIGURATION}`
-
-- `EZA_FORCE_CONFIGURATION`
-    - Overwrite existing configuration.
-    - Default: `${FORCE_CONFIGURATION}`
-
-### Post-install Configuration
-
-#### Installed Configuration
-
-- Installs `eza-aliases.sh` into the provisioner's configuration directory.
-
-#### Shell Integration
-
-- Registers the configuration for **Bash**.
-- Registers the configuration for **Zsh**.
-
-#### Shell Aliases
-
-| Alias          | Description                                                                                       |
-|----------------|---------------------------------------------------------------------------------------------------|
-| `ls`           | Grid view with icons, colors, hidden files, sorted by extension, and directories displayed first. |
-| `ls-tree`      | Tree view using the same defaults as `ls`.                                                        |
-| `ll`           | Long listing with icons, colors, ISO timestamps, headers, hidden files, and directories first.    |
-| `ll-tree`      | Tree view using the long listing format.                                                          |
-| `ll-size`      | Long listing including total directory size.                                                      |
-| `ll-tree-size` | Tree view with long listing and total directory size.                                             |
-| `ll-size-tree` | Alias equivalent to `ll-tree-size`.                                                               |
-
-### Official Website
-
-https://github.com/eza-community/eza
 
 ---
 
@@ -547,24 +438,6 @@ user.
 
 The provisioner automatically loads shell integrations installed by other modules from the generated loader file,
 allowing modules to contribute aliases, functions, completions, and environment variables without modifying `.zshrc`.
-
-#### Shell Aliases
-
-None.
-
-#### Shell Functions
-
-The following helper functions are installed for use by the provisioner and its modules:
-
-| Function                 | Description                                                                                     |
-|--------------------------|-------------------------------------------------------------------------------------------------|
-| `tolower`                | Converts a string to lowercase using the most appropriate implementation for the current shell. |
-| `list_available_modules` | Displays all available provisioner modules grouped by category.                                 |
-| `confirm`                | Displays an interactive confirmation prompt.                                                    |
-| `print_header`           | Prints standardized section headers used by provisioner scripts.                                |
-| `print_success`          | Prints a success message.                                                                       |
-| `print_warning`          | Prints a warning message.                                                                       |
-| `print_error`            | Prints an error message.                                                                        |
 
 ### Official Website
 

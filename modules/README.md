@@ -21,10 +21,13 @@ As the number of supported modules continues to grow, they are grouped into cate
 
 Currently available categories:
 
-* [Software Engineering](./DEVELOPMENT.md)
-* [Terminal Experience](./TERMINAL.md)
-* [System Administration](./SYS-ADM.md)
-* [Desktop Utilities](./DESKTOP.md)
+* [Command Line Tools](CLI.md)
+* [Development Tools](DEV.md)
+* [Desktop Applications](GUI.md)
+* [System Administration](SYS.md)
+* [Terminal and Shell](TERM.md)
+* [Full-Screen Terminal Applications](TUI.md)
+* [Miscellaneous](MISC.md)
 
 Refer to the corresponding category document for detailed information about each module, including:
 
@@ -33,6 +36,23 @@ Refer to the corresponding category document for detailed information about each
 * Supported environment variables
 * Automatic post-install configuration
 * External project website
+
+## ➕ Adding a Category
+
+1.  Create a new directory in `modules/`.
+2.  Add a `metadata.conf` with `NAME`, `DESCRIPTION`.
+
+**IMPORTANT:**
+- Category names must be lowercase and use hyphens instead of spaces.
+- Try to keep the category name short and descriptive (less than 5 characters).
+- The `NAME` should be longer and more descriptive than the directory name. But keep it short.
+- The `DESCRIPTION` field should be a one-sentence summary of the category.
+
+### Example `metadata.conf`:
+```ini
+NAME="Commad Line Tools"
+DESCRIPTION="Collection of command line tools for everyday use"
+```
 
 ## ➕ Adding a New Module
 
@@ -55,6 +75,19 @@ SOURCE="apt"
 # Global Environment Variables
 
 Several global environment variables can be used to customize the behavior of all supported modules.
+
+## `FORCE_INSTALL`
+
+Forces a module to perform its installation process even if the framework detects that the application is already installed.
+
+This is useful when repairing a broken installation, reinstalling an application, or ensuring the module reapplies its installation logic without first uninstalling the existing software.
+
+Default:
+
+```text
+false
+```
+
 
 ## `USE_APT_ADD_REPOSITORY`
 
