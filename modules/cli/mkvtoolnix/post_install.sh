@@ -6,12 +6,11 @@
 
 source "${LIB_DIR}/installer_common.sh"
 
-MODULE="mkvtoolnix"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PAYLOAD_DIR="$SCRIPT_DIR/payload"
 
 if [[ "${MKVTOOLNIX_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
-    log_warn "[$MODULE] MKVTOOLNIX_SKIP_CONFIGURATION is set to true, skipping configuration"
+    log_warn "[$CANONICAL_ID] MKVTOOLNIX_SKIP_CONFIGURATION is set to true, skipping configuration"
 
     return 0
 fi
@@ -24,7 +23,7 @@ fi
 # Copy payloads
 #
 for file in "$PAYLOAD_DIR"/*; do
-    copy_to_config_dir "$MODULE" "$file" "MKVTOOLNIX_FORCE_CONFIGURATION"
+    copy_to_config_dir "$CANONICAL_ID" "$file" "MKVTOOLNIX_FORCE_CONFIGURATION"
 done
 
 #
@@ -53,9 +52,9 @@ EOF
 
 if [[ -f "$LOADER_FILE" ]]; then
     if [[ "$MKVTOOLNIX_FORCE_CONFIGURATION" != true ]]; then
-        log_warn "[$MODULE] $LOADER_FILE already exists, to overwrite please pass MKVTOOLNIX_FORCE_CONFIGURATION=true"
+        log_warn "[$CANONICAL_ID] $LOADER_FILE already exists, to overwrite please pass MKVTOOLNIX_FORCE_CONFIGURATION=true"
     else
-        log_warn "[$MODULE] overwrite $LOADER_FILE because of MKVTOOLNIX_FORCE_CONFIGURATION=true"
+        log_warn "[$CANONICAL_ID] overwrite $LOADER_FILE because of MKVTOOLNIX_FORCE_CONFIGURATION=true"
 
         __write_loader
     fi
@@ -63,7 +62,7 @@ else
     __write_loader
 fi
 
-add_bash_source "$MODULE" "$(get_config_dir)/mkvtoolnix-loader.sh"
-add_zsh_source "$MODULE" "$(get_config_dir)/mkvtoolnix-loader.sh"
+add_bash_source "$CANONICAL_ID" "$(get_config_dir)/mkvtoolnix-loader.sh"
+add_zsh_source "$CANONICAL_ID" "$(get_config_dir)/mkvtoolnix-loader.sh"
 
-log_info "[$MODULE] MKVToolNix configuration completed"
+log_info "[$CANONICAL_ID] MKVToolNix configuration completed"
