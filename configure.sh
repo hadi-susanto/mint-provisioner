@@ -23,34 +23,22 @@ export FORCE_CONFIGURATION=true
 export SKIP_CONFIGURATION=false
 
 #
-# Load common helpers
+# Load common helpers (state handling and shared function)
 #
 source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/state.sh"
 
 #
-# Ensure STATE_DIR is exists and indeed a directory
+# Initialize state engine
 #
-if [[ -e "$STATE_DIR" ]] && [[ ! -d "$STATE_DIR" ]]; then
-    log_error "[framework] STATE_DIR exists but is not a directory: $STATE_DIR"
+if ! initialize_state; then
+  error_code=$?
 
-    exit 1
+  log_error "[framework] Fail to initialize state engine (err: $error_code)"
+
+  exit $error_code
 fi
 
-if [[ ! -d "$STATE_DIR" ]]; then
-    log_info "[framework] Creating STATE_DIR: $STATE_DIR"
-
-    if ! mkdir -p "$STATE_DIR"; then
-        log_error "[framework] Failed to create STATE_DIR"
-
-        exit 2
-    fi
-fi
-
-if [[ ! -w "$STATE_DIR" ]]; then
-    log_error "[framework] STATE_DIR is not writable: $STATE_DIR"
-
-    exit 3
-fi
 #
 # Determine modules to configure
 #
@@ -79,11 +67,14 @@ case "$result" in
     0)
         exit 0
         ;;
+    1)
+        ;;
     2)
         PROCESS_ALL_INSTALLED=true
         ;;
     *)
         log_error "Unable to proceed, unexpected $result while processing CLI arguments"
+        exit $result
         ;;
 esac
 

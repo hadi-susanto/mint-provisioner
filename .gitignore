@@ -1,5 +1,7 @@
 # IntelliJ IDEA
 .idea/
 
-# State directory
+# working directory which only local usage
+messages/
 state/
+states/

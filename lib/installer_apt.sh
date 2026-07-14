@@ -125,9 +125,10 @@ install_asc_key() {
         return 1
     fi
 
-    local keyring_dir="/etc/apt/keyrings"
-    local keyring_file="${keyring_dir}/${module}.gpg"
+    local keyring_file="/etc/apt/keyrings/${module}.gpg"
+    local keyring_dir="${keyring_file%/*}"
     local source_file="/etc/apt/sources.list.d/${module}.sources"
+    local source_dir="${source_file%/*}"
     local arch
 
     if ! arch="$(dpkg --print-architecture)"; then
@@ -139,7 +140,13 @@ install_asc_key() {
     log_info "[install_asc_key] [$module] Preparing APT keyring directory"
 
     if ! sudo mkdir -p "$keyring_dir"; then
-        log_error "[install_asc_key] [$module] Failed to create keyring directory"
+        log_error "[install_asc_key] [$module] Failed to create keyring directory: $keyring_dir"
+
+        return 1
+    fi
+
+    if ! sudo mkdir -p "$source_dir"; then
+        log_error "[install_asc_key] [$module] Failed to create source directory: $source_dir"
 
         return 1
     fi

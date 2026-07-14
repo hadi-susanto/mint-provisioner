@@ -83,6 +83,12 @@ __add_shell_source() {
         return 0
     fi
 
+    if [[ ! -f "$source_file" ]]; then
+        log_error "[$caller_func] [$module] $source_file is not available/not a file, unable to configure $shell_name integration"
+
+        return 1
+    fi
+
     log_info "[$caller_func] [$module] Configuring $module for $shell_name"
     log_info "[$caller_func] [$module] Source file: $source_file"
 

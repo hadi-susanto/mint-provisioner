@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 
 #
+# Prevent the library from being loaded more than once.
+#
+if [[ "${__DISTRO_LIB_LOADED:-false}" == "true" ]]; then
+    return 0
+fi
+
+readonly __DISTRO_LIB_LOADED="true"
+
+#
 # Load distribution and upstream distribution information.
 #
 load_release_info() {

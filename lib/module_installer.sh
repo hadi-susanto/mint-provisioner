@@ -13,7 +13,7 @@ readonly MANDATORY_PHASES=(
     install
 )
 
-readonly OPTIONAL_PHASES=(
+readonly PHASES=(
     pre_install
     install
     post_install
@@ -99,6 +99,9 @@ __print_module_row() {
 
     local status
     local status_icon
+    local tag
+
+    local -a tags=()
 
     get_module_status "$canonical_id"
     status="$?"
@@ -109,8 +112,25 @@ __print_module_row() {
         return 1
     fi
 
-    printf "%3d. [%s] %s [id: %s] [source: %s]\n" \
-        "$index" "$status_icon" "${metadata[$canonical_id.NAME]:-N/A}" "$canonical_id" "${metadata[$canonical_id.SOURCE]:-N/A}"
+    if [[ -n "${metadata[$canonical_id.SOURCE]:-}" ]]; then
+        tags+=("source: ${metadata[$canonical_id.SOURCE]}")
+    fi
+
+    if ! get_module_tags "$canonical_id" tags; then
+        return 1
+    fi
+
+    printf "%3d. [%s] %s ${COLOR_YELLOW}[id: %s]${COLOR_RESET}" \
+        "$index" \
+        "$status_icon" \
+        "${metadata[$canonical_id.NAME]:-N/A}" \
+        "$canonical_id"
+
+    for tag in "${tags[@]}"; do
+        printf " ${COLOR_CYAN}[%s]${COLOR_RESET}" "$tag"
+    done
+
+    printf '\n'
     printf "     %s\n" "${metadata[$canonical_id.DESCRIPTION]:-N/A}"
 
     return 0
@@ -150,21 +170,21 @@ list_available_modules() {
 }
 
 #
-# __print_header <name> <source> <description>
+# __print_header <canonical_id> <name> <source> <description>
 #
 __print_header() {
-    local name="$1"
-    local source="$2"
-    local description="$3"
+    local canonical_id="$1"
+    local name="$2"
+    local source="$3"
+    local description="$4"
 
-    echo "=================================================="
-    echo " Mint Provisioner - Module Installer"
-    echo "--------------------------------------------------"
-    echo " Module : $name"
-    echo " Source : $source"
-    echo "--------------------------------------------------"
-    echo "$description"
-    echo "=================================================="
+    printf "%s\n" "----------------------------------------------------------------------"
+    printf -- "-= Installing %s =- [id: %s] [source: %s]\n" \
+        "$name" \
+        "$canonical_id" \
+        "$source"
+    printf '%s\n' "$description"
+    printf "%s\n" "----------------------------------------------------------------------"
 }
 
 #
@@ -178,149 +198,196 @@ __print_footer() {
     echo " ✔ $name installation completed (${duration}s)"
 }
 
-#
-# install_module <module>
-#
-# Executes a structured module installation lifecycle based on
-# predefined phase scripts located under MODULES_DIR.
-#
-# Each module is expected to be a directory containing shell scripts
-# representing lifecycle phases (e.g. is_installed.sh, install.sh).
-#
-# Behavior:
-#
-#   1. Validates that the module directory exists.
-#   2. Ensures all mandatory lifecycle phase scripts exist.
-#   3. Executes is_installed.sh to determine whether installation is needed.
-#   4. Skips installation if already installed (unless FORCE_INSTALL=true).
-#   5. Executes all optional lifecycle phases in predefined order.
-#
-# Parameters:
-#   module   Name of the module located under MODULES_DIR.
-#
-# Required globals:
-#   MODULES_DIR       Base directory containing all modules.
-#   MANDATORY_PHASES  Array of phases that must exist in every module.
-#   OPTIONAL_PHASES   Array of phases executed if present.
-#   FORCE_INSTALL     (optional) If "true", forces reinstallation even
-#                      if module is already installed.
-#
-# Phase execution rules:
-#
-#   Mandatory phases:
-#     - Must exist as <phase>.sh inside the module directory.
-#     - Missing mandatory phases will abort installation.
-#
-#   Optional phases:
-#     - Executed only if corresponding script exists.
-#
-#   Special phase: is_installed
-#     - Must return:
-#         0 → module is already installed
-#         1 → module is NOT installed
-#         other → error (installation aborted)
-#
-# Execution flow:
-#
-#   MODULE_DIR/<phase>.sh
-#
-#   is_installed → (skip if already installed) → OPTIONAL_PHASES...
-#
-# Returns:
-#   0   Module installed successfully or already installed.
-#   1   Failure in validation or any phase execution.
-#
-# Dependencies:
-#   - Bash 4+ (associative arrays support if used globally)
-#
-install_module() {
-    local module="$1"
-    local module_dir="$MODULES_DIR/$module"
+module_configuration() {
+    local canonical_id="$1"
+    local module_dir="$MODULES_DIR/$canonical_id"
+    local is_installed_script="$module_dir/is_installed.sh"
+    local configuration_script="$module_dir/configuration.sh"
 
-    local phase
-    local script
-
-    #
-    # Helper: build script path
-    #
-    script_path() {
-        echo "$module_dir/$1.sh"
-    }
-
-    #
-    # 1. Verify module exists
-    #
     if [[ ! -d "$module_dir" ]]; then
-        log_error "[install_module] Module not found: $module"
+        log_error "[module_configuration] Module not found: $canonical_id"
 
         return 1
     fi
 
-    #
-    # 2. Verify mandatory phases exist
-    #
-    for phase in "${MANDATORY_PHASES[@]}"; do
-        script="$(script_path "$phase")"
+    if [[ ! -f "$configuration_script" || ! -f "$is_installed_script" ]]; then
+        # No need to logging, prevent un-necessary logging
+        return 0
+    fi
 
-        if [[ ! -f "$script" ]]; then
-            log_error "[install_module] Missing mandatory phase '$phase' for module '$module'"
-
-            return 1
-        fi
-    done
-
-    #
-    # 3. Run is_installed
-    #
-    script="$(script_path "is_installed")"
-
-    log_info "[install_module] [$module] Running phase: is_installed"
-
-    if run_script "$script"; then
-
-        if [[ "${FORCE_INSTALL:-false}" == "true" ]]; then
-            log_warn "[install_module] [$module] FORCE_INSTALL enabled, proceeding anyway"
-        else
-            log_warn "[install_module] [$module] Already installed"
-
+    if run_script "$is_installed_script" "CANONICAL_ID" "$canonical_id"; then
+        if [[ "${FORCE_INSTALL:-false}" != "true" ]]; then
+            # Already installed, no force install flag, no need to logging just return
             return 0
         fi
     else
         rc=$?
 
         if [[ "$rc" -ne 1 ]]; then
-            log_error "[install_module] [$module] is_installed failed with error code $rc"
+            log_error "[module_configuration] [$canonical_id] fail to check installation status (err: $rc)"
 
             return 1
         fi
-
-        log_info "[install_module] [$module] not yet installed"
     fi
 
-    #
-    # 4. Run lifecycle phases
-    #
-    for phase in "${OPTIONAL_PHASES[@]}"; do
+    log_info "[module_configuration] [$canonical_id] Running phase: configuration"
+    if ! run_script "$configuration_script" "CANONICAL_ID" "$canonical_id"; then
+        log_error "[module_configuration] [$canonical_id] installation configuration failed"
 
-        script="$(script_path "$phase")"
+        return 1
+    fi
 
-        #
-        # Optional phase
-        #
-        if [[ ! -f "$script" ]]; then
-            continue
-        fi
+    return 0
+}
 
-        log_info "[install_module] [$module] Running phase: $phase"
+run_configuration() {
+    local canonical_id
+    local index=0
 
-        if ! run_script "$script"; then
-            log_error "[install_module] [$module] Phase failed: $phase"
+    log_info "[configuration] Scanning given modules for any configuration(s)"
+
+    for canonical_id in "$@"; do
+        if module_configuration "$canonical_id"; then
+            ((index++))
+        else
+            log_error "[configuration] Failure when configuring module: $canonical_id"
 
             return 1
         fi
     done
 
-    log_info "[install_module] [$module] Installation completed"
+    if (( index == 0 )); then
+        log_info "[configuration] There is no modules require configuration"
+    else
+        log_info "[configuration] Successfully processing $index configuration(s)"
+    fi
+
+    return 0
+}
+
+##
+# Installs a module by executing its lifecycle phase scripts.
+#
+# The module's is_installed.sh script is executed before the lifecycle phases:
+#
+# - Exit code 0:
+#     The module is already installed. Installation is skipped unless
+#     FORCE_INSTALL=true.
+#
+# - Exit code 1:
+#     The module is not installed, and installation continues.
+#
+# - Any other exit code:
+#     The installed-state check is treated as an error.
+#
+# Lifecycle phases are executed in the exact order defined by PHASES. A phase
+# is skipped when its corresponding script does not exist. Mandatory phase
+# scripts are guaranteed to exist because they were validated beforehand.
+#
+# Installation stops immediately when any lifecycle phase fails.
+#
+# Arguments:
+#   $1 - Module canonical ID in the format:
+#
+#            <category>/<module>
+#
+# Returns:
+#   0 - The module was installed successfully or was already installed.
+#   1 - The canonical ID is empty, the module does not exist, a mandatory
+#       phase is missing, the installed-state check fails, or a lifecycle
+#       phase fails.
+#
+# Environment:
+#   FORCE_INSTALL
+#       When set to "true", installation continues even when the module
+#       reports that it is already installed.
+#
+install_module() {
+    local canonical_id="${1:-}"
+    local module_dir="$MODULES_DIR/$canonical_id"
+
+    local phase
+    local script
+    local rc
+
+    #
+    # 1. Validate the canonical ID
+    #
+    if [[ -z "$canonical_id" ]]; then
+        log_error "[install_module] Canonical ID must not be empty."
+
+        return 1
+    fi
+
+    #
+    # 2. Verify that the module exists
+    #
+    if [[ ! -d "$module_dir" ]]; then
+        log_error "[install_module] Module not found: $canonical_id"
+
+        return 1
+    fi
+
+    #
+    # 3. Verify that mandatory phases exist
+    #
+    for phase in "${MANDATORY_PHASES[@]}"; do
+        script="$module_dir/$phase.sh"
+
+        if [[ ! -f "$script" ]]; then
+            log_error "[install_module] Missing mandatory phase '$phase' for module '$canonical_id'"
+
+            return 1
+        fi
+    done
+
+    #
+    # 4. Run the installed-state check
+    #
+    script="$module_dir/is_installed.sh"
+
+    log_info "[install_module] [$canonical_id] Running phase: is_installed"
+
+    if run_script "$script" "CANONICAL_ID" "$canonical_id"; then
+        if [[ "${FORCE_INSTALL:-false}" == "true" ]]; then
+            log_warn "[install_module] [$canonical_id] FORCE_INSTALL enabled, proceed to install"
+        else
+            log_warn "[install_module] [$canonical_id] Requested module already installed, skipping installation"
+
+            return 0
+        fi
+    else
+        rc=$?
+
+        if ((rc != 1)); then
+            log_error "[install_module] [$canonical_id] Installation check failed with error code $rc"
+
+            return 1
+        fi
+
+        log_info "[install_module] [$canonical_id] Requested module not yet installed"
+    fi
+
+    #
+    # 5. Run lifecycle phases in their defined order
+    #
+    for phase in "${PHASES[@]}"; do
+        script="$module_dir/$phase.sh"
+
+        if [[ ! -f "$script" ]]; then
+            continue
+        fi
+
+        log_info "[install_module] [$canonical_id] Running phase: $phase"
+
+        if ! run_script "$script" "CANONICAL_ID" "$canonical_id"; then
+            log_error "[install_module] [$canonical_id] Phase failed: $phase"
+
+            return 1
+        fi
+    done
+
+    log_info "[install_module] [$canonical_id] Installation completed"
 
     return 0
 }
@@ -342,109 +409,109 @@ install_module() {
 #   <module>.time
 #
 run_installation() {
-    local module
-    local start_time end_time duration
+    local canonical_id
+    local start_time_ms end_time_ms duration_ms
+    local total_start_time_ms total_end_time_ms total_duration_ms
+
+    local duration
+    local total_duration
 
     #
-    # Scan for existing messages from previous runs
+    # Remove messages left by previous runs.
     #
-    local existing_messages=("${STATE_DIR}"/*.messages)
-    if [[ -e "${existing_messages[0]}" ]]; then
-        log_warn "Found existing message files in ${STATE_DIR}, cleaning up before starting..."
-        rm -f "${STATE_DIR}"/*.messages
-    fi
+    delete_all_messages
 
     #
-    # Single metadata store for all modules
+    # Single metadata store for all modules.
     #
     declare -A metadata=()
 
-    for module in "$@"; do
+    total_start_time_ms="$(date +%s%3N)"
 
+    for canonical_id in "$@"; do
         #
-        # Load module config into metadata
+        # Load module configuration into metadata.
         #
-        parse_module_config "$module" metadata
+        parse_module_config "$canonical_id" metadata
 
-        start_time="$(date +%s)"
+        start_time_ms="$(date +%s%3N)"
 
         __print_header \
-            "${metadata[$module.NAME]:-$module}" \
-            "${metadata[$module.SOURCE]:-N/A}" \
-            "${metadata[$module.DESCRIPTION]:-}"
+            "$canonical_id" \
+            "${metadata[$canonical_id.NAME]:-$canonical_id}" \
+            "${metadata[$canonical_id.SOURCE]:-N/A}" \
+            "${metadata[$canonical_id.DESCRIPTION]:-}"
 
-        log_info "[installer] Perform installation module: $module..."
+        log_info "[installer] Performing installation for module: $canonical_id..."
 
         #
-        # Execute module installation
+        # Execute module installation.
         #
-        if install_module "$module"; then
-            metadata["$module.status"]="SUCCESS"
+        if install_module "$canonical_id"; then
+            metadata["$canonical_id.status"]="SUCCESS"
         else
-            metadata["$module.status"]="FAILED"
+            metadata["$canonical_id.status"]="FAILED"
         fi
 
-        end_time="$(date +%s)"
-        duration=$((end_time - start_time))
+        end_time_ms="$(date +%s%3N)"
+        duration_ms=$((end_time_ms - start_time_ms))
 
-        metadata["$module.time"]="$duration"
+        printf -v duration '%d.%03d' \
+            "$((duration_ms / 1000))" \
+            "$((duration_ms % 1000))"
 
-        __print_footer "$module" "$duration"
+        metadata["$canonical_id.time"]="$duration"
 
-        echo ""
+        __print_footer "$canonical_id" "$duration"
+
+        printf '\n'
     done
 
-    #
-    # Summary output (no function call, direct here)
-    #
-    echo "=================================================="
-    echo "                 INSTALL SUMMARY                  "
-    echo "=================================================="
-    echo ""
+    total_end_time_ms="$(date +%s%3N)"
+    total_duration_ms=$((total_end_time_ms - total_start_time_ms))
 
-    printf " %-20s | %-10s | %-8s\n" "MODULE" "TIME(s)" "STATUS"
-    echo "--------------------------------------------------"
+    printf -v total_duration '%d.%03d' \
+        "$((total_duration_ms / 1000))" \
+        "$((total_duration_ms % 1000))"
 
-    for module in "$@"; do
-        printf " %-20s | %-10s | %-8s\n" \
-            "${metadata[$module.NAME]:-$module}" \
-            "${metadata[$module.time]:-0}" \
-            "${metadata[$module.status]:-UNKNOWN}"
+    #
+    # Print installation summary and module messages.
+    #
+    printf -- '-= Installation Summary =- [time: %s seconds]\n' "$total_duration"
+
+    local index=0
+    local icon
+    local name
+    local status
+    local status_color
+
+    for canonical_id in "$@"; do
+        index=$((index + 1))
+
+        name="${metadata[$canonical_id.NAME]:-$canonical_id}"
+        status="${metadata[$canonical_id.status]:-UNKNOWN}"
+
+        if [[ "$status" == "SUCCESS" ]]; then
+            icon="✓"
+            status_color="$COLOR_GREEN"
+        else
+            icon="✗"
+            status_color="$COLOR_RED"
+        fi
+
+        printf '%d. [%s%s%s] %s [id: %s%s%s] [%s%s%s: %s second(s)]\n' \
+            "$index" \
+            "$status_color" "$icon" "$COLOR_RESET" \
+            "$name" \
+            "$COLOR_CYAN" "$canonical_id" "$COLOR_RESET" \
+            "$status_color" "$status"  "$COLOR_RESET" \
+            "${metadata[$canonical_id.time]:-0.000}"
+
+        if has_messages "$canonical_id"; then
+            print_messages "$canonical_id"
+            printf '\n'
+        fi
     done
 
-    echo "--------------------------------------------------"
-    echo "=================================================="
-
-    #
-    # Print post-install messages if any
-    #
-    local message_files=("${STATE_DIR}"/*.messages)
-    if [[ -e "${message_files[0]}" ]]; then
-        echo ""
-        echo "=================================================="
-        echo "              POST INSTALL  MESSAGES              "
-        echo "=================================================="
-
-        local first=true
-        for file in "${STATE_DIR}"/*.messages; do
-            [[ -e "$file" ]] || continue
-
-            if [[ "$first" == "true" ]]; then
-                first=false
-            else
-                echo ""
-            fi
-
-            local module_id
-            module_id=$(basename "$file" .messages)
-
-            # Print module name in bold if possible
-            printf "\e[1m[%s]:\e[0m\n" "$module_id"
-            cat "$file"
-        done
-        echo "=================================================="
-
-        # Cleanup messages after printing
-        rm -f "${STATE_DIR}"/*.messages
-    fi
+    delete_all_messages
 }

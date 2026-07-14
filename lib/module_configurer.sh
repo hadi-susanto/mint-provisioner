@@ -184,12 +184,13 @@ configure_module() {
         return 0
     fi
 
-    log_info "[configure_module] [$module] Running phase: post_install"
     if [[ ! -f "$post_install_script" ]]; then
         log_info "[configure_module] [$module] No post_install.sh found, skipping (re)configuration"
+
         return 0
     fi
 
+    log_info "[configure_module] [$module] Running phase: post_install"
     if ! run_script "$post_install_script"; then
         log_error "[configure_module] [$module] (re)configuration failed"
 

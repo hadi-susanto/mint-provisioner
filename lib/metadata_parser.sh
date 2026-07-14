@@ -199,6 +199,25 @@ get_module_status_icon() {
   esac
 }
 
+get_module_tags() {
+    local canonical_id="$1"
+    local -n tags_ref="$2"
+
+    local module_dir="$MODULES_DIR/$canonical_id"
+
+    # Don't reset the tags_ref
+
+    if [[ -f "$module_dir/configuration.sh" ]]; then
+        tags_ref+=("configurable")
+    fi
+
+    if [[ -f "$module_dir/post_install.sh" ]]; then
+        tags_ref+=("post-install")
+    fi
+
+    return 0
+}
+
 list_categories() {
   find "$MODULES_DIR" -mindepth 1 -maxdepth 1 -type d | sort
 }

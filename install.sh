@@ -14,16 +14,19 @@ export ROOT_DIR="$SCRIPT_DIR"
 export INSTALL_DIR="$(dirname "$ROOT_DIR")"
 export LIB_DIR="$ROOT_DIR/lib"
 export MODULES_DIR="$ROOT_DIR/modules"
-export STATE_DIR="$ROOT_DIR/state"
 
 #
-# Load common helpers
+# Load required libraries
 #
 source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/state.sh"
+source "${LIB_DIR}/messages.sh"
+source "${LIB_DIR}/module_installer.sh"
 
 #
-# Ensure STATE_DIR is exists and indeed a directory
+# Backward Compatibility before lib/state.sh library
 #
+export STATE_DIR="$ROOT_DIR/state"
 if [[ -e "$STATE_DIR" ]] && [[ ! -d "$STATE_DIR" ]]; then
     log_error "[framework] STATE_DIR exists but is not a directory: $STATE_DIR"
 
@@ -45,11 +48,6 @@ if [[ ! -w "$STATE_DIR" ]]; then
 
     exit 3
 fi
-
-#
-# Load library required for installation
-#
-source "$LIB_DIR/module_installer.sh"
 
 #
 # No arguments -> default to show help
@@ -105,4 +103,8 @@ fi
 #
 # Installation mode
 #
-run_installation "${resolved_modules[@]}"
+if run_configuration "${resolved_modules[@]}"; then
+    run_installation "${resolved_modules[@]}"
+else
+    log_error "There is failure when processing module input phase, aborting installation"
+fi
