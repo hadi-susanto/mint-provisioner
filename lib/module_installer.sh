@@ -24,57 +24,147 @@ installer_usage() {
     cat <<'EOF'
 Usage:
   ./install.sh [OPTIONS] [MODULE...]
+  ./install.sh --list [CATEGORY...]
+  ./install.sh --category
 
 Options:
-  -h, --help
-      Show this help message and exit.
-
-  -l, --list
-      List all available modules and exit.
+  -h,  --help                 Show this help message and exit.
+  -c,  --category             List available categories and exit.
+  -l,  --list                 List available modules and exit.
+  -ni, --non-interactive      Use defaults and auto-detection where possible.
+  -s,  --skip-configuration   Skip supported post-install configuration.
+  -fc, --force-configuration  Force supported post-install configuration.
+  -f,  --force-install        Install modules even if already installed.
 
 Arguments:
-  MODULE
-      Module to install.
-
-      Modules can be specified using either format:
-
-        <category>/<module>
-        <module>
+  MODULE      Module to install: <category>/<module> or <module>.
+  CATEGORY    Category to filter when using -l or --list.
 
 Examples:
-  ./install.sh cli/git
   ./install.sh git
-  ./install.sh gui/flameshot term/kitty dev/sdkman
-  ./install.sh flameshot term/kitty sdkman
+  ./install.sh cli/git eza
+  ./install.sh -ni -f gui/flameshot term/kitty
+  ./install.sh --list
+  ./install.sh --list cli gui
+  ./install.sh --category
 
 Notes:
-  * Conflicting module name should be resolved by <category>/<module>
-  * Modules can also be browsed online with more details at:
+  * Use <category>/<module> to resolve conflicting module names.
+  * --skip-configuration takes precedence over --force-configuration.
 
-        https://github.com/hadi-susanto/mint-provisioner/tree/main/modules
+  More details:
+  https://github.com/hadi-susanto/mint-provisioner/tree/main/modules
 EOF
 }
 
 process_installer_options() {
-  local arg
+    local -n output_args="$1"
+    shift
 
-  for arg in "$@"; do
-    case "$arg" in
-      -h|--help)
-        installer_usage
+    output_args=()
 
-        return 0
-        ;;
+    local arg
+    local skip_configuration=0
+    local force_configuration=0
 
-      -l|--list)
-        list_available_modules
+    while (($# > 0)); do
+        case "$1" in
+            -h|--help)
+                installer_usage
 
-        return 0
-        ;;
-    esac
-  done
+                return 0
+                ;;
 
-  return 1
+            -c|--category)
+                list_available_categories
+
+                return 0
+                ;;
+
+            -l|--list)
+                shift
+                list_available_modules "$@"
+
+                return 0
+                ;;
+
+            -ni|--non-interactive)
+                export NONINTERACTIVE=true
+                log_info "Enabling non-interactive installation. Default values or auto-detection will be used."
+                ;;
+
+            -s|--skip-configuration)
+                export SKIP_CONFIGURATION=true
+                skip_configuration=1
+
+                if ((force_configuration == 1)); then
+                    log_warn "FORCE_CONFIGURATION is also active. For most modules, SKIP_CONFIGURATION will take precedence."
+                else
+                    log_info "Disabling the configuration/post_install phase when supported by the module."
+                fi
+                ;;
+
+            -fc|--force-configuration)
+                export FORCE_CONFIGURATION=true
+                force_configuration=1
+
+                if ((skip_configuration == 1)); then
+                    log_warn "SKIP_CONFIGURATION is also active. It will take precedence over FORCE_CONFIGURATION."
+                else
+                    log_info "Enabling force configuration to reset existing configuration when supported by the module."
+                fi
+                ;;
+
+            -f|--force-install)
+                export FORCE_INSTALL=true
+                log_info "Enabling force installation mode. Modules will be installed even if they are already installed."
+                ;;
+
+            -*)
+                log_error "Unknown option '$1'."
+
+                return 2
+                ;;
+
+            *)
+                output_args+=("$1")
+                ;;
+        esac
+
+        shift
+    done
+
+    return 1
+}
+
+list_available_categories() {
+    local category_dir
+    local category_id
+    local index=1
+
+    printf "List all available categories\n"
+    printf "%s\n" "======================================================================"
+
+    while IFS= read -r category_dir; do
+        category_id="${category_dir##*/}"
+
+        declare -A metadata=()
+        if ! parse_category_config "$category_id" metadata; then
+            return 1
+        fi
+
+        printf "%2d. %s ${COLOR_YELLOW}[id: %s]${COLOR_RESET}\n" \
+            "$index" \
+            "${metadata[$category_id.NAME]:-N/A}" \
+            "$category_id"
+
+        printf '    %s\n' \
+            "${metadata[$category_id.DESCRIPTION]:-}"
+
+        ((index++))
+    done < <(list_categories)
+
+    return 0
 }
 
 __print_category_header() {
@@ -137,34 +227,51 @@ __print_module_row() {
 }
 
 list_available_modules() {
-    local category_dir
-    local first_category=true
+    local -a categories=("$@")
+    local contain_module
+    local category
+    local category_id
+    local module_dir
+    local module_id
+    local index
 
-    while IFS= read -r category_dir; do
-        local category_id
-        category_id="${category_dir##*/}"
+    if (( ${#categories[@]} == 0 )); then
+        mapfile -t categories < <(list_categories)
+        printf "List all modules from all available categories\n"
+    else
+        printf 'List available modules filtered by categories: %s\n' \
+            "$(IFS=','; printf '%s' "${categories[*]}")"
+    fi
+    printf "%s" "======================================================================"
 
-        if [[ "$first_category" == false ]]; then
-            printf "\n"
+    for category in "${categories[@]}"; do
+        category_id="${category##*/}"
+
+        printf '\n'
+        if [[ ! -d "$MODULES_DIR/$category_id" ]]; then
+            log_error "$category_id is not a valid category or known category"
+
+            continue
         fi
+
         __print_category_header "$category_id"
 
-        local index=1
-        local module_dir
+        contain_module=0
+        index=0
+
         while IFS= read -r module_dir; do
-            local module_id
             module_id="${module_dir##*/}"
+            contain_module=1
+            ((index++))
 
             __print_module_row "$index" "$category_id" "$module_id"
-
-            ((index++))
         done < <(list_modules_by_category "$category_id")
 
-        first_category=false
-        if (( index == 1 )); then
-            printf "There is no modules under $category_id category. This is not your fault, just empty category...\n"
+        if (( contain_module == 0 )); then
+            printf 'There are no modules under the %s category. This is simply an empty category.\n' \
+                "$category_id"
         fi
-    done < <(list_categories)
+    done
 
     return 0
 }
@@ -179,7 +286,7 @@ __print_header() {
     local description="$4"
 
     printf "%s\n" "----------------------------------------------------------------------"
-    printf -- "-= Installing %s =- [id: %s] [source: %s]\n" \
+    printf -- "-= Installing %s =- ${COLOR_YELLOW}[id: %s]${COLOR_RESET} ${COLOR_CYAN}[source: %s]${COLOR_RESET}\n" \
         "$name" \
         "$canonical_id" \
         "$source"
@@ -196,7 +303,7 @@ __print_footer() {
     local duration="$3"
 
     printf "%s\n" "----------------------------------------------------------------------"
-    echo " ✔ $name [id: $canonical_id] installation completed (${duration}s)"
+    printf " ${COLOR_GREEN}✔${COLOR_RESET} $name ${COLOR_YELLOW}[id: $canonical_id]${COLOR_RESET} installation completed (${duration}s)\n"
 }
 
 configure_module() {
@@ -500,12 +607,12 @@ run_installation() {
             status_color="$COLOR_RED"
         fi
 
-        printf '%d. [%s%s%s] %s [id: %s%s%s] [%s%s%s: %s second(s)]\n' \
+        printf "%2d. [%s%s%s] %s ${COLOR_YELLOW}[id: %s]${COLOR_RESET} %s[%s: %s second(s)]${COLOR_RESET}\n" \
             "$index" \
             "$status_color" "$icon" "$COLOR_RESET" \
             "$name" \
-            "$COLOR_CYAN" "$canonical_id" "$COLOR_RESET" \
-            "$status_color" "$status"  "$COLOR_RESET" \
+            "$canonical_id" \
+            "$status_color" "$status" \
             "${metadata[$canonical_id.time]:-0.000}"
 
         if has_messages "$canonical_id"; then

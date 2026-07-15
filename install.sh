@@ -61,14 +61,27 @@ fi
 # Options or arguments mainly used to show help or other function outside install things
 # just exit when some options was found
 #
-if process_installer_options "$@"; then
-  exit 0
-fi
+declare -a remaining_args=()
+process_installer_options remaining_args "$@" || result=$?
+result="${result:-0}"
+case "$result" in
+    0)
+        exit 0
+        ;;
+    1)
+        set -- "${remaining_args[@]}"
+        ;;
+    *)
+        log_error "Unable to proceed, unexpected $result while processing CLI arguments"
+
+        exit $result
+        ;;
+esac
 
 #
 # Resolve selectors to canonical module ids
 #
-resolved_modules=()
+declare -a resolved_modules=()
 log_info "Resolving any <module> into <category>/<module>..."
 if ! resolve_module_selectors resolved_modules "$@"; then
     log_warn "Aborting installation due to unresolved module selector(s)..."

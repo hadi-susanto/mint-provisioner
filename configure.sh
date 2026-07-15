@@ -23,25 +23,10 @@ export FORCE_CONFIGURATION=true
 export SKIP_CONFIGURATION=false
 
 #
-# Load common helpers (state handling and shared function)
+# Load required libraries
 #
 source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/state.sh"
-
-#
-# Initialize state engine
-#
-if ! initialize_state; then
-  error_code=$?
-
-  log_error "[framework] Fail to initialize state engine (err: $error_code)"
-
-  exit $error_code
-fi
-
-#
-# Determine modules to configure
-#
+source "${LIB_DIR}/messages.sh"
 source "$LIB_DIR/module_configurer.sh"
 
 #
@@ -84,6 +69,8 @@ if [[ "$PROCESS_ALL_INSTALLED" == true ]]; then
     list_installed_modules modules_to_configure
     printf "\n"
 
+    printf 'List configurable modules: %s\n\n' \
+        "$(IFS=','; printf '%s' "${modules_to_configure[*]}")"
     read -r -p "Are you sure you want to (re)configure all above modules? (y/N): " confirm_response
     confirm_response="${confirm_response:-n}"
     if [[ ! "$confirm_response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
