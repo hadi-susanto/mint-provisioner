@@ -191,21 +191,22 @@ __print_header() {
 # __print_footer <name> <duration_seconds>
 #
 __print_footer() {
-    local name="$1"
-    local duration="$2"
+    local canonical_id="$1"
+    local name="$2"
+    local duration="$3"
 
-    echo "--------------------------------------------------"
-    echo " ✔ $name installation completed (${duration}s)"
+    printf "%s\n" "----------------------------------------------------------------------"
+    echo " ✔ $name [id: $canonical_id] installation completed (${duration}s)"
 }
 
-module_configuration() {
+configure_module() {
     local canonical_id="$1"
     local module_dir="$MODULES_DIR/$canonical_id"
     local is_installed_script="$module_dir/is_installed.sh"
     local configuration_script="$module_dir/configuration.sh"
 
     if [[ ! -d "$module_dir" ]]; then
-        log_error "[module_configuration] Module not found: $canonical_id"
+        log_error "[configure_module] Module not found: $canonical_id"
 
         return 1
     fi
@@ -224,15 +225,15 @@ module_configuration() {
         rc=$?
 
         if [[ "$rc" -ne 1 ]]; then
-            log_error "[module_configuration] [$canonical_id] fail to check installation status (err: $rc)"
+            log_error "[configure_module] [$canonical_id] fail to check installation status (err: $rc)"
 
             return 1
         fi
     fi
 
-    log_info "[module_configuration] [$canonical_id] Running phase: configuration"
+    log_info "[configure_module] [$canonical_id] Running phase: configuration"
     if ! run_script "$configuration_script" "CANONICAL_ID" "$canonical_id"; then
-        log_error "[module_configuration] [$canonical_id] installation configuration failed"
+        log_error "[configure_module] [$canonical_id] installation configuration failed"
 
         return 1
     fi
@@ -247,7 +248,7 @@ run_configuration() {
     log_info "[configuration] Scanning given modules for any configuration(s)"
 
     for canonical_id in "$@"; do
-        if module_configuration "$canonical_id"; then
+        if configure_module "$canonical_id"; then
             ((index++))
         else
             log_error "[configuration] Failure when configuring module: $canonical_id"
@@ -462,7 +463,7 @@ run_installation() {
 
         metadata["$canonical_id.time"]="$duration"
 
-        __print_footer "$canonical_id" "$duration"
+        __print_footer "$canonical_id" "${metadata[$canonical_id.NAME]:-$canonical_id}" "$duration"
 
         printf '\n'
     done

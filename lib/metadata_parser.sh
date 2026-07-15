@@ -283,6 +283,7 @@ resolve_module_selector() {
     fi
 
     result_ref+=("${matches[0]}")
+    log_info "[resolver] Module selector resolved $selector -> ${matches[0]}"
 
     return 0
 }
@@ -308,7 +309,6 @@ resolve_module_selectors() {
     done
 
     if [[ "$failed" == "true" ]]; then
-
         return 1
     fi
 

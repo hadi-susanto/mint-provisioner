@@ -39,10 +39,11 @@ Configures the Double Commander repository from the openSUSE Build Service, then
 
 ### Supported ENV
 
-- `DOUBLE_COMMANDER_GUI`
+- `DOUBLE_COMMANDER_UI_TOOLKIT`
     - Double Commander GUI package variant to install.
+    - Supported values: `auto`, `gtk`, `qt` (will be treated as `qt5`), `qt5`, `qt6`
     - Default:
-      `doublecmd-gtk`
+      `auto`
 
 ### Official Website
 
