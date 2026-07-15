@@ -92,7 +92,7 @@ trim() {
     value="${value#"${value%%[![:space:]]*}"}"
     value="${value%"${value##*[![:space:]]}"}"
 
-    echo -n "$value"
+    printf '%s' "$value"
 }
 
 #
