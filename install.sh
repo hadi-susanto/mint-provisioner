@@ -14,16 +14,19 @@ export ROOT_DIR="$SCRIPT_DIR"
 export INSTALL_DIR="$(dirname "$ROOT_DIR")"
 export LIB_DIR="$ROOT_DIR/lib"
 export MODULES_DIR="$ROOT_DIR/modules"
-export STATE_DIR="$ROOT_DIR/state"
 
 #
-# Load common helpers
+# Load required libraries
 #
 source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/state.sh"
+source "${LIB_DIR}/messages.sh"
+source "${LIB_DIR}/module_installer.sh"
 
 #
-# Ensure STATE_DIR is exists and indeed a directory
+# Backward Compatibility before lib/state.sh library
 #
+export STATE_DIR="$ROOT_DIR/state"
 if [[ -e "$STATE_DIR" ]] && [[ ! -d "$STATE_DIR" ]]; then
     log_error "[framework] STATE_DIR exists but is not a directory: $STATE_DIR"
 
@@ -47,11 +50,6 @@ if [[ ! -w "$STATE_DIR" ]]; then
 fi
 
 #
-# Load library required for installation
-#
-source "$LIB_DIR/module_installer.sh"
-
-#
 # No arguments -> default to show help
 #
 if [[ "$#" -eq 0 ]]; then
@@ -63,14 +61,27 @@ fi
 # Options or arguments mainly used to show help or other function outside install things
 # just exit when some options was found
 #
-if process_installer_options "$@"; then
-  exit 0
-fi
+declare -a remaining_args=()
+process_installer_options remaining_args "$@" || result=$?
+result="${result:-0}"
+case "$result" in
+    0)
+        exit 0
+        ;;
+    1)
+        set -- "${remaining_args[@]}"
+        ;;
+    *)
+        log_error "Unable to proceed, unexpected $result while processing CLI arguments"
+
+        exit $result
+        ;;
+esac
 
 #
 # Resolve selectors to canonical module ids
 #
-resolved_modules=()
+declare -a resolved_modules=()
 log_info "Resolving any <module> into <category>/<module>..."
 if ! resolve_module_selectors resolved_modules "$@"; then
     log_warn "Aborting installation due to unresolved module selector(s)..."
@@ -105,4 +116,8 @@ fi
 #
 # Installation mode
 #
-run_installation "${resolved_modules[@]}"
+if run_configuration "${resolved_modules[@]}"; then
+    run_installation "${resolved_modules[@]}"
+else
+    log_error "There is failure when processing module input phase, aborting installation"
+fi

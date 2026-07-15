@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 source "${LIB_DIR}/installer_apt.sh"
-source "${SCRIPT_DIR}/helper.sh"
+source "${LIB_DIR}/state.sh"
+source "$LIB_DIR/messages.sh"
 
-VARIANT=$(double_commander_gui)
+load_states "$CANONICAL_ID" || log_warn "[$CANONICAL_ID] Failed to load states. Falling back to default values."
 
-log_info "[double-commander] Installing double commander with GUI: $VARIANT"
+DOUBLE_COMMANDER_PACKAGE="$(get_state "DOUBLE_COMMANDER_PACKAGE" "doublecmd-gtk")"
 
-apt_install "$VARIANT"
+log_info "[$CANONICAL_ID] Installing using $DOUBLE_COMMANDER_PACKAGE package"
+
+apt_install "$DOUBLE_COMMANDER_PACKAGE"

@@ -11,36 +11,24 @@ Usage:
   ./configurer.sh [OPTIONS] [MODULE...]
 
 Options:
-  -h, --help
-      Show this help message and exit.
-
-  -l, --list
-      List all installed modules and exit.
-
-  -a, --all
-      Configure all installed modules.
+  -h, --help    Show this help message and exit.
+  -l, --list    List installed modules and exit.
+  -a, --all     Configure all installed modules.
 
 Arguments:
-  MODULE
-      Installed module to configure.
-
-      Modules can be specified using either format:
-
-        <category>/<module>
-        <module>
+  MODULE    Module to configure: <category>/<module> or <module>.
 
 Examples:
-  ./configurer.sh cli/git
   ./configurer.sh git
-  ./configurer.sh gui/flameshot term/kitty dev/sdkman
-  ./configurer.sh flameshot term/kitty sdkman
+  ./configurer.sh cli/git
+  ./configurer.sh gui/flameshot term/kitty
   ./configurer.sh --all
 
 Notes:
-  * Conflicting module name should be resolved by <category>/<module>
-  * Modules can also be browsed online with more details at:
+  * Use <category>/<module> to resolve conflicting module names.
 
-        https://github.com/hadi-susanto/mint-provisioner/tree/main/modules
+  More details:
+  https://github.com/hadi-susanto/mint-provisioner/tree/main/modules
 EOF
 }
 
@@ -76,19 +64,47 @@ __print_module_row() {
     local index="$1"
     local category_id="$2"
     local module_id="$3"
+    local have_post_install="$4"
     local canonical_id="$category_id/$module_id"
+    local post_install_icon
 
     if ! get_module_status "$canonical_id"; then
+        # Not installed or other error
         return 1
     fi
 
     declare -A metadata=()
     if ! parse_module_config "$canonical_id" metadata; then
+        # Shouldn't happen, but kept for safety
         return 1
     fi
 
-    printf "%3d. %s [id: %s] [source: %s]\n" \
-        "$index" "${metadata[$canonical_id.NAME]:-N/A}" "$canonical_id" "${metadata[$canonical_id.SOURCE]:-N/A}"
+    if (( have_post_install )); then
+        post_install_icon="${COLOR_GREEN}✓${COLOR_RESET}"
+    else
+        post_install_icon="${COLOR_RED}✗${COLOR_RESET}"
+    fi
+
+    local -a tags=()
+    if [[ -n "${metadata[$canonical_id.SOURCE]:-}" ]]; then
+        tags+=("source: ${metadata[$canonical_id.SOURCE]}")
+    fi
+
+    if ! get_module_tags "$canonical_id" tags; then
+        return 1
+    fi
+
+    printf "%3d. [%s] %s ${COLOR_YELLOW}[id: %s]${COLOR_RESET}" \
+        "$index" \
+        "$post_install_icon" \
+        "${metadata[$canonical_id.NAME]:-N/A}" \
+        "$canonical_id"
+
+    for tag in "${tags[@]}"; do
+        printf " ${COLOR_CYAN}[%s]${COLOR_RESET}" "$tag"
+    done
+
+    printf '\n'
 
     return 0
 }
@@ -101,29 +117,41 @@ list_installed_modules() {
         installed_modules_ref=()
     fi
 
-    printf " ** INSTALLED MODULES **\n"
+    printf "Installed modules\n"
+    printf "%s\n" "======================================================================"
 
     local index=1
+    local category_id
+    local module_dir
+    local have_post_install
     while IFS= read -r category_dir; do
-        local category_id
         category_id="${category_dir##*/}"
 
-        local module_dir
         while IFS= read -r module_dir; do
             local module_id
             module_id="${module_dir##*/}"
 
-            if ! __print_module_row "$index" "$category_id" "$module_id"; then
+            if [[ -f "$MODULES_DIR/$category_id/$module_id/post_install.sh" ]]; then
+                have_post_install=1
+            else
+                have_post_install=0
+            fi
+
+            if ! __print_module_row "$index" "$category_id" "$module_id" "$have_post_install"; then
                 continue
             fi
 
-            if (( has_output_array )); then
+            if (( has_output_array && have_post_install )); then
                 installed_modules_ref+=("$category_id/$module_id")
             fi
 
             ((index++))
         done < <(list_modules_by_category "$category_id")
     done < <(list_categories)
+
+    printf '\nLegends:\n'
+    printf "  [${COLOR_GREEN}✓${COLOR_RESET}] Module has a post-install phase and can be configured.\n"
+    printf "  [${COLOR_RED}✗${COLOR_RESET}] Module does not have a post-install phase and cannot be configured.\n"
 
     return 0
 }
@@ -132,33 +160,34 @@ list_installed_modules() {
 # __print_header <name> <source> <description>
 #
 __print_header() {
-    local name="$1"
-    local source="$2"
-    local description="$3"
+    local canonical_id="$1"
+    local name="$2"
+    local source="$3"
+    local description="$4"
 
-    echo "=================================================="
-    echo " Mint Provisioner - Module (Re)Configurer"
-    echo "--------------------------------------------------"
-    echo " Module : $name"
-    echo " Source : $source"
-    echo "--------------------------------------------------"
-    echo "$description"
-    echo "=================================================="
+    printf "%s\n" "----------------------------------------------------------------------"
+    printf -- "-= Configuring %s =- ${COLOR_YELLOW}[id: %s]${COLOR_RESET} ${COLOR_CYAN}[source: %s] [post-install]${COLOR_RESET}\n" \
+        "$name" \
+        "$canonical_id" \
+        "$source"
+    printf '%s\n' "$description"
+    printf "%s\n" "----------------------------------------------------------------------"
 }
 
 #
 # __print_footer <name> <duration_seconds>
 #
 __print_footer() {
-    local name="$1"
-    local duration="$2"
+    local canonical_id="$1"
+    local name="$2"
+    local duration="$3"
 
-    echo "--------------------------------------------------"
-    echo " ✔ $name (re)configuration completed (${duration}s)"
+    printf "%s\n" "----------------------------------------------------------------------"
+    printf " ${COLOR_GREEN}✔${COLOR_RESET} $name ${COLOR_YELLOW}[id: $canonical_id]${COLOR_RESET} configuration completed (${duration}s)\n"
 }
 
 #
-# configure_module <module>
+# post_install_module <module>
 #
 # Determines if a module is installed and executes its post_install phase.
 #
@@ -166,32 +195,33 @@ __print_footer() {
 #   module   Name of the module located under MODULES_DIR.
 #
 # Returns:
-#   0   Module (re)configured successfully or not installed (skipped).
-#   1   Failure in (re)configuration.
+#   0   Module configured successfully or not installed (skipped).
+#   1   Failure in configuration.
 #
-configure_module() {
+post_install_module() {
     local module="$1"
     local module_dir="$MODULES_DIR/$module"
     local is_installed_script="$module_dir/is_installed.sh"
     local post_install_script="$module_dir/post_install.sh"
 
-    log_info "[configure_module] [$module] Checking installation status..."
+    log_info "[configuring] [$module] Checking installation status..."
 
     # Use run_script directly. non-zero return (like 1) means not installed or error.
     if ! run_script "$is_installed_script" >/dev/null 2>&1; then
-        log_info "[configure_module] [$module] Not installed or check failed, skipping"
+        log_info "[configuring] [$module] Not installed or check failed, skipping"
 
         return 0
     fi
 
-    log_info "[configure_module] [$module] Running phase: post_install"
     if [[ ! -f "$post_install_script" ]]; then
-        log_info "[configure_module] [$module] No post_install.sh found, skipping (re)configuration"
+        log_info "[configuring] [$module] No post_install.sh found, skipping configuration"
+
         return 0
     fi
 
+    log_info "[configuring] [$module] Running phase: post_install"
     if ! run_script "$post_install_script"; then
-        log_error "[configure_module] [$module] (re)configuration failed"
+        log_error "[configuring] [$module] configuration failed"
 
         return 1
     fi
@@ -200,117 +230,115 @@ configure_module() {
 }
 
 #
-# run_configuration <module...>
+# run_post_install <module...>
 #
-# Executes configuration for each module and collects
+# Executes post_install phase for each module and collects
 # per-module metadata (status, execution time) into an associative array.
 #
 # After execution, prints a summary table and post-install messages.
 #
-run_configuration() {
-    local module
-    local start_time end_time duration
+run_post_install() {
+    local canonical_id
+    local start_time_ms end_time_ms duration_ms
+    local total_start_time_ms total_end_time_ms total_duration_ms
 
     #
     # Scan for existing messages from previous runs
     #
-    local existing_messages=("${STATE_DIR}"/*.messages)
-    if [[ -e "${existing_messages[0]}" ]]; then
-        log_warn "Found existing message files in ${STATE_DIR}, cleaning up before starting..."
-        rm -f "${STATE_DIR}"/*.messages
-    fi
+    delete_all_messages
 
     #
     # Single metadata store for all modules
     #
     declare -A metadata=()
 
-    for module in "$@"; do
+    total_start_time_ms="$(date +%s%3N)"
+
+    for canonical_id in "$@"; do
 
         #
         # Load module config into metadata
         #
-        parse_module_config "$module" metadata
+        parse_module_config "$canonical_id" metadata
 
-        start_time="$(date +%s)"
+        start_time_ms="$(date +%s%3N)"
 
         __print_header \
-            "${metadata[$module.NAME]:-$module}" \
-            "${metadata[$module.SOURCE]:-N/A}" \
-            "${metadata[$module.DESCRIPTION]:-}"
+            "$canonical_id" \
+            "${metadata[$canonical_id.NAME]:-$canonical_id}" \
+            "${metadata[$canonical_id.SOURCE]:-N/A}" \
+            "${metadata[$canonical_id.DESCRIPTION]:-}"
 
-        log_info "[run_configuration] Perform (re)configuration module: $module..."
+        log_info "[run_configuration] Perform configuration module: $canonical_id..."
 
         #
-        # Execute module (re)configuration
+        # Execute module configuration
         #
-        if configure_module "$module"; then
-            metadata["$module.status"]="SUCCESS"
+        if post_install_module "$canonical_id"; then
+            metadata["$canonical_id.status"]="SUCCESS"
         else
-            metadata["$module.status"]="FAILED"
+            metadata["$canonical_id.status"]="FAILED"
         fi
 
-        end_time="$(date +%s)"
-        duration=$((end_time - start_time))
+        end_time_ms="$(date +%s%3N)"
+        duration_ms=$((end_time_ms - start_time_ms))
 
-        metadata["$module.time"]="$duration"
+        printf -v duration '%d.%03d' \
+            "$((duration_ms / 1000))" \
+            "$((duration_ms % 1000))"
 
-        __print_footer "${metadata[$module.NAME]:-$module}" "$duration"
+        metadata["$canonical_id.time"]="$duration"
 
-        echo ""
+        __print_footer "$canonical_id" "${metadata[$canonical_id.NAME]:-$canonical_id}" "$duration"
+
+        printf '\n'
     done
+
+    total_end_time_ms="$(date +%s%3N)"
+    total_duration_ms=$((total_end_time_ms - total_start_time_ms))
+
+    printf -v total_duration '%d.%03d' \
+        "$((total_duration_ms / 1000))" \
+        "$((total_duration_ms % 1000))"
 
     #
     # Summary output
     #
-    echo "=================================================="
-    echo "            (RE)CONFIGURATION SUMMARY             "
-    echo "=================================================="
-    echo ""
+    printf -- '-= Configuration Summary =- [time: %s seconds]\n' "$total_duration"
 
-    printf " %-20s | %-10s | %-8s\n" "MODULE" "TIME(s)" "STATUS"
-    echo "--------------------------------------------------"
+    local index=0
+    local icon
+    local name
+    local status
+    local status_color
 
-    for module in "$@"; do
-        printf " %-20s | %-10s | %-8s\n" \
-            "${metadata[$module.NAME]:-$module}" \
-            "${metadata[$module.time]:-0}" \
-            "${metadata[$module.status]:-UNKNOWN}"
+    for canonical_id in "$@"; do
+        index=$((index + 1))
+
+        name="${metadata[$canonical_id.NAME]:-$canonical_id}"
+        status="${metadata[$canonical_id.status]:-UNKNOWN}"
+
+        if [[ "$status" == "SUCCESS" ]]; then
+            icon="✓"
+            status_color="$COLOR_GREEN"
+        else
+            icon="✗"
+            status_color="$COLOR_RED"
+        fi
+
+        printf "%2d. [%s%s%s] %s ${COLOR_YELLOW}[id: %s]${COLOR_RESET} %s[%s: %s second(s)]${COLOR_RESET}\n" \
+            "$index" \
+            "$status_color" "$icon" "$COLOR_RESET" \
+            "$name" \
+            "$canonical_id" \
+            "$status_color" "$status" \
+            "${metadata[$canonical_id.time]:-0.000}"
+
+        if has_messages "$canonical_id"; then
+            print_messages "$canonical_id"
+            printf '\n'
+        fi
     done
 
-    echo "--------------------------------------------------"
-    echo "=================================================="
-
-    #
-    # Print post-install messages if any
-    #
-    local message_files=("${STATE_DIR}"/*.messages)
-    if [[ -e "${message_files[0]}" ]]; then
-        echo ""
-        echo "=================================================="
-        echo "         (RE)CONFIGURATION  MESSAGES              "
-        echo "=================================================="
-
-        local first=true
-        for file in "${STATE_DIR}"/*.messages; do
-            [[ -e "$file" ]] || continue
-
-            if [[ "$first" == "true" ]]; then
-                first=false
-            else
-                echo ""
-            fi
-
-            local module_id
-            module_id=$(basename "$file" .messages)
-
-            # Print module name in bold if possible
-            printf "\e[1m[%s]:\e[0m\n" "$module_id"
-            cat "$file"
-        done
-        echo "=================================================="
-
-        # Cleanup messages after printing
-        rm -f "${STATE_DIR}"/*.messages
-    fi
+    delete_all_messages
 }

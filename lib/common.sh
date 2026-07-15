@@ -1,18 +1,42 @@
 #!/usr/bin/env bash
 
 #
-# Colors only applicable when we directly print to the console
+# Prevent the library from being loaded more than once.
 #
-if [[ -t 1 ]]; then
-    COLOR_GREEN=$'\033[0;32m'
-    COLOR_RED=$'\033[0;31m'
-    COLOR_YELLOW=$'\033[0;33m'
-    COLOR_RESET=$'\033[0m'
+if [[ "${__COMMON_LIB_LOADED:-false}" == "true" ]]; then
+    return 0
+fi
+
+readonly __COMMON_LIB_LOADED="true"
+
+# ANSI color constants.
+#
+# Colors are enabled only when stdout is connected to a terminal.
+#
+# Environment variables:
+#   NO_COLOR
+#     Disable colors regardless of output destination.
+#
+#   FORCE_COLOR
+#     Force-enable colors even when stdout is redirected.
+if [[ -n "${NO_COLOR:-}" ]]; then
+    readonly COLOR_GREEN=""
+    readonly COLOR_RED=""
+    readonly COLOR_YELLOW=""
+    readonly COLOR_CYAN=""
+    readonly COLOR_RESET=""
+elif [[ -n "${FORCE_COLOR:-}" || -t 1 ]]; then
+    readonly COLOR_GREEN=$'\033[0;32m'
+    readonly COLOR_RED=$'\033[0;31m'
+    readonly COLOR_YELLOW=$'\033[0;33m'
+    readonly COLOR_CYAN=$'\033[0;36m'
+    readonly COLOR_RESET=$'\033[0m'
 else
-    COLOR_GREEN=''
-    COLOR_RED=''
-    COLOR_YELLOW=''
-    COLOR_RESET=''
+    readonly COLOR_GREEN=""
+    readonly COLOR_RED=""
+    readonly COLOR_YELLOW=""
+    readonly COLOR_CYAN=""
+    readonly COLOR_RESET=""
 fi
 
 #
@@ -68,7 +92,7 @@ trim() {
     value="${value#"${value%%[![:space:]]*}"}"
     value="${value%"${value##*[![:space:]]}"}"
 
-    echo -n "$value"
+    printf '%s' "$value"
 }
 
 #
@@ -102,54 +126,112 @@ get_user_home() {
     fi
 }
 
+##
+# Executes a script with optional temporary environment variables.
 #
-# run_script <file>
+# The first argument specifies the script file to execute. Remaining arguments
+# are interpreted as environment-variable key/value pairs:
 #
-# Executes a script file and propagates its exit status.
+#     run_script FILE [KEY [VALUE]]...
 #
-# Behavior:
-#   - Returns 1 if no argument is supplied.
-#   - Returns 1 if the file does not exist or is not a regular file.
-#   - If the file is executable, executes it directly.
-#   - Otherwise executes it using the Bash interpreter.
-#   - Returns the exit code of the executed script.
+# Each environment variable is available only while the target script is
+# running and does not modify the current shell environment.
 #
-# Parameters:
-#   file    Path to the script to execute.
+# When a key is provided without a corresponding value, its value defaults to
+# an empty string.
 #
-# Returns:
-#   1       Missing argument or file not found.
-#   N       Exit code returned by the executed script.
+# Environment variable keys must be valid shell variable names. A valid key:
+#
+# - Begins with a letter or underscore.
+# - Contains only letters, numbers, and underscores.
+#
+# If the target file is executable, it is executed directly. Otherwise, it is
+# executed using Bash with errexit, nounset, and pipefail enabled.
 #
 # Examples:
-#   run_script "./deploy.sh"
-#   run_script "/opt/tools/cleanup"
+#
+#   run_script "./install.sh"
+#
+#   run_script "./install.sh" FORCE_INSTALL true
+#
+#   run_script "./install.sh" \
+#       FORCE_INSTALL true \
+#       NONINTERACTIVE false
+#
+#   run_script "./install.sh" EMPTY_VALUE
+#
+# Arguments:
+#   $1 - Script file to execute.
+#   $2... - Optional environment-variable key/value pairs.
+#
+# Returns:
+#   0   - The script completed successfully.
+#   1   - The script path is empty, the target is not a regular file, or an
+#         environment-variable key is invalid.
+#   Other - The exit code returned by the executed script.
+#
+# Dependencies:
+#   log_error
 #
 run_script() {
-    local file="$1"
+    local file="${1:-}"
 
+    local key
+    local value
+
+    local -a environment=()
+
+    #
     # Validate input
+    #
     if [[ -z "$file" ]]; then
-        log_error "[run_script] blank script given, unable to execute it"
+        log_error "[run_script] Blank script given, unable to execute it."
 
         return 1
     fi
 
+    shift
+
+    #
     # Verify that the target exists and is a regular file
+    #
     if [[ ! -f "$file" ]]; then
-        log_error "[run_script] '$file' is not a file, unable to execute it"
+        log_error "[run_script] '$file' is not a file, unable to execute it."
 
         return 1
     fi
 
-    # Execute according to executable permission
-    if [[ -x "$file" ]]; then
-        "$file"
-    else
-        bash -euo pipefail "$file"
-    fi
+    #
+    # Collect additional environment variables
+    #
+    while (($# > 0)); do
+        key="$1"
+        shift
 
-    return $?
+        if [[ ! "$key" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+            log_error "[run_script] Invalid environment variable key: '$key'."
+
+            return 1
+        fi
+
+        value=""
+
+        if (($# > 0)); then
+            value="$1"
+            shift
+        fi
+
+        environment+=("$key=$value")
+    done
+
+    #
+    # Execute according to executable permission
+    #
+    if [[ -x "$file" ]]; then
+        env "${environment[@]}" "$file"
+    else
+        env "${environment[@]}" bash -euo pipefail "$file"
+    fi
 }
 
 #

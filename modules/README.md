@@ -2,7 +2,9 @@
 
 This directory contains all software modules supported by the Linux Mint Provisioner.
 
-Each subdirectory represents a single software module responsible for installing and, where applicable, configuring a specific application. A module is self-contained and typically includes the scripts and resources required to perform the installation and post-install configuration.
+Each subdirectory represents a single software module responsible for installing and, where applicable, configuring a
+specific application. A module is self-contained and typically includes the scripts and resources required to perform
+the installation and post-install configuration.
 
 Typical module structure:
 
@@ -17,7 +19,8 @@ modules/                # Root moduless directory
 
 ## 🗂️ Module Categories
 
-As the number of supported modules continues to grow, they are grouped into categories to make the documentation easier to navigate. Categories are intended solely for documentation purposes and do not affect how modules are installed.
+As the number of supported modules continues to grow, they are grouped into categories to make the documentation easier
+to navigate. Categories are intended solely for documentation purposes and do not affect how modules are installed.
 
 Currently available categories:
 
@@ -39,16 +42,18 @@ Refer to the corresponding category document for detailed information about each
 
 ## ➕ Adding a Category
 
-1.  Create a new directory in `modules/`.
-2.  Add a `metadata.conf` with `NAME`, `DESCRIPTION`.
+1. Create a new directory in `modules/`.
+2. Add a `metadata.conf` with `NAME`, `DESCRIPTION`.
 
 **IMPORTANT:**
+
 - Category names must be lowercase and use hyphens instead of spaces.
 - Try to keep the category name short and descriptive (less than 5 characters).
 - The `NAME` should be longer and more descriptive than the directory name. But keep it short.
 - The `DESCRIPTION` field should be a one-sentence summary of the category.
 
 ### Example `metadata.conf`:
+
 ```ini
 NAME="Commad Line Tools"
 DESCRIPTION="Collection of command line tools for everyday use"
@@ -56,14 +61,18 @@ DESCRIPTION="Collection of command line tools for everyday use"
 
 ## ➕ Adding a New Module
 
-1.  Create a new directory in `modules/<category-name>/`.
-2.  Add a `metadata.conf` with `NAME`, `DESCRIPTION`, and `SOURCE`.
-3.  Implement `is_installed.sh` (must exit with `0` if installed, `1` if not).
-4.  Implement `install.sh`.
-5.  (Optional) Add `pre_install.sh` for preparing installation (downloading artifact)
-6.  (Optional) Add `post_install.sh` for configuration after installation. Be warn that `configure.sh` will execute this script automatically without execute other phases.
+1. Create a new directory in `modules/<category-name>/`.
+2. Add a `metadata.conf` with `NAME`, `DESCRIPTION`, and `SOURCE`.
+3. Implement `is_installed.sh` (must exit with `0` if installed, `1` if not).
+4. Implement `install.sh`.
+5. (Optional) Add `configuration.sh` for perform user interactive session or maybe read some user configuration.
+6. (Optional) Add `pre_install.sh` for preparing installation (downloading artifact).
+7. (Optional) Add `post_install.sh` for configuration after installation. Be warn that `configure.sh` will execute this
+   script automatically without execute other phases.
+8. (Optional) Add `cleanup.sh` for cleanup pre_install phase such as removing temporary files.
 
 ### Example `metadata.conf`:
+
 ```ini
 NAME="MyTool"
 DESCRIPTION="A cool utility"
@@ -78,16 +87,17 @@ Several global environment variables can be used to customize the behavior of al
 
 ## `FORCE_INSTALL`
 
-Forces a module to perform its installation process even if the framework detects that the application is already installed.
+Forces a module to perform its installation process even if the framework detects that the application is already
+installed.
 
-This is useful when repairing a broken installation, reinstalling an application, or ensuring the module reapplies its installation logic without first uninstalling the existing software.
+This is useful when repairing a broken installation, reinstalling an application, or ensuring the module reapplies its
+installation logic without first uninstalling the existing software.
 
 Default:
 
 ```text
 false
 ```
-
 
 ## `USE_APT_ADD_REPOSITORY`
 
@@ -151,7 +161,8 @@ true
 
 # Common Module Environment Variables
 
-Many modules expose additional environment variables to customize their installation. To keep the framework consistent, similar variables share the same naming convention.
+Many modules expose additional environment variables to customize their installation. To keep the framework consistent,
+similar variables share the same naming convention.
 
 For a module named `example-module`, the variables below become:
 
@@ -165,7 +176,8 @@ EXAMPLE_MODULE_*
 
 Overrides the global `USE_APT_ADD_REPOSITORY` setting for a specific module.
 
-This is useful when you want only selected modules to use `add-apt-repository` while keeping the global default unchanged.
+This is useful when you want only selected modules to use `add-apt-repository` while keeping the global default
+unchanged.
 
 Example:
 
@@ -193,7 +205,8 @@ LAZY_GIT_REGEX=lazygit_.*_linux_x86_64\.tar\.gz$
 
 Specifies an optional filename suffix used when selecting downloadable assets.
 
-Some software publishes multiple builds (for example, architecture-specific or distribution-specific archives). This variable allows a module to select the appropriate asset.
+Some software publishes multiple builds (for example, architecture-specific or distribution-specific archives). This
+variable allows a module to select the appropriate asset.
 
 Not all modules support this variable.
 

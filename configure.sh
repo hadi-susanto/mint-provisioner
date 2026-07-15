@@ -23,37 +23,10 @@ export FORCE_CONFIGURATION=true
 export SKIP_CONFIGURATION=false
 
 #
-# Load common helpers
+# Load required libraries
 #
 source "${LIB_DIR}/common.sh"
-
-#
-# Ensure STATE_DIR is exists and indeed a directory
-#
-if [[ -e "$STATE_DIR" ]] && [[ ! -d "$STATE_DIR" ]]; then
-    log_error "[framework] STATE_DIR exists but is not a directory: $STATE_DIR"
-
-    exit 1
-fi
-
-if [[ ! -d "$STATE_DIR" ]]; then
-    log_info "[framework] Creating STATE_DIR: $STATE_DIR"
-
-    if ! mkdir -p "$STATE_DIR"; then
-        log_error "[framework] Failed to create STATE_DIR"
-
-        exit 2
-    fi
-fi
-
-if [[ ! -w "$STATE_DIR" ]]; then
-    log_error "[framework] STATE_DIR is not writable: $STATE_DIR"
-
-    exit 3
-fi
-#
-# Determine modules to configure
-#
+source "${LIB_DIR}/messages.sh"
 source "$LIB_DIR/module_configurer.sh"
 
 #
@@ -79,11 +52,14 @@ case "$result" in
     0)
         exit 0
         ;;
+    1)
+        ;;
     2)
         PROCESS_ALL_INSTALLED=true
         ;;
     *)
         log_error "Unable to proceed, unexpected $result while processing CLI arguments"
+        exit $result
         ;;
 esac
 
@@ -93,16 +69,19 @@ if [[ "$PROCESS_ALL_INSTALLED" == true ]]; then
     list_installed_modules modules_to_configure
     printf "\n"
 
-    read -r -p "Are you sure you want to (re)configure all above modules? (y/N): " confirm_response
+    printf 'Found %d configurable modules: %s\n\n' \
+        "${#modules_to_configure[@]}" \
+        "$(IFS=','; printf '%s' "${modules_to_configure[*]}")"
+    read -r -p "Are you sure you want to configure all above modules? (y/N): " confirm_response
     confirm_response="${confirm_response:-n}"
     if [[ ! "$confirm_response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
-        log_info "Aborting modules (re)configuration..."
+        log_info "Aborting modules configuration..."
 
         exit 0
     fi
 else
     if ! resolve_module_selectors modules_to_configure "$@"; then
-        log_warn "Aborting modules (re)configuration due to unresolved selector(s)..."
+        log_warn "Aborting modules configuration due to unresolved selector(s)..."
         log_info "Please run ./configurer.sh --list to see all installed module(s)"
 
         exit 1
@@ -116,7 +95,7 @@ log_warn "This script will overwrite existing configurations with Mint Provision
 read -r -p "Are you sure you want to continue? (y/N): " confirm_response
 confirm_response="${confirm_response:-n}"
 if [[ ! "$confirm_response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
-    log_info "Aborting modules (re)configuration..."
+    log_info "Aborting modules configuration..."
 
     exit 0
 fi
@@ -128,7 +107,7 @@ if is_admin; then
     log_warn "This script is running with administrative privileges (e.g., sudo)."
     log_warn "It is better to run under user context, the script will use sudo whenever it's required."
 else
-    log_info "Usually (re)configuration will not require administrative privileges, but in some cases"
+    log_info "Usually configuration will not require administrative privileges, but in some cases"
     log_info "we may need (eg: clearing font cache) hence we asked for escalated privileges"
 
     read -r -p "Do you want to automatically escalate privileges? (y/N): " response
@@ -144,6 +123,6 @@ fi
 
 
 #
-# Execute modules (re)configuration logic from dedicated lib/module_configurer.sh
+# Execute modules configuration logic from dedicated lib/module_configurer.sh
 #
-run_configuration "${modules_to_configure[@]}"
+run_post_install "${modules_to_configure[@]}"
