@@ -183,11 +183,11 @@ __print_footer() {
     local duration="$3"
 
     printf "%s\n" "----------------------------------------------------------------------"
-    printf " ${COLOR_GREEN}✔${COLOR_RESET} $name ${COLOR_YELLOW}[id: $canonical_id]${COLOR_RESET} (re)configurtion completed (${duration}s)\n"
+    printf " ${COLOR_GREEN}✔${COLOR_RESET} $name ${COLOR_YELLOW}[id: $canonical_id]${COLOR_RESET} configuration completed (${duration}s)\n"
 }
 
 #
-# configure_module <module>
+# post_install_module <module>
 #
 # Determines if a module is installed and executes its post_install phase.
 #
@@ -195,33 +195,33 @@ __print_footer() {
 #   module   Name of the module located under MODULES_DIR.
 #
 # Returns:
-#   0   Module (re)configured successfully or not installed (skipped).
-#   1   Failure in (re)configuration.
+#   0   Module configured successfully or not installed (skipped).
+#   1   Failure in configuration.
 #
-configure_module() {
+post_install_module() {
     local module="$1"
     local module_dir="$MODULES_DIR/$module"
     local is_installed_script="$module_dir/is_installed.sh"
     local post_install_script="$module_dir/post_install.sh"
 
-    log_info "[configure_module] [$module] Checking installation status..."
+    log_info "[configuring] [$module] Checking installation status..."
 
     # Use run_script directly. non-zero return (like 1) means not installed or error.
     if ! run_script "$is_installed_script" >/dev/null 2>&1; then
-        log_info "[configure_module] [$module] Not installed or check failed, skipping"
+        log_info "[configuring] [$module] Not installed or check failed, skipping"
 
         return 0
     fi
 
     if [[ ! -f "$post_install_script" ]]; then
-        log_info "[configure_module] [$module] No post_install.sh found, skipping (re)configuration"
+        log_info "[configuring] [$module] No post_install.sh found, skipping configuration"
 
         return 0
     fi
 
-    log_info "[configure_module] [$module] Running phase: post_install"
+    log_info "[configuring] [$module] Running phase: post_install"
     if ! run_script "$post_install_script"; then
-        log_error "[configure_module] [$module] (re)configuration failed"
+        log_error "[configuring] [$module] configuration failed"
 
         return 1
     fi
@@ -230,14 +230,14 @@ configure_module() {
 }
 
 #
-# run_configuration <module...>
+# run_post_install <module...>
 #
-# Executes configuration for each module and collects
+# Executes post_install phase for each module and collects
 # per-module metadata (status, execution time) into an associative array.
 #
 # After execution, prints a summary table and post-install messages.
 #
-run_configuration() {
+run_post_install() {
     local canonical_id
     local start_time_ms end_time_ms duration_ms
     local total_start_time_ms total_end_time_ms total_duration_ms
@@ -269,12 +269,12 @@ run_configuration() {
             "${metadata[$canonical_id.SOURCE]:-N/A}" \
             "${metadata[$canonical_id.DESCRIPTION]:-}"
 
-        log_info "[run_configuration] Perform (re)configuration module: $canonical_id..."
+        log_info "[run_configuration] Perform configuration module: $canonical_id..."
 
         #
-        # Execute module (re)configuration
+        # Execute module configuration
         #
-        if configure_module "$canonical_id"; then
+        if post_install_module "$canonical_id"; then
             metadata["$canonical_id.status"]="SUCCESS"
         else
             metadata["$canonical_id.status"]="FAILED"
