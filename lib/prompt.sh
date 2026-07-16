@@ -3,11 +3,11 @@
 #
 # Prevent the library from being loaded more than once.
 #
-if [[ "${__PROMPT_LIB_LOADED:-false}" == "true" ]]; then
+if (( ${__PROMPT_LIB_LOADED:-0} )); then
     return 0
 fi
 
-readonly __PROMPT_LIB_LOADED="true"
+readonly __PROMPT_LIB_LOADED=1
 
 #
 # Define trim() only if it has not already been defined.

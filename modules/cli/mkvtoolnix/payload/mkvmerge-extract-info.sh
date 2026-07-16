@@ -187,7 +187,7 @@ __mkvmerge_extract_info_folder() {
     local i=0
 
     for file in "${files[@]}"; do
-        ((i++))
+        ((++i))
 
         printf '[%d/%d] ' \
             "$i" \

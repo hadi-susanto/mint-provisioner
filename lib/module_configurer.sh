@@ -5,61 +5,6 @@
 #
 source "$LIB_DIR/metadata_parser.sh"
 
-configurer_usage() {
-    cat <<'EOF'
-Usage:
-  ./configurer.sh [OPTIONS] [MODULE...]
-
-Options:
-  -h, --help    Show this help message and exit.
-  -l, --list    List installed modules and exit.
-  -a, --all     Configure all installed modules.
-
-Arguments:
-  MODULE    Module to configure: <category>/<module> or <module>.
-
-Examples:
-  ./configurer.sh git
-  ./configurer.sh cli/git
-  ./configurer.sh gui/flameshot term/kitty
-  ./configurer.sh --all
-
-Notes:
-  * Use <category>/<module> to resolve conflicting module names.
-
-  More details:
-  https://github.com/hadi-susanto/mint-provisioner/tree/main/modules
-EOF
-}
-
-process_configurer_options() {
-  local arg
-
-  for arg in "$@"; do
-    case "$arg" in
-      -h|--help)
-        configurer_usage
-
-        return 0
-        ;;
-
-      -l|--list)
-        list_installed_modules
-
-        return 0
-        ;;
-
-      -a|--all)
-        log_info "Enabling configuring all installed modules"
-
-        return 2
-        ;;
-    esac
-  done
-
-  return 1
-}
-
 __print_module_row() {
     local index="$1"
     local category_id="$2"
@@ -145,7 +90,7 @@ list_installed_modules() {
                 installed_modules_ref+=("$category_id/$module_id")
             fi
 
-            ((index++))
+            ((++index))
         done < <(list_modules_by_category "$category_id")
     done < <(list_categories)
 

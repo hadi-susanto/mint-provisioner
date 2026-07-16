@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 
 #
+# Prevent the library from being loaded more than once.
+#
+if (( ${__METADATA_PARSER_LIB_LOADED:-0} )); then
+    return 0
+fi
+
+readonly __METADATA_PARSER_LIB_LOADED=1
+
+#
 # parse_module_config <canonical_module_id> <result_array_name>
 #
 # Parses a module metadata.conf file and stores the configuration

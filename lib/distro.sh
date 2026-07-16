@@ -3,11 +3,11 @@
 #
 # Prevent the library from being loaded more than once.
 #
-if [[ "${__DISTRO_LIB_LOADED:-false}" == "true" ]]; then
+if (( ${__DISTRO_LIB_LOADED:-0} )); then
     return 0
 fi
 
-readonly __DISTRO_LIB_LOADED="true"
+readonly __DISTRO_LIB_LOADED=1
 
 #
 # Load distribution and upstream distribution information.

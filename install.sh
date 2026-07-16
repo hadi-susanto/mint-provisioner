@@ -3,121 +3,339 @@
 set -euo pipefail
 
 #
-# Base directory
+# Global variables and required libraries
 #
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-#
-# Export for plugins
-#
 export ROOT_DIR="$SCRIPT_DIR"
 export INSTALL_DIR="$(dirname "$ROOT_DIR")"
 export LIB_DIR="$ROOT_DIR/lib"
 export MODULES_DIR="$ROOT_DIR/modules"
 
-#
-# Load required libraries
-#
 source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/state.sh"
 source "${LIB_DIR}/messages.sh"
 source "${LIB_DIR}/module_installer.sh"
 
+##
+# Print the installer command-line usage to stdout.
 #
-# Backward Compatibility before lib/state.sh library
+# Displays the complete help text, including supported options,
+# arguments, examples, and links to the project documentation.
 #
-export STATE_DIR="$ROOT_DIR/state"
-if [[ -e "$STATE_DIR" ]] && [[ ! -d "$STATE_DIR" ]]; then
-    log_error "[framework] STATE_DIR exists but is not a directory: $STATE_DIR"
+# Returns:
+#   0
+#
+installer_usage() {
+    cat <<'EOF'
+Usage:
+  ./install.sh [OPTIONS] [MODULE...]
+  ./install.sh --list [CATEGORY...]
+  ./install.sh --category
 
-    exit 1
-fi
+Options:
+  -h,  --help                 Show this help message and exit.
+  -c,  --category             List available categories and exit.
+  -l,  --list                 List available modules and exit.
+  -ni, --non-interactive      Use defaults and auto-detection where possible.
+       --unattended           Alias for --non-interactive.
+  -s,  --skip-configuration   Skip supported post-install configuration.
+  -fc, --force-configuration  Force supported post-install configuration.
+  -f,  --force-install        Install modules even if already installed.
 
-if [[ ! -d "$STATE_DIR" ]]; then
-    log_info "[framework] Creating STATE_DIR: $STATE_DIR"
+Arguments:
+  MODULE      Module to install: <category>/<module> or <module>.
+  CATEGORY    Category to filter when using -l or --list.
 
-    if ! mkdir -p "$STATE_DIR"; then
-        log_error "[framework] Failed to create STATE_DIR"
+Examples:
+  ./install.sh git
+  ./install.sh cli/git eza
+  ./install.sh -ni -f gui/flameshot term/kitty
+  ./install.sh --list
+  ./install.sh --list cli gui
+  ./install.sh --category
 
-        exit 2
+Notes:
+  * Use <category>/<module> to resolve conflicting module names.
+  * --skip-configuration takes precedence over --force-configuration.
+
+  More details:
+  https://github.com/hadi-susanto/mint-provisioner/tree/main/modules
+EOF
+}
+
+##
+# Parses installer command-line arguments.
+#
+# Arguments:
+#   $1 - Name of the associative array that receives parsed options.
+#   $2 - Name of the indexed array that receives positional arguments.
+#   $@ - Installer command-line arguments to process.
+#
+# Parsed options:
+#   CMD                   install, help, list, or category
+#   NON_INTERACTIVE       1 (true) or 0 (false)
+#   SKIP_CONFIGURATION    1 (true) or 0 (false)
+#   FORCE_CONFIGURATION   1 (true) or 0 (false)
+#   FORCE_INSTALL         1 (true) or 0 (false)
+#
+# Returns:
+#   0 - Arguments were parsed successfully.
+#   1 - An unknown option or conflicting command was provided.
+#
+parse_installer_arguments() {
+    local -n options_ref="$1"
+    local -n args_ref="$2"
+    shift 2
+
+    options_ref=(
+        [CMD]=""
+        [NON_INTERACTIVE]=0
+        [SKIP_CONFIGURATION]=0
+        [FORCE_CONFIGURATION]=0
+        [FORCE_INSTALL]=0
+    )
+
+    args_ref=()
+
+    local cmd=""
+
+    while (($# > 0)); do
+        case "$1" in
+            -h|--help)
+                if [[ -n "$cmd" ]]; then
+                    log_error "Cannot combine '$1' with another command, current command: $cmd"
+
+                    return 1
+                fi
+
+                cmd="help"
+                ;;
+
+            -c|--category)
+                if [[ -n "$cmd" ]]; then
+                    log_error "Cannot combine '$1' with another command, current command: $cmd"
+
+                    return 1
+                fi
+
+                cmd="category"
+                ;;
+
+            -l|--list)
+                if [[ -n "$cmd" ]]; then
+                    log_error "Cannot combine '$1' with another command, current command: $cmd"
+
+                    return 1
+                fi
+
+                cmd="list"
+                ;;
+
+            -ni|--non-interactive|--unattended)
+                options_ref[NON_INTERACTIVE]=1
+                ;;
+
+            -s|--skip-configuration)
+                options_ref[SKIP_CONFIGURATION]=1
+                ;;
+
+            -fc|--force-configuration)
+                options_ref[FORCE_CONFIGURATION]=1
+                ;;
+
+            -f|--force-install)
+                options_ref[FORCE_INSTALL]=1
+                ;;
+
+            -*)
+                log_error "Unknown option '$1'."
+                printf '\nPlease execute install.sh --help to list all supported options.\n'
+
+                return 1
+                ;;
+
+            *)
+                args_ref+=("$1")
+                ;;
+        esac
+
+        shift
+    done
+
+    #
+    # Use the explicitly requested command when provided.
+    #
+    if [[ -n "$cmd" ]]; then
+        options_ref[CMD]="$cmd"
+
+        return 0
     fi
-fi
 
-if [[ ! -w "$STATE_DIR" ]]; then
-    log_error "[framework] STATE_DIR is not writable: $STATE_DIR"
+    #
+    # Without an explicit command, positional arguments are treated as modules
+    # to install. When no arguments are given, show help by default.
+    #
+    if (( ${#args_ref[@]} > 0 )); then
+        options_ref[CMD]="install"
+    else
+        options_ref[CMD]="help"
+    fi
 
-    exit 3
-fi
+    return 0
+}
 
+##
+# Attempts to acquire and cache sudo privileges for the current session.
 #
-# No arguments -> default to show help
+# Prompts the user for confirmation before running `sudo -v`.
+# When successful, sudo credentials are cached to reduce repeated password
+# prompts during the installation process.
 #
-if [[ "$#" -eq 0 ]]; then
-    installer_usage
+# Returns:
+#   0 - Privilege acquisition succeeded or the user declined.
+#   1 - Failed to acquire sudo privileges.
+#
+try_acquire_sudo_privileges() {
+    local response
 
-    exit 0
-fi
-#
-# Options or arguments mainly used to show help or other function outside install things
-# just exit when some options was found
-#
-declare -a remaining_args=()
-process_installer_options remaining_args "$@" || result=$?
-result="${result:-0}"
-case "$result" in
-    0)
-        exit 0
-        ;;
-    1)
-        set -- "${remaining_args[@]}"
-        ;;
-    *)
-        log_error "Unable to proceed, unexpected $result while processing CLI arguments"
+    log_info "The script can obtain and cache sudo privileges now, so you won't need to enter your password again later."
 
-        exit $result
-        ;;
-esac
-
-#
-# Resolve selectors to canonical module ids
-#
-declare -a resolved_modules=()
-log_info "Resolving any <module> into <category>/<module>..."
-if ! resolve_module_selectors resolved_modules "$@"; then
-    log_warn "Aborting installation due to unresolved module selector(s)..."
-    log_info "Please run './install.sh --list' to see all available module(s)"
-
-    exit 1
-fi
-
-#
-# Privilege check
-#
-if is_admin; then
-    log_warn "This script is running with administrative privileges (e.g., sudo)."
-    log_warn "It is better to run under user context, the script will use sudo whenever it's required."
-else
-    log_info "The script is trying to obtain and cache sudo privileges so there is no need to type password later"
-
-    read -r -p "Do you want to automatically escalate privileges? (Y/n): " response
+    read -r -p "Do you want to elevate privileges now? (Y/n): " response
     response="${response:-y}"
 
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
         log_info "Acquiring sudo privileges..."
 
-        sudo -v || {
-            log_error "Failed to escalate privileges."
+        if ! sudo -v; then
+            log_error "Failed to acquire sudo privileges."
 
-            exit 1
-        }
+            return 1
+        fi
     fi
-fi
+
+    return 0
+}
+
+##
+# Runs the installation workflow for resolved modules.
+#
+# Applies installer options as framework environment variables, processes
+# module configuration, and executes the installation lifecycle.
+#
+# Arguments:
+#   $1 - Name of the associative array containing installer options.
+#   $@ - Resolved canonical module IDs to configure and install.
+#
+# Returns:
+#   0 - The installation workflow completed successfully.
+#   Any non-zero status returned by configuration or installation.
+#
+run_installation_workflow() {
+    local -n options_ref="$1"
+    shift
+
+    #
+    # Apply installer options.
+    #
+    if (( ${options_ref[NON_INTERACTIVE]:-0} == 1 )); then
+        export NON_INTERACTIVE=true
+        log_info "Enabling non-interactive installation. Default values or auto-detection will be used."
+    fi
+
+    if (( ${options_ref[SKIP_CONFIGURATION]:-0} == 1 )); then
+        export SKIP_CONFIGURATION=true
+        log_info "Disabling the configuration/post_install phase when supported by the module."
+    fi
+
+    if (( ${options_ref[FORCE_CONFIGURATION]:-0} == 1 )); then
+        export FORCE_CONFIGURATION=true
+        if (( ${options_ref[SKIP_CONFIGURATION]:-0} == 1 )); then
+            log_warn "SKIP_CONFIGURATION is also active. It will take precedence over FORCE_CONFIGURATION."
+        else
+            log_info "Enabling force configuration to reset existing configuration when supported by the module."
+        fi
+    fi
+
+    if (( ${options_ref[FORCE_INSTALL]:-0} == 1 )); then
+        export FORCE_INSTALL=true
+        log_info "Enabling force installation mode. Modules will be installed even if they are already installed."
+    fi
+
+    #
+    # Process module configuration before installation.
+    #
+    if ! run_configuration "$@"; then
+        log_error "Failed to process module configuration. Aborting installation."
+
+        return 1
+    fi
+
+    #
+    # Begin installation.
+    #
+    try_acquire_sudo_privileges || return $?
+    run_installation "$@"
+}
+
+##
+# Main entry point for the installer application.
+#
+# Parses command-line arguments, determines the requested command,
+# and dispatches execution to the corresponding handler.
+#
+# Arguments:
+#   $@ - Installer command-line arguments.
+#
+# Returns:
+#   0 - The requested command completed successfully.
+#   Any non-zero status returned by argument parsing or command execution.
+#
+main() {
+    local -A options
+    local -a args
+
+    parse_installer_arguments options args "$@" || return $?
+
+    case "${options[CMD]}" in
+        help)
+            installer_usage
+            ;;
+
+        category)
+            list_available_categories
+            ;;
+
+        list)
+            list_available_modules "${args[@]}"
+            ;;
+
+        install)
+            if is_admin; then
+                log_error "This script is running with administrative privileges (e.g., sudo)."
+                log_error "Do not run install.sh with sudo. The script will invoke sudo when required."
+
+                return 2
+            fi
+
+            local -a resolved_modules=()
+            log_info "Resolving any <module> into <category>/<module>..."
+            if ! resolve_module_selectors resolved_modules "${args[@]}"; then
+                log_warn "Aborting installation due to unresolved module selector(s)."
+                log_info "Please run './install.sh --list' to see all available modules."
+
+                return 1
+            fi
+
+            run_installation_workflow options "${resolved_modules[@]}"
+            ;;
+        *)
+            log_error "Unsupported command encountered: ${options[CMD]}"
+
+            return 1
+            ;;
+    esac
+}
 
 #
-# Installation mode
+# begin execution of install.sh
 #
-if run_configuration "${resolved_modules[@]}"; then
-    run_installation "${resolved_modules[@]}"
-else
-    log_error "There is failure when processing module input phase, aborting installation"
-fi
+main "$@"

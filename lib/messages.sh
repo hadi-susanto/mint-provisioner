@@ -1,7 +1,7 @@
 #
 # Prevent the library from being loaded more than once.
 #
-if [[ "${__MESSAGES_LIB_LOADED:-false}" == "true" ]]; then
+if (( ${__MESSAGES_LIB_LOADED:-0} )); then
     return 0
 fi
 
@@ -23,7 +23,7 @@ fi
 #
 # Validation completed, we can mark as loaded
 #
-readonly __MESSAGES_LIB_LOADED="true"
+readonly __MESSAGES_LIB_LOADED=1
 
 ##
 # Validates a message level.

@@ -372,7 +372,7 @@ __mkvmerge_process_folder() {
     local output_file
 
     for file in "${files[@]}"; do
-        ((i++))
+        ((++i))
 
         output_file="${output_folder}/$(basename "$file")"
 
