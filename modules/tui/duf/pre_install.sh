@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 
 source "$LIB_DIR/installer_external.sh"
-
-MODULE="duf"
-STATE_FILE="$STATE_DIR/duf.path"
+source "$LIB_DIR/state.sh"
 
 if ! download_file="$(mktemp --suffix=.tar.gz)"; then
-    log_error "[$MODULE] Failed to create temporary file"
+    log_error "[$CANONICAL_ID] Failed to create temporary file"
 
     exit 1
 fi
@@ -15,39 +13,31 @@ if [[ -z "${DUF_REGEX:-}" ]]; then
     DUF_REGEX='duf_.*_linux_x86_64\.tar\.gz$'
 fi
 
-log_info "[$MODULE] Finding github latest release using regex: $DUF_REGEX"
+log_info "[$CANONICAL_ID] Finding github latest release using regex: $DUF_REGEX"
 
 if ! url="$(
     github_find_release \
-        "$MODULE" \
+        "$CANONICAL_ID" \
         muesli \
         duf \
         "$DUF_REGEX"
 )"; then
-    log_error "[$MODULE] Failed to resolve latest release"
+    log_error "[$CANONICAL_ID] Failed to resolve latest release"
 
     rm -f "$download_file"
 
     exit 2
 fi
 
-log_info "[$MODULE] Creating state file: $STATE_FILE"
-
-if ! printf '%s\n' "$download_file" > "$STATE_FILE"; then
-    log_error "[$MODULE] Failed to create state file"
+if ! download_file "$CANONICAL_ID" "$url" "$download_file"; then
+    log_error "[$CANONICAL_ID] Download failed"
 
     rm -f "$download_file"
 
     exit 3
 fi
 
-if ! download_file "$MODULE" "$url" "$download_file"; then
-    log_error "[$MODULE] Download failed"
+set_state "ARCHIVE_FILE" "$download_file"
+save_states "$CANONICAL_ID" || exit 4
 
-    rm -f "$STATE_FILE"
-    rm -f "$download_file"
-
-    exit 4
-fi
-
-log_info "[$MODULE] Download completed successfully"
+log_info "[$CANONICAL_ID] Download completed successfully"

@@ -12,40 +12,31 @@
 
 # shellcheck source=/dev/null
 source "${LIB_DIR}/installer_apt.sh"
+source "${LIB_DIR}/messages.sh"
+source "${LIB_DIR}/state.sh"
 
-MODULE="flameshot"
-STATE_FILE="${STATE_DIR}/flameshot.path"
+load_states "$CANONICAL_ID" || exit 1
+DEB_FILE="$(get_state "DEB_FILE")" || exit 1
 
-log_info "[$MODULE] Looking for state file: ${STATE_FILE}"
-
-if [[ ! -f "$STATE_FILE" ]]; then
-    log_error "[$MODULE] State file not found"
-    exit 1
-fi
-
-log_info "[$MODULE] Reading package path from state file"
-
-read -r DEB_FILE < "$STATE_FILE"
-
-log_info "[$MODULE] Package path: ${DEB_FILE}"
+log_info "[$CANONICAL_ID] Package path: ${DEB_FILE}"
 
 case "$DEB_FILE" in
     *.deb)
         ;;
     *)
-        log_error "[$MODULE] Expected a .deb file, got: ${DEB_FILE}"
+        log_error "[$CANONICAL_ID] Expected a .deb file, got: ${DEB_FILE}"
 
         exit 2
         ;;
 esac
 
 if [[ ! -f "$DEB_FILE" ]]; then
-    log_error "[$MODULE] Package file not found: ${DEB_FILE}"
+    log_error "[$CANONICAL_ID] Package file not found: ${DEB_FILE}"
 
     exit 2
 fi
 
-log_info "[$MODULE] Installing package"
+log_info "[$CANONICAL_ID] Installing package"
 
 #
 # Breaking change warning for Flameshot >= 14
@@ -59,17 +50,17 @@ if [[ -f "$DEB_FILE" ]]; then
         msg+=$'\n'"If you're unable to to perform screenshot please enable Legacy X11 Screenshot Fallback"
         msg+=$'\n'"Refer to https://github.com/flameshot-org/flameshot/releases/tag/v14.0.0"
         
-        log_info "[$MODULE] $msg"
-        post_message "$MODULE" "$msg"
+        log_info "[$CANONICAL_ID] $msg"
+        add_message "$CANONICAL_ID" "info" "$msg"
     fi
 fi
 
 if ! apt_install "$DEB_FILE"; then
-    log_error "[$MODULE] Package installation failed"
+    log_error "[$CANONICAL_ID] Package installation failed"
 
     exit 3
 fi
 
-log_info "[$MODULE] Package installed successfully"
+log_info "[$CANONICAL_ID] Package installed successfully"
 
 exit 0

@@ -11,30 +11,21 @@
 #
 
 source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/state.sh"
 
-MODULE="nerd-font"
-STATE_FILE="${STATE_DIR}/nerd-font.path"
-NAME_FILE="${STATE_DIR}/nerd-font.name"
-BASE_FONT_DIR="/usr/local/share/fonts/nerd-font"
-
-log_info "[$MODULE] Looking for state file: ${STATE_FILE}"
-
-if [[ ! -f "$STATE_FILE" ]] || [[ ! -f "$NAME_FILE" ]]; then
-    log_error "[$MODULE] State files not found"
-    exit 1
-fi
-
-read -r DOWNLOADED_FILE < "$STATE_FILE"
-read -r FONT_NAME < "$NAME_FILE"
+load_states "$CANONICAL_ID" || exit 1
+DOWNLOADED_FILE="$(get_state "DOWNLOAD_FILE")" || exit 1
+FONT_NAME="$(get_state "FONT_NAME")" || exit 1
 
 if [[ ! -f "$DOWNLOADED_FILE" ]]; then
-    log_error "[$MODULE] Downloaded file not found: ${DOWNLOADED_FILE}"
+    log_error "[$CANONICAL_ID] Downloaded file not found: ${DOWNLOADED_FILE}"
     exit 2
 fi
 
+BASE_FONT_DIR="/usr/local/share/fonts/nerd-font"
 FONT_DIR="${BASE_FONT_DIR}/${FONT_NAME}"
 
-log_info "[$MODULE] Installing font to ${FONT_DIR}"
+log_info "[$CANONICAL_ID] Installing font to ${FONT_DIR}"
 
 # Ensure font directory exists
 sudo mkdir -p "$FONT_DIR"
@@ -43,10 +34,10 @@ sudo mkdir -p "$FONT_DIR"
 # -o: overwrite files without prompting
 # -d: extract files into the specified directory
 if ! sudo unzip -o "$DOWNLOADED_FILE" -d "$FONT_DIR"; then
-    log_error "[$MODULE] Extraction failed"
+    log_error "[$CANONICAL_ID] Extraction failed"
     exit 3
 fi
 
-log_info "[$MODULE] Font installed successfully"
+log_info "[$CANONICAL_ID] Font installed successfully"
 
 exit 0

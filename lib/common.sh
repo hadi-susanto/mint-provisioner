@@ -234,23 +234,6 @@ run_script() {
     fi
 }
 
-#
-# post_message <module> <message>
-#
-# Appends a message to the module's message file in STATE_DIR.
-#
-# Parameters:
-#   module    Name of the module.
-#   message   The message to append.
-#
-post_message() {
-    local module="$1"
-    local message="$2"
-    local message_file="${STATE_DIR}/${module}.messages"
-
-    echo "$message" >> "$message_file"
-}
-
 ##
 # Determine whether the current user can write to a path.
 #

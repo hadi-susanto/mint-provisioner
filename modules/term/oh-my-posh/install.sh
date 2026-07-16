@@ -5,30 +5,21 @@
 #
 
 source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/messages.sh"
+source "${LIB_DIR}/state.sh"
 
-MODULE="oh-my-posh"
-STATE_FILE_BINARY="${STATE_DIR}/oh-my-posh-binary.path"
-STATE_FILE_THEMES="${STATE_DIR}/oh-my-posh-themes.path"
-
-log_info "[$MODULE] Looking for state file: ${STATE_FILE_BINARY} and ${STATE_FILE_THEMES}"
-
-if [[ ! -f "$STATE_FILE_BINARY" ]] || [[ ! -f "$STATE_FILE_THEMES" ]]; then
-    log_error "[$MODULE] State files not found"
-
-    exit 1
-fi
-
-read -r BINARY_FILE < "$STATE_FILE_BINARY"
-read -r THEMES_FILE < "$STATE_FILE_THEMES"
+load_states "$CANONICAL_ID" || exit 1
+BINARY_FILE="$(get_state "BINARY_FILE")" || exit 1
+THEMES_FILE="$(get_state "THEMES_FILE")" || exit 1
 
 if [[ ! -f "$BINARY_FILE" ]]; then
-    log_error "[$MODULE] Binary file not found: ${BINARY_FILE}"
+    log_error "[$CANONICAL_ID] Binary file not found: ${BINARY_FILE}"
 
     exit 2
 fi
 
 if [[ ! -f "$THEMES_FILE" ]]; then
-    log_error "[$MODULE] Themes file not found: ${THEMES_FILE}"
+    log_error "[$CANONICAL_ID] Themes file not found: ${THEMES_FILE}"
 
     exit 2
 fi
@@ -37,7 +28,7 @@ if [[ -z "${OH_MY_POSH_INSTALL_DIR:-}" ]]; then
     OH_MY_POSH_INSTALL_DIR="$INSTALL_DIR/oh-my-posh"
 fi
 
-log_info "[$MODULE] Installing binary to $OH_MY_POSH_INSTALL_DIR"
+log_info "[$CANONICAL_ID] Installing binary to $OH_MY_POSH_INSTALL_DIR"
 
 SUDO_CMD=""
 if ! can_write "$OH_MY_POSH_INSTALL_DIR"; then
@@ -45,19 +36,19 @@ if ! can_write "$OH_MY_POSH_INSTALL_DIR"; then
 fi
 
 if ! $SUDO_CMD mkdir -p "$OH_MY_POSH_INSTALL_DIR"; then
-    log_error "[$MODULE] Failed to create install directory: $OH_MY_POSH_INSTALL_DIR"
+    log_error "[$CANONICAL_ID] Failed to create install directory: $OH_MY_POSH_INSTALL_DIR"
 
     exit 3
 fi
 
 if ! $SUDO_CMD cp "$BINARY_FILE" "$OH_MY_POSH_INSTALL_DIR/oh-my-posh"; then
-    log_error "[$MODULE] Failed to copy binary"
+    log_error "[$CANONICAL_ID] Failed to copy binary"
 
     exit 4
 fi
 
 if ! $SUDO_CMD chmod +x "$OH_MY_POSH_INSTALL_DIR/oh-my-posh"; then
-    log_error "[$MODULE] Failed to make binary executable"
+    log_error "[$CANONICAL_ID] Failed to make binary executable"
 
     exit 5
 fi
@@ -66,7 +57,7 @@ if [[ -z "${OH_MY_POSH_THEMES_INSTALL_DIR:-}" ]]; then
     OH_MY_POSH_THEMES_INSTALL_DIR="$OH_MY_POSH_INSTALL_DIR/themes"
 fi
 
-log_info "[$MODULE] Installing themes to $OH_MY_POSH_THEMES_INSTALL_DIR"
+log_info "[$CANONICAL_ID] Installing themes to $OH_MY_POSH_THEMES_INSTALL_DIR"
 
 SUDO_CMD=""
 if ! can_write "$OH_MY_POSH_THEMES_INSTALL_DIR"; then
@@ -74,20 +65,23 @@ if ! can_write "$OH_MY_POSH_THEMES_INSTALL_DIR"; then
 fi
 
 if ! $SUDO_CMD mkdir -p "$OH_MY_POSH_THEMES_INSTALL_DIR"; then
-    log_error "[$MODULE] Failed to create themes directory: $OH_MY_POSH_THEMES_INSTALL_DIR"
+    log_error "[$CANONICAL_ID] Failed to create themes directory: $OH_MY_POSH_THEMES_INSTALL_DIR"
 
     exit 6
 fi
 
 if ! $SUDO_CMD unzip -o "$THEMES_FILE" -d "$OH_MY_POSH_THEMES_INSTALL_DIR"; then
-    log_error "[$MODULE] Themes extraction failed"
+    log_error "[$CANONICAL_ID] Themes extraction failed"
 
     exit 7
 fi
 
-log_info "[$MODULE] Creating symbolic links"
+log_info "[$CANONICAL_ID] Creating symbolic links"
 sudo ln -sf "$OH_MY_POSH_INSTALL_DIR/oh-my-posh" /usr/local/bin/
 
-log_info "[$MODULE] Installation completed successfully"
-post_message "$MODULE" "Oh My Posh is require nerd-font to be installed, please ensure you have nerd font installed."
-post_message "$MODULE" "to install you can use mint-provisioner to install one."
+log_info "[$CANONICAL_ID] Installation completed successfully"
+
+msg="Oh My Posh is require nerd-font to be installed, please ensure you have nerd font installed.
+to install you can use mint-provisioner to install one."
+
+add_message "$CANONICAL_ID" "info" "$msg"

@@ -5,32 +5,24 @@
 #
 
 source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/state.sh"
 
-MODULE="sdkman"
-STATE_FILES=(
-    "${STATE_DIR}/sdkman.path"
-    "${STATE_DIR}/sdkman-native.path"
-    "${STATE_DIR}/sdkman.version"
-    "${STATE_DIR}/sdkman-native.version"
-    "${STATE_DIR}/sdkman-candidates.path"
-)
+if ! load_states "$CANONICAL_ID"; then
+    log_warn "[$CANONICAL_ID] State not found, skipping cleanup"
 
-for state_file in "${STATE_FILES[@]}"; do
-    if [[ ! -f "$state_file" ]]; then
-        continue
+    exit 0
+fi
+
+# Standard and Native archives
+for key in STANDARD_FILE NATIVE_FILE CANDIDATES_FILE; do
+    file_path="$(get_state "$key")"
+    if [[ -n "$file_path" && -f "$file_path" ]]; then
+        log_info "[$CANONICAL_ID] Removing downloaded file: $file_path"
+        rm -f "$file_path"
     fi
-
-    # For .path files, we also need to remove the actual downloaded file
-    if [[ "$state_file" == *".path" ]]; then
-        read -r downloaded_file < "$state_file"
-        if [[ -f "$downloaded_file" ]]; then
-            log_info "[$MODULE] Removing downloaded file: $downloaded_file"
-            rm -f "$downloaded_file"
-        fi
-    fi
-
-    log_info "[$MODULE] Removing state file: $state_file"
-    rm -f "$state_file"
 done
 
-log_info "[$MODULE] Cleanup completed successfully"
+log_info "[$CANONICAL_ID] Deleting states"
+delete_states "$CANONICAL_ID"
+
+log_info "[$CANONICAL_ID] Cleanup completed successfully"

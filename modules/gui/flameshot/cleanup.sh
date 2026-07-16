@@ -16,44 +16,24 @@
 
 # shellcheck source=/dev/null
 source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/state.sh"
 
-MODULE="flameshot"
-STATE_FILE="${STATE_DIR}/flameshot.path"
+if ! load_states "$CANONICAL_ID"; then
+    log_warn "[$CANONICAL_ID] State not found, skipping cleanup"
 
-log_info "[$MODULE] Looking for state file: ${STATE_FILE}"
-
-if [[ ! -f "$STATE_FILE" ]]; then
-    log_error "[$MODULE] State file not found"
-    exit 1
+    exit 0
 fi
 
-log_info "[$MODULE] Reading package path from state file"
+DEB_FILE="$(get_state "DEB_FILE")"
 
-read -r DEB_FILE < "$STATE_FILE"
-
-log_info "[$MODULE] Package path: ${DEB_FILE}"
-
-if [[ -f "$DEB_FILE" ]]; then
-    log_info "[$MODULE] Removing package file"
-
-    if ! rm -f "$DEB_FILE"; then
-        log_warn "[$MODULE] Failed to remove package file"
-        exit 2
-    fi
-
-    log_info "[$MODULE] Package file removed"
-else
-    log_warn "[$MODULE] Package file already removed: ${DEB_FILE}"
+if [[ -n "$DEB_FILE" && -f "$DEB_FILE" ]]; then
+    log_info "[$CANONICAL_ID] Removing package file: $DEB_FILE"
+    rm -f "$DEB_FILE"
 fi
 
-log_info "[$MODULE] Removing state file"
+log_info "[$CANONICAL_ID] Deleting states"
+delete_states "$CANONICAL_ID"
 
-if ! rm -f "$STATE_FILE"; then
-    log_error "[$MODULE] Failed to remove state file"
-    exit 3
-fi
-
-log_info "[$MODULE] State file removed"
-log_info "[$MODULE] Cleanup completed successfully"
+log_info "[$CANONICAL_ID] Cleanup completed successfully"
 
 exit 0
