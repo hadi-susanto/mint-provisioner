@@ -4,6 +4,25 @@ Modules that do not fit into any specific category. This section is reserved for
 
 ---
 
+## AnyDesk (`any-desk`)
+
+AnyDesk is a remote desktop application for remotely accessing and controlling computers. It provides an alternative to
+applications such as TeamViewer.
+
+### Installation Method
+
+**Official AnyDesk APT repository**
+
+Adds the official AnyDesk repository and signing key, then installs the `anydesk` package using APT.
+
+The module supports AMD64 systems.
+
+### Official Website
+
+https://anydesk.com/
+
+---
+
 ## VirtualBox (`virtual-box`)
 
 Oracle VirtualBox is a cross-platform virtualization application that allows multiple operating systems to run as virtual

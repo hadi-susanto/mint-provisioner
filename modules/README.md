@@ -9,7 +9,7 @@ For an overview of the complete framework, see the [main project README](../READ
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **34 modules** across **7 categories**.
+Mint Provisioner currently provides **35 modules** across **7 categories**.
 
 Categories organize the module catalog, provide metadata for module listings, and form part of each module's canonical
 ID:
@@ -44,7 +44,7 @@ Each category document contains detailed information about its modules, includin
 | [System Administration](SYS.md) | `sys`  | `apt-fast`, `nerd-font`, `oobe`                                                                       |
 | [Terminal](TERM.md)             | `term` | `alacritty`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `terminator`, `zsh`     |
 | [Terminal UI](TUI.md)           | `tui`  | `bottom`, `du-analyzer`, `du-rust`, `duf`, `git-ui`, `lazy-git`                                       |
-| [Miscellaneous](MISC.md)        | `misc` | `virtual-box`                                                                                         |
+| [Miscellaneous](MISC.md)        | `misc` | `any-desk`, `virtual-box`                                                                             |
 
 ## 📁 Directory Structure
 
