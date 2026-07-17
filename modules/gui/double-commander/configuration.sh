@@ -51,7 +51,7 @@ __detect_double_commander_ui_toolkit() {
     return 0
 }
 
-if [[ "${NONINTERACTIVE:-false}" == "true" ]]; then
+if [[ "${DOUBLE_COMMANDER_NON_INTERACTIVE-${NON_INTERACTIVE:-false}}" == "true" ]]; then
     UI_TOOLKIT="$(__detect_double_commander_ui_toolkit "${DOUBLE_COMMANDER_UI_TOOLKIT:-auto}")" || {
         log_error \
             "[$CANONICAL_ID] Auto detection failed. Please specify DOUBLE_COMMANDER_UI_TOOLKIT manually. Accepted values: auto, gtk, qt, qt5, qt6."

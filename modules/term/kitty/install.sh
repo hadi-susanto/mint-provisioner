@@ -5,22 +5,14 @@
 #
 
 source "${LIB_DIR}/installer_common.sh"
+source "${LIB_DIR}/state.sh"
 
-MODULE="kitty"
-STATE_FILE="${STATE_DIR}/kitty.path"
+load_states "$CANONICAL_ID" || exit 1
 
-log_info "[$MODULE] Looking for state file: ${STATE_FILE}"
-
-if [[ ! -f "$STATE_FILE" ]]; then
-    log_error "[$MODULE] State file not found"
-
-    exit 1
-fi
-
-read -r ARCHIVE_FILE < "$STATE_FILE"
+ARCHIVE_FILE="$(get_state "ARCHIVE_FILE")" || exit 1
 
 if [[ ! -f "$ARCHIVE_FILE" ]]; then
-    log_error "[$MODULE] Archive file not found: ${ARCHIVE_FILE}"
+    log_error "[$CANONICAL_ID] Archive file not found: ${ARCHIVE_FILE}"
 
     exit 2
 fi
@@ -29,7 +21,7 @@ if [[ -z "${KITTY_INSTALL_DIR:-}" ]]; then
     KITTY_INSTALL_DIR="$INSTALL_DIR/kitty"
 fi
 
-log_info "[$MODULE] Extracting content to $KITTY_INSTALL_DIR"
+log_info "[$CANONICAL_ID] Extracting content to $KITTY_INSTALL_DIR"
 
 SUDO_CMD=""
 if ! can_write "$KITTY_INSTALL_DIR"; then
@@ -37,42 +29,42 @@ if ! can_write "$KITTY_INSTALL_DIR"; then
 fi
 
 if ! $SUDO_CMD mkdir -p "$KITTY_INSTALL_DIR"; then
-    log_error "[$MODULE] Failed to create install directory: $KITTY_INSTALL_DIR"
+    log_error "[$CANONICAL_ID] Failed to create install directory: $KITTY_INSTALL_DIR"
 
     exit 3
 fi
 
 # Extract. Using -C to change directory.
 if ! $SUDO_CMD tar --overwrite -xJf "$ARCHIVE_FILE" -C "$KITTY_INSTALL_DIR"; then
-    log_error "[$MODULE] Extraction failed"
+    log_error "[$CANONICAL_ID] Extraction failed"
 
     exit 4
 fi
 
-log_info "[$MODULE] Creating symbolic links"
+log_info "[$CANONICAL_ID] Creating symbolic links"
 if [[ "$KITTY_INSTALL_DIR" != "$(symlink_location)" ]]; then
-    symlink_binary "$MODULE" "$KITTY_INSTALL_DIR/bin/kitty"
-    symlink_binary "$MODULE" "$KITTY_INSTALL_DIR/bin/kitten"
+    symlink_binary "$CANONICAL_ID" "$KITTY_INSTALL_DIR/bin/kitty"
+    symlink_binary "$CANONICAL_ID" "$KITTY_INSTALL_DIR/bin/kitten"
 else
-    log_info "[$MODULE] Install directory matches symlink location, skipping symlink creation"
+    log_info "[$CANONICAL_ID] Install directory matches symlink location, skipping symlink creation"
 fi
 
 if [[ -z "${KITTY_INSTALL_OPEN_HANDLER:-}" ]]; then
     KITTY_INSTALL_OPEN_HANDLER="false"
 fi
 
-log_info "[$MODULE] Installing desktop files"
+log_info "[$CANONICAL_ID] Installing desktop files"
 sudo mkdir -p /usr/share/applications
 sudo cp "$KITTY_INSTALL_DIR/share/applications/kitty.desktop" /usr/share/applications/
 
 if [[ "$KITTY_INSTALL_OPEN_HANDLER" == "true" ]]; then
-    log_info "[$MODULE] Installing kitty-open.desktop file"
+    log_info "[$CANONICAL_ID] Installing kitty-open.desktop file"
     sudo cp "$KITTY_INSTALL_DIR/share/applications/kitty-open.desktop" /usr/share/applications/
 else
-    log_info "[$MODULE] Skipping kitty-open.desktop file installation, to install please pass KITTY_INSTALL_OPEN_HANDLER=true"
+    log_info "[$CANONICAL_ID] Skipping kitty-open.desktop file installation, to install please pass KITTY_INSTALL_OPEN_HANDLER=true"
 fi
 
-log_info "[$MODULE] Updating paths in desktop files"
+log_info "[$CANONICAL_ID] Updating paths in desktop files"
 # Update the paths to the kitty and its icon in the kitty desktop file(s)
 ICON_PATH="$KITTY_INSTALL_DIR/share/icons/hicolor/256x256/apps/kitty.png"
 EXEC_PATH="$KITTY_INSTALL_DIR/bin/kitty"
@@ -80,7 +72,7 @@ EXEC_PATH="$KITTY_INSTALL_DIR/bin/kitty"
 sudo sed -i "s|Icon=kitty|Icon=$ICON_PATH|g" /usr/share/applications/kitty*.desktop
 sudo sed -i "s|Exec=kitty|Exec=$EXEC_PATH|g" /usr/share/applications/kitty*.desktop
 
-log_info "[$MODULE] Updating xdg-terminals.list"
+log_info "[$CANONICAL_ID] Updating xdg-terminals.list"
 XDG_TERMINALS_LIST="$(get_user_home)/.config/xdg-terminals.list"
 mkdir -p "$(dirname "$XDG_TERMINALS_LIST")"
 touch "$XDG_TERMINALS_LIST"
@@ -89,4 +81,4 @@ if ! grep -Fxq 'kitty.desktop' "$XDG_TERMINALS_LIST"; then
     echo 'kitty.desktop' >> "$XDG_TERMINALS_LIST"
 fi
 
-log_info "[$MODULE] Installation completed successfully"
+log_info "[$CANONICAL_ID] Installation completed successfully"

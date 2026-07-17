@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 
 #
+# Prevent the library from being loaded more than once.
+#
+if (( ${__METADATA_PARSER_LIB_LOADED:-0} )); then
+    return 0
+fi
+
+readonly __METADATA_PARSER_LIB_LOADED=1
+
+#
 # parse_module_config <canonical_module_id> <result_array_name>
 #
 # Parses a module metadata.conf file and stores the configuration
@@ -261,11 +270,12 @@ resolve_module_selector() {
     local module_dir
     while IFS= read -r module_dir; do
         local module_name
-        module_name="$(basename "$module_dir")"
+        module_name="${module_dir##*/}"
 
         if [[ "$module_name" == "$selector" ]]; then
-            local category_name
-            category_name="$(basename "$(dirname "$module_dir")")"
+            local parent_dir category_name
+            parent_dir=${module_dir%/*}
+            category_name=${parent_dir##*/}
             matches+=("$category_name/$module_name")
         fi
     done < <(list_all_modules)

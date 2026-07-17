@@ -3,7 +3,7 @@
 source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/state.sh"
 
-if [[ "${NONINTERACTIVE:-false}" == "true" ]]; then
+if [[ "${MKVTOOLNIX_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]; then
     set_state \
         "MKVTOOLNIX_GUI_ENABLED" \
         "${MKVTOOLNIX_GUI_ENABLED:-false}"

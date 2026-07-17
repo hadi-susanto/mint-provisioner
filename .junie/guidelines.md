@@ -33,6 +33,18 @@ These guidelines are established to maintain consistency and quality across the 
       - `github`: When the source is downloaded from GitHub or cloning GitHub.
       - `external`: When the source is downloaded directly from vendor site / outside GitHub.
 
+### 📦 State Management
+- Use `lib/state.sh` for managing persistent state between module phases.
+- The framework automatically provides `CANONICAL_ID` (in `<category>/<module>` format) to all module scripts.
+- Use `set_state "KEY" "VALUE"` and `save_states "$CANONICAL_ID"` to persist data.
+- Use `load_states "$CANONICAL_ID"` and `get_state "KEY"` to retrieve persisted data.
+- Always call `delete_states "$CANONICAL_ID"` in `cleanup.sh` to remove state files.
+
+### 📦 Post-Installation Messages
+- Use `lib/messages.sh` to store messages that should be displayed to the user after the provisioning process.
+- Use `add_message "$CANONICAL_ID" "level" "message"` (levels: `info`, `warn`, `error`).
+- This replaces any manual `post_message` function calls.
+
 ### 📦 PPA and Launchpad Modules
 - If both the PPA format (e.g., `ppa:user/repo`) and ASC key information (URL and GPG key ID) are provided, the `pre_install.sh` MUST implement both methods, defaulting to `install_asc_key` unless `*_USE_APT_ADD_REPOSITORY` (or the global `USE_APT_ADD_REPOSITORY`) is set to `true`.
 - Otherwise, the `pre_install.sh` MUST implement ONLY what is provided:
@@ -41,14 +53,14 @@ These guidelines are established to maintain consistency and quality across the 
 - Example pattern for `pre_install.sh` (Both PPA and ASC key provided):
   ```bash
   if [[ "${MODULE_NAME_USE_APT_ADD_REPOSITORY:-${USE_APT_ADD_REPOSITORY:-false}}" == "true" ]]; then
-      log_info "[$MODULE] configuring PPA with add-ppa-repository command"
-      add_ppa "$MODULE" "ppa:user/repo"
+      log_info "[$CANONICAL_ID] configuring PPA with add-ppa-repository command"
+      add_ppa "$CANONICAL_ID" "ppa:user/repo"
   else
       source "${LIB_DIR}/distro.sh"
 
-      log_info "[$MODULE] configuring PPA with install_asc_key command"
+      log_info "[$CANONICAL_ID] configuring PPA with install_asc_key command"
       install_asc_key \
-          "$MODULE" \
+          "$CANONICAL_ID" \
           "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xGPG_KEY_ID" \
           "https://ppa.launchpadcontent.net/user/repo/ubuntu" \
           "$(get_ubuntu_codename)" \
@@ -58,17 +70,17 @@ These guidelines are established to maintain consistency and quality across the 
 
 - Example pattern for `pre_install.sh` (Only PPA format):
   ```bash
-  log_info "[$MODULE] configuring PPA with add-ppa-repository command"
-  add_ppa "$MODULE" "ppa:user/repo"
+  log_info "[$CANONICAL_ID] configuring PPA with add-ppa-repository command"
+  add_ppa "$CANONICAL_ID" "ppa:user/repo"
   ```
 
 - Example pattern for `pre_install.sh` (Non-PPA format):
   ```bash
   source "${LIB_DIR}/distro.sh"
 
-  log_info "[$MODULE] configuring PPA with install_asc_key command"
+  log_info "[$CANONICAL_ID] configuring PPA with install_asc_key command"
   install_asc_key \
-      "$MODULE" \
+      "$CANONICAL_ID" \
       "https://example.com/repo.key" \
       "https://example.com/ubuntu" \
       "$(get_ubuntu_codename)" \
@@ -90,23 +102,23 @@ These guidelines are established to maintain consistency and quality across the 
 - Example for single binary (in `post_install.sh`):
   ```bash
   if [[ "${MODULE_NAME_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
-      log_warn "[$MODULE] Skipping configuration as requested"
+      log_warn "[$CANONICAL_ID] Skipping configuration as requested"
 
       exit 0
   fi
 
-  log_info "[$MODULE] Creating symbolic links"
+  log_info "[$CANONICAL_ID] Creating symbolic links"
   if [[ -f "$MODULE_INSTALL_DIR/binary-name" ]]; then
       sudo ln -sf "$MODULE_INSTALL_DIR/binary-name" /usr/local/bin/
   else
-      log_error "[$MODULE] Binary not found at $MODULE_INSTALL_DIR/binary-name"
+      log_error "[$CANONICAL_ID] Binary not found at $MODULE_INSTALL_DIR/binary-name"
   fi
   ```
 
 - Example for multiple binaries/PATH (in `post_install.sh`):
   ```bash
   if [[ "${MODULE_NAME_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
-      log_warn "[$MODULE] Skipping configuration as requested"
+      log_warn "[$CANONICAL_ID] Skipping configuration as requested"
 
       exit 0
   fi
@@ -117,9 +129,9 @@ These guidelines are established to maintain consistency and quality across the 
 
 ### 📦 GitHub and External Modules (Archive and .deb)
 - For modules that download `.deb` files or archives (.zip, .txz) from GitHub releases or external URLs:
-    - `pre_install.sh` MUST handle the downloading of the asset and store the absolute path of the downloaded file in a state file (e.g., `${STATE_DIR}/<module-name>.path`).
+    - `pre_install.sh` MUST handle the downloading of the asset and use `set_state` and `save_states` to store the path of the downloaded file.
     - Use `github_find_release` and `download_file` from `lib/installer_external.sh`.
-    - `install.sh` MUST read the path from the state file, perform the installation or extraction, and handle path registration.
+    - `install.sh` MUST use `load_states` and `get_state` to retrieve the path, perform the installation or extraction, and handle path registration.
     - If it's a `.deb` file, use `apt_install` with the absolute path.
     - If it's an archive:
         - If it contains a **suite of binaries** or a complex structure, extract it to a dedicated subdirectory in `INSTALL_DIR` and use `add_to_path` from `lib/installer_common.sh` for system-wide availability.
@@ -128,39 +140,45 @@ These guidelines are established to maintain consistency and quality across the 
 - Example for `pre_install.sh` (GitHub Release):
   ```bash
   source "$LIB_DIR/installer_external.sh"
-
-  MODULE="my-module"
-  STATE_FILE="$STATE_DIR/my-module.path"
+  source "$LIB_DIR/state.sh"
 
   if ! download_file="$(mktemp --suffix=.deb)"; then
+      log_error "[$CANONICAL_ID] Failed to create temporary file"
+
       exit 1
   fi
 
-  if ! url="$(github_find_release "$MODULE" "$OWNER" "$REPO" "$REGEX")"; then
+  if ! url="$(github_find_release "$CANONICAL_ID" "$OWNER" "$REPO" "$REGEX")"; then
+      log_error "[$CANONICAL_ID] Failed to resolve latest release"
+
       rm -f "$download_file"
+
       exit 2
   fi
 
-  printf '%s\n' "$download_file" > "$STATE_FILE"
+  if ! download_file "$CANONICAL_ID" "$url" "$download_file"; then
+      log_error "[$CANONICAL_ID] Download failed"
 
-  if ! download_file "$MODULE" "$url" "$download_file"; then
-      rm -f "$STATE_FILE" "$download_file"
+      rm -f "$download_file"
+
       exit 3
   fi
+
+  set_state "DEB_FILE" "$download_file"
+  save_states "$CANONICAL_ID" || exit 4
   ```
 
 - Example for `install.sh` (Archive with `add_to_path`):
   ```bash
   source "${LIB_DIR}/installer_common.sh"
+  source "${LIB_DIR}/state.sh"
 
-  MODULE="my-module"
-  STATE_FILE="${STATE_DIR}/my-module.path"
-  
+  load_states "$CANONICAL_ID" || exit 1
+  ARCHIVE_FILE="$(get_state "ARCHIVE_FILE")" || exit 1
+
   if [[ -z "${MY_MODULE_INSTALL_DIR:-}" ]]; then
       MY_MODULE_INSTALL_DIR="$INSTALL_DIR/my-module"
   fi
-
-  read -r ARCHIVE_FILE < "$STATE_FILE"
 
   SUDO_CMD=""
   if ! can_write "$MY_MODULE_INSTALL_DIR"; then
@@ -170,10 +188,13 @@ These guidelines are established to maintain consistency and quality across the 
   $SUDO_CMD mkdir -p "$MY_MODULE_INSTALL_DIR"
   # ... extraction logic ...
   
-  add_to_path "$MODULE" "$MY_MODULE_INSTALL_DIR"
+  add_to_path "$CANONICAL_ID" "$MY_MODULE_INSTALL_DIR"
   ```
 
 ### 💻 Coding Style
+- **Canonical ID and Logging**: Use `$CANONICAL_ID` (automatically provided) for logging and state management. Avoid defining a local `$MODULE` variable.
+  - *Example:* `log_info "[$CANONICAL_ID] Starting installation"`
+- **Script Directory**: Use `"${MODULES_DIR}/${CANONICAL_ID}"` to refer to the module's directory. This replaces `$(dirname "$0")` or similar constructs.
 - **Return and Exit Statements**: Any `return` or `exit` statement should have preceding empty lines to improve readability.
   - *Correct:*
     ```bash

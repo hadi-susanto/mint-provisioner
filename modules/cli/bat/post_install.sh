@@ -5,13 +5,13 @@
 #
 
 source "${LIB_DIR}/installer_common.sh"
+source "${LIB_DIR}/messages.sh"
 
-MODULE="bat"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PAYLOAD_DIR="$SCRIPT_DIR/payload"
+SCRIPT_DIR="${MODULES_DIR}/${CANONICAL_ID}"
+PAYLOAD_DIR="${SCRIPT_DIR}/payload"
 
 if [[ "${BAT_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
-    log_warn "[$MODULE] BAT_SKIP_CONFIGURATION is set to true, skipping configuration"
+    log_warn "[$CANONICAL_ID] BAT_SKIP_CONFIGURATION is set to true, skipping configuration"
 
     return 0
 fi
@@ -24,15 +24,16 @@ fi
 # Copy payloads
 #
 for file in "$PAYLOAD_DIR"/*; do
-    copy_to_config_dir "$MODULE" "$file" "BAT_FORCE_CONFIGURATION"
+    copy_to_config_dir "$CANONICAL_ID" "$file" "BAT_FORCE_CONFIGURATION"
 done
 
-add_bash_source "$MODULE" "$(get_config_dir)/bat-aliases.sh"
-add_zsh_source "$MODULE" "$(get_config_dir)/bat-aliases.sh"
+add_bash_source "$CANONICAL_ID" "$(get_config_dir)/bat-aliases.sh"
+add_zsh_source "$CANONICAL_ID" "$(get_config_dir)/bat-aliases.sh"
 
-log_info "[$MODULE] bat configuration completed"
+log_info "[$CANONICAL_ID] bat configuration completed"
 
-msg="Please be aware that cat now aliased to bat --pager=never"
-msg+=$'\n'"We also introduce bat-help function to help colorize any --help"
-msg+=$'\n'"Refer to https://github.com/flameshot-org/flameshot/releases/tag/v14.0.0"
-post_message "$MODULE" "Please be aware that cat now aliased to bat --pager=never"
+msg="Please be aware that cat now aliased to bat --pager=never
+We also introduce bat-help function to help colorize any --help"
+
+log_info "$msg"
+add_message "$CANONICAL_ID" "info" "$msg"

@@ -1,192 +1,479 @@
-# Mint Provisioner
+# 🧰 Mint Provisioner
 
-A modular shell script framework for automating software installation and system configuration on Linux Mint.
+Mint Provisioner is a modular shell-script framework for automating software installation and system configuration on
+Linux Mint.
 
-This framework is a modular revamp of [os-customizer](https://github.com/hadi-susanto/os-customizer/). While the code
-was brought to life with the assistance of **Junie** (by JetBrains) and **ChatGPT**, the core ideas and supervision come
-from [Hadi Susanto](https://id.linkedin.com/in/hadisusanto) 🔗.
+It provides a structured, reusable module lifecycle for installing applications, collecting installation choices,
+applying post-install configuration, managing temporary state, and cleaning up downloaded artifacts.
 
-## 🌟 Key Improvements
+Although designed primarily for Linux Mint, many modules may also work on Ubuntu and other Ubuntu-based distributions.
 
-Compared to the original `os-customizer`, this framework offers:
+## ⚡ TL;DR
 
-* **Higher Modularity**: A cleaner separation of concerns between core logic and module definitions.
-* **Flexible Installers**: Modules can use non-Bash scripts, such as Python, Go, or executable binaries.
-* **Streamlined Lifecycle**: Only `is_installed.sh` and `install.sh` are mandatory. All other module phases are
-  optional.
-* **Pre-install Configuration**: Modules can collect and validate required configuration before any installation check
-  or installation begins.
-* **Greater Capability**: Each module has a dedicated directory for payloads, scripts, and multi-phase execution.
+Install modules using either a unique module name or its canonical `<category>/<module>` ID:
 
-## 🚀 Overview
-
-Mint Provisioner is designed to simplify the post-installation setup of Linux Mint.
-
-It uses a phase-based module system to install software only when necessary and provides reusable helpers for common
-operations such as APT repository management, GPG key installation, GitHub release downloads, interactive prompts, and
-persistent module state.
-
-The framework provides two primary entry points:
-
-* `install.sh` installs one or more software modules.
-* `configure.sh` applies or reapplies the post-install configuration of installed modules.
-
-## 🏗️ Project Structure
-
-```text
-.
-├── configure.sh               # Post-install configuration entry point
-├── install.sh                 # Software installation entry point
-├── lib/                       # Core framework libraries
-│   ├── common.sh              # Logging and utility functions
-│   ├── distro.sh              # OS and upstream distribution detection
-│   ├── installer_apt.sh       # APT, PPA, and GPG key helpers
-│   ├── installer_common.sh    # Common installation and shell integration helpers
-│   ├── installer_external.sh  # GitHub release and URL download helpers
-│   ├── messages.sh            # Messaging helpers, used to store post install messages
-│   ├── metadata_parser.sh     # Module metadata parsing
-│   ├── module_configurer.sh   # Post-install configuration lifecycle
-│   ├── module_installer.sh    # Installation lifecycle
-│   ├── prompt.sh              # Interactive terminal prompt helpers
-│   └── state.sh               # Persistent framework state management
-└── modules/                   # Software modules
-    └── <category-name>/
-        └── <module-name>/
-            ├── metadata.conf          # Module information
-            ├── configuration.sh       # Collect installation configuration (Optional)
-            ├── is_installed.sh        # Check whether software is installed (Mandatory)
-            ├── pre_install.sh         # Prepare installation prerequisites (Optional)
-            ├── install.sh             # Perform software installation (Mandatory)
-            ├── post_install.sh        # Apply software configuration (Optional)
-            └── cleanup.sh             # Remove temporary installation files (Optional)
+```bash
+./install.sh <module> [<module>...]
+./install.sh <category>/<module> [<category>/<module>...]
 ```
 
-## 🔄 Installation Lifecycle
+Both formats can be combined:
+
+```bash
+./install.sh git gui/flameshot term/kitty
+```
+
+Reapply post-install configuration to installed modules:
+
+```bash
+./configure.sh <module> [<module>...]
+./configure.sh <category>/<module> [<category>/<module>...]
+```
+
+For example:
+
+```bash
+./configure.sh git gui/flameshot
+```
+
+Configure every installed configurable module:
+
+```bash
+./configure.sh --all
+```
+
+List available modules:
+
+```bash
+./install.sh --list
+```
+
+See the [module catalog and documentation](modules/README.md) for available modules, installation methods, supported environment variables, and configuration details.
+
+## 🌱 Project Origin
+
+Mint Provisioner is a modular evolution of the earlier [os-customizer](https://github.com/hadi-susanto/os-customizer)
+project.
+
+The original framework stored installers as individual files inside a flat `installers/` directory. Each installer was
+sourced into a single runner and had to expose several specially named functions.
+
+Mint Provisioner replaces that design with categorized, self-contained modules, isolated phase scripts, reusable
+framework libraries, persistent state management, richer command-line controls, and separate installation and
+configuration entry points.
+
+The project was designed and supervised by [Hadi Susanto](https://id.linkedin.com/in/hadisusanto). Its implementation
+and refinement were completed with assistance from **ChatGPT** and **Junie by JetBrains**.
+
+## ✨ Key Improvements
+
+Compared with `os-customizer`, Mint Provisioner introduces the following improvements:
+
+| Area                  | `os-customizer`                                                  | Mint Provisioner                                                         |
+|-----------------------|------------------------------------------------------------------|--------------------------------------------------------------------------|
+| Module organization   | Flat collection of installer files                               | Categorized, self-contained module directories                           |
+| Module interface      | Specially named functions inside sourced files                   | Independent lifecycle scripts with standard filenames                    |
+| Required phases       | Every installer had to implement the complete function interface | Only `is_installed.sh` and `install.sh` are mandatory                    |
+| Configuration         | Coupled to pre-install and post-install functions                | Dedicated pre-install configuration phase with persistent state          |
+| Reconfiguration       | Usually required rerunning an installer                          | Separate `configure.sh` entry point                                      |
+| Module identification | Installer filename                                               | Canonical `<category>/<module>` ID                                       |
+| Metadata              | Description functions and static arrays                          | Declarative category and module `metadata.conf` files                    |
+| State handling        | Installer-specific variables and files                           | Shared persistent state library                                          |
+| User messages         | Printed directly by individual installers                        | Stored, grouped, and displayed in the installation summary               |
+| Reusable operations   | Repeated inside installer scripts                                | Shared libraries for APT, repositories, downloads, prompts, and more     |
+| Execution             | Installer files sourced into the main shell                      | Phase scripts executed in isolated processes                             |
+| Automation            | Primarily interactive                                            | Interactive and `NON_INTERACTIVE` execution                              |
+| Cleanup               | Installer-specific and inconsistent                              | Standard optional `cleanup.sh` phase                                     |
+| Reporting             | Basic success and failure lists                                  | Per-module status, timing, metadata, and post-install messages           |
+| Extensibility         | One large installer file per application                         | Module directories may contain helpers, payloads, and executable scripts |
+
+Executable phase files may use another interpreter through their shebang, such as Python. Non-executable phase files are
+executed as Bash scripts with strict error handling.
+
+## 🧭 Framework Entry Points
+
+Mint Provisioner provides two independent entry points:
+
+| Entry point    | Responsibility                                                               |
+|----------------|------------------------------------------------------------------------------|
+| `install.sh`   | Resolves modules and executes their configuration and installation lifecycle |
+| `configure.sh` | Applies or reapplies post-install configuration to installed modules         |
+
+`configure.sh` is not called by `install.sh`. It is a separate command intended for users who want to reapply
+configuration without reinstalling an application.
+
+### Configuration Naming
+
+The similarly named scripts have different responsibilities:
+
+| Script             | Scope     | Responsibility                                           |
+|--------------------|-----------|----------------------------------------------------------|
+| `/install.sh`      | Framework | Installs selected modules                                |
+| `/configure.sh`    | Framework | Reconfigures already-installed modules                   |
+| `configuration.sh` | Module    | Collects or resolves values required before installation |
+| `post_install.sh`  | Module    | Applies application configuration after installation     |
+
+## 🔄 Module Lifecycle
 
 The installation process is divided into two stages.
 
 ### Stage 1: Module Configuration
 
-Before checking whether any module is already installed, `install.sh` executes the optional `configuration.sh` phase for
-every selected module.
+Before installation begins, `install.sh` executes the optional `configuration.sh` phase for every selected module that
+provides it.
 
-All selected modules must complete this stage successfully before the framework proceeds.
+All required configuration phases must complete successfully before the framework starts the installation lifecycle.
 
-The optional `configuration.sh` phase prepares all configuration required by a module before installation processing
-begins.
+Typical configuration tasks include:
 
-Typical uses include:
+- Asking whether an optional GUI component should be installed.
+- Selecting between GTK, Qt 5, or Qt 6 variants.
+- Detecting a suitable package variant from the desktop environment.
+- Reading an existing framework state.
+- Validating values required by the installer.
+- Saving user selections for later phases.
 
-* Asking the user which software variant to install, such as GTK, Qt 5, or Qt 6.
-* Asking whether an optional GUI component should be enabled.
-* Reading values from an external input or configuration file.
-* Automatically selecting suitable installation options.
-* Validating configuration before installation.
-* Saving selected values in framework state for use by later phases.
+When `NON_INTERACTIVE=true`, `configuration.sh` must not prompt the user. It should use, in order of preference:
 
-The configuration phase can support both interactive and non-interactive execution.
+1. Existing saved state.
+2. Safe automatic detection.
+3. Documented default values.
 
-When `NONINTERACTIVE=true`, a module should avoid prompting the user and instead automatically select an appropriate
-default or derive the required value from the environment or another configuration source.
+If any configuration phase fails, the installation is aborted before software installation begins.
 
 ### Stage 2: Module Installation
 
-After every configuration phase succeeds, each selected module follows this installation lifecycle:
+After all module configuration phases succeed, each selected module follows this lifecycle:
 
-1. **`is_installed.sh`** – Determines whether the software is already installed.
-2. **`pre_install.sh`** *(Optional)* – Prepares repositories, GPG keys, dependencies, or other prerequisites.
-3. **`install.sh`** – Performs the software installation.
-4. **`post_install.sh`** *(Optional)* – Applies post-install customization and configuration.
-5. **`cleanup.sh`** *(Optional)* – Removes temporary files and performs cleanup.
-
-If `is_installed.sh` exits with `0`, the module is skipped unless `FORCE_INSTALL=true` is set.
-
-### Execution Order
-
-When `install.sh` is executed, the framework performs the following sequence:
-
-1. Resolve all requested modules.
-2. Execute `configuration.sh` for every selected module that provides it.
-3. Abort the entire operation if any configuration phase fails.
-4. Execute `is_installed.sh` for the first module.
-5. If required, execute that module's `pre_install.sh`, `install.sh`, `post_install.sh`, and `cleanup.sh`.
-6. Continue the installation lifecycle for each remaining module.
-
-Therefore, **all module configuration phases run before any module's `is_installed.sh` phase**.
-
-This ensures that every required choice and configuration value is available before the framework checks installation
-status or modifies the system.
-
-If any `configuration.sh` script exits with a non-zero status, the entire installation is aborted. No module
-installation check or installation phase is executed.
-
-> [!IMPORTANT]
-> The module phase `configuration.sh` and the framework entry point `configure.sh` are separate concepts and serve
-> different purposes.
-
-| `configuration.sh`                                                              | `configure.sh`                                                      |
-|---------------------------------------------------------------------------------|---------------------------------------------------------------------|
-| Optional phase inside a module.                                                 | Top-level framework entry point similar to `install.sh`.            |
-| Called by `install.sh`.                                                         | Called directly by the user.                                        |
-| Runs before every module's `is_installed.sh`.                                   | Does not participate in the installation lifecycle.                 |
-| Collects or automatically selects values required for installation.             | Executes the `post_install.sh` phase of selected installed modules. |
-| May prompt for choices such as GUI support or software variants.                | Applies or reapplies software configuration after installation.     |
-| Should avoid prompting and select suitable defaults when `NONINTERACTIVE=true`. | Is never called by `install.sh`.                                    |
-| Failure aborts the complete installation before any installation check begins.  | Operates independently from `install.sh`.                           |
-
-## 🛠️ Usage
-
-### Installer (`install.sh`)
-
-Main entry point for the framework, used to install and configure software modules. For available options or arguments
-please invoke `install.sh --help`.
-
-```bash
-./install.sh --help
+```text
+is_installed.sh
+        ↓
+pre_install.sh
+        ↓
+install.sh
+        ↓
+post_install.sh
+        ↓
+cleanup.sh
 ```
 
-### Configurer (`configure.sh`)
+Optional phases are skipped when their corresponding files do not exist.
 
-Main entry point for the framework, used to configure installed software modules. For available options or arguments please
-invoke `configure.sh --help`.
+#### Installation check
+
+The mandatory `is_installed.sh` determines whether the module is already installed.
+
+Its exit status is part of the module contract:
+
+- `0` — The module is installed.
+- `1` — The module is not installed.
+- Any other value — The installation check encountered an error.
+
+When the module is already installed, its installation lifecycle is skipped unless `FORCE_INSTALL=true`.
+
+#### Pre-install preparation
+
+The optional `pre_install.sh` prepares resources required by `install.sh`.
+
+Typical responsibilities include:
+
+- Adding package repositories.
+- Installing GPG keys.
+- Resolving release information.
+- Downloading archives or Debian packages.
+- Preparing temporary directories.
+- Installing prerequisites.
+
+#### Installation
+
+The mandatory `install.sh` performs the actual software installation.
+
+It should focus on installing the application and avoid unrelated user configuration whenever possible.
+
+#### Post-install configuration
+
+The optional `post_install.sh` applies configuration after installation succeeds.
+
+Typical responsibilities include:
+
+- Installing shell integrations.
+- Creating aliases or helper commands.
+- Writing application configuration files.
+- Enabling optional features.
+- Applying values saved during `configuration.sh`.
+- Adding information to the final installation summary.
+
+Modules that provide `post_install.sh` can also be reconfigured later through the top-level `configure.sh` command.
+
+#### Cleanup
+
+The optional `cleanup.sh` is the final phase of the installation lifecycle.
+
+Although optional, it is highly recommended when a module:
+
+- Creates temporary framework state used only during installation.
+- Creates module-local message or status artifacts.
+- Manually downloads an archive, installer, Debian package, or other artifact.
+- Creates temporary directories.
+- Generates intermediate files that are no longer needed.
+- Stores sensitive or installation-only values.
+
+Typical cleanup operations include:
 
 ```bash
-./configure.sh --help
+delete_states "$CANONICAL_ID"
+rm -f "$downloaded_artifact"
+rm -rf "$temporary_directory"
 ```
-### Administrative Privileges
 
-Most installation operations require administrative privileges.
+Framework-managed messages required by the final installation summary should remain available until the summary is
+printed. The framework removes those messages afterward.
 
-When necessary, the framework uses `sudo` to perform privileged operations.
+Lifecycle execution stops when a phase fails. Consequently, `cleanup.sh` normally runs only when the preceding phases
+succeed. A phase that creates temporary files should clean up immediately or use a suitable trap when those files must
+also be removed after failure.
 
-## 📦 Modules
+### Complete Execution Order
 
-Mint Provisioner supports a wide variety of software modules.
+For multiple selected modules, the intended execution order is:
 
-See [modules/README.md](modules/README.md) for the complete module catalog.
+```text
+Resolve and validate selected modules
 
-## 🧰 Library Helpers
+Run configuration.sh for module A
+Run configuration.sh for module B
+Run configuration.sh for module C
 
-The framework provides reusable helper libraries under `lib/`.
+Run installation lifecycle for module A
+Run installation lifecycle for module B
+Run installation lifecycle for module C
 
-| Library                 | Purpose                                                                                          |
-|-------------------------|--------------------------------------------------------------------------------------------------|
-| `common.sh`             | Logging, script execution, privilege detection, filesystem checks, and common utility functions. |
-| `distro.sh`             | Linux Mint, Ubuntu, and upstream distribution detection.                                         |
-| `installer_apt.sh`      | APT package installation, repository management, PPAs, and GPG keys.                             |
-| `installer_common.sh`   | Shared installation and shell integration helpers.                                               |
-| `installer_external.sh` | GitHub release discovery and generic file downloads.                                             |
-| `metadata_parser.sh`    | Reading and parsing module metadata.                                                             |
-| `module_configurer.sh`  | Executing module `post_install.sh` phases through `configure.sh`.                                |
-| `module_installer.sh`   | Coordinating module configuration and installation lifecycles.                                   |
-| `prompt.sh`             | Interactive option selection, confirmation, and terminal input helpers.                          |
-| `state.sh`              | Persistent key-value state shared between module phases.                                         |
+Print installation summary
+Remove framework-managed messages
+```
 
-## 📜 License
+Collecting all required configuration first prevents the installer from stopping halfway through system changes to
+request additional user input.
 
-This project is licensed under the [MIT License](LICENSE).
+## ⚙️ Framework Controls
 
----
+The following environment variables affect framework behavior:
 
-*Idea and supervision by [Hadi Susanto](https://id.linkedin.com/in/hadisusanto) 🔗. Implementation assisted by Junie (
-JetBrains) and ChatGPT.*
+| Variable                   | Purpose                                                                            |
+|----------------------------|------------------------------------------------------------------------------------|
+| `NON_INTERACTIVE=true`     | Disables interactive prompts and uses saved, detected, or default values           |
+| `FORCE_INSTALL=true`       | Runs installation even when `is_installed.sh` reports that the module is installed |
+| `SKIP_CONFIGURATION=true`  | Skips supported post-install configuration                                         |
+| `FORCE_CONFIGURATION=true` | Forces supported configuration to be reapplied or overwritten                      |
+
+When both `SKIP_CONFIGURATION` and `FORCE_CONFIGURATION` are enabled, skipping configuration takes precedence.
+
+Modules may define additional environment variables for their own behavior. These variables should be documented in the
+relevant module documentation.
+
+## 📁 Project Structure
+
+```text
+mint-provisioner/
+├── install.sh                         # Installation entry point
+├── configure.sh                       # Reconfiguration entry point
+├── lib/                               # Reusable framework libraries
+│   ├── common.sh                      # Logging, execution, and common utilities
+│   ├── distro.sh                      # Distribution detection
+│   ├── installer_apt.sh               # APT, PPA, repository, and GPG helpers
+│   ├── installer_common.sh            # Shared installation helpers
+│   ├── installer_external.sh          # External download and release helpers
+│   ├── messages.sh                    # Persistent module messages
+│   ├── metadata_parser.sh             # Category and module metadata parser
+│   ├── module_configurer.sh            # Reconfiguration lifecycle
+│   ├── module_installer.sh             # Installation lifecycle
+│   ├── prompt.sh                       # Interactive prompt helpers
+│   └── state.sh                        # Persistent module state
+├── modules/
+│   ├── README.md                       # Module catalog and documentation index
+│   └── <category>/
+│       ├── metadata.conf               # Category metadata
+│       └── <module>/
+│           ├── metadata.conf           # Module metadata
+│           ├── configuration.sh        # Installation choices (optional)
+│           ├── is_installed.sh         # Installation check (mandatory)
+│           ├── pre_install.sh          # Installation preparation (optional)
+│           ├── install.sh              # Software installation (mandatory)
+│           ├── post_install.sh         # Software configuration (optional)
+│           ├── cleanup.sh              # Temporary resource cleanup (optional)
+│           ├── helper.sh               # Module-specific helpers (optional)
+│           └── resources/              # Module payloads or templates (optional)
+├── states/                             # Generated persistent module state
+└── messages/                           # Generated installation-summary messages
+```
+
+A minimal valid module contains:
+
+```text
+<module>/
+├── metadata.conf
+├── is_installed.sh
+└── install.sh
+```
+
+A complete module may implement every lifecycle phase:
+
+```text
+<module>/
+├── metadata.conf
+├── configuration.sh
+├── is_installed.sh
+├── pre_install.sh
+├── install.sh
+├── post_install.sh
+└── cleanup.sh
+```
+
+## 📦 Module Contract
+
+| Phase              | Required | Primary responsibility                                            |
+|--------------------|:--------:|-------------------------------------------------------------------|
+| `configuration.sh` |    No    | Collect, detect, validate, and save installation choices          |
+| `is_installed.sh`  |   Yes    | Report whether all required components are installed              |
+| `pre_install.sh`   |    No    | Prepare repositories, keys, dependencies, or downloaded artifacts |
+| `install.sh`       |   Yes    | Install the software                                              |
+| `post_install.sh`  |    No    | Apply application and user configuration                          |
+| `cleanup.sh`       |    No    | Remove temporary state, artifacts, and intermediate files         |
+
+### Module metadata
+
+Every module must provide `metadata.conf`:
+
+```ini
+NAME="Application Name"
+SOURCE="Installation source"
+DESCRIPTION="A short explanation of what the module installs."
+```
+
+Metadata is used for:
+
+- Module discovery and listing.
+- Installation headers.
+- Canonical module resolution.
+- Installation summaries.
+- User-facing descriptions.
+
+Keep `DESCRIPTION` concise and describe the result provided to the user rather than low-level implementation details.
+
+### Canonical module IDs
+
+Modules are identified using:
+
+```text
+<category>/<module>
+```
+
+Examples:
+
+```text
+cli/git
+gui/double-commander
+term/kitty
+tui/lazygit
+```
+
+The short module name may be accepted when it is unique. Use the canonical ID whenever ambiguity is possible.
+
+## 🧩 Extending the Framework
+
+### Adding a category
+
+Create a category directory and its metadata:
+
+```text
+modules/<category>/metadata.conf
+```
+
+Example:
+
+```ini
+NAME="Command Line Tools"
+DESCRIPTION="Command-line applications and utilities for everyday use."
+```
+
+Category directory names should:
+
+- Use lowercase characters.
+- Use hyphens instead of spaces.
+- Remain short and descriptive.
+- Avoid overlapping responsibilities with an existing category.
+
+### Adding a module
+
+Create the module directory:
+
+```bash
+mkdir -p modules/<category>/<module>
+```
+
+Then:
+
+1. Add `metadata.conf`.
+2. Implement `is_installed.sh`.
+3. Implement `install.sh`.
+4. Add `configuration.sh` when installation requires choices or detected values.
+5. Add `pre_install.sh` when installation requires preparation or manual downloads.
+6. Add `post_install.sh` when the module provides configurable behavior.
+7. Add `cleanup.sh` when state, messages, downloads, or temporary files are created.
+8. Add module-specific helpers and resources when necessary.
+9. Document the module in the appropriate category file under `modules/`.
+
+Example:
+
+```text
+modules/
+└── gui/
+    └── example-app/
+        ├── metadata.conf
+        ├── configuration.sh
+        ├── is_installed.sh
+        ├── pre_install.sh
+        ├── install.sh
+        ├── post_install.sh
+        └── cleanup.sh
+```
+
+## 🛡️ Module Design Guidelines
+
+New modules should follow these conventions:
+
+- Use Bash unless another interpreter provides a clear benefit.
+- Use `#!/usr/bin/env bash` for Bash scripts.
+- Remain compatible with `set -euo pipefail`.
+- Quote variable expansions unless word splitting is intentional.
+- Use `CANONICAL_ID` when interacting with shared state or message helpers.
+- Use shared logging helpers instead of printing errors directly.
+- Keep `is_installed.sh` free of side effects.
+- Verify every component the module promises to install.
+- Keep `install.sh` focused on software installation.
+- Keep user configuration in `post_install.sh`.
+- Store cross-phase choices through the state library.
+- Use the messages library for information that should appear in the final summary.
+- Add `cleanup.sh` whenever temporary resources are created.
+- Return non-zero immediately when a phase cannot complete successfully.
+- Avoid interactive input when `NON_INTERACTIVE=true`.
+- Respect `SKIP_CONFIGURATION`, `FORCE_CONFIGURATION`, and `FORCE_INSTALL`.
+- Make repeated execution safe whenever practical.
+- Use shared framework helpers before introducing duplicate module-specific logic.
+
+## 📚 Module Documentation
+
+For the complete module catalog, category index, supported environment variables, installation methods, and
+module-specific configuration details, see [`modules/README.md`](modules/README.md).
+
+## 🙏 Credits
+
+Mint Provisioner is designed and supervised by [Hadi Susanto](https://id.linkedin.com/in/hadisusanto).
+
+Implementation and refinement were completed with assistance from:
+
+- **ChatGPT** by OpenAI
+- **Junie** by JetBrains
+
+Mint Provisioner is based on ideas developed in the
+earlier [os-customizer](https://github.com/hadi-susanto/os-customizer) project.

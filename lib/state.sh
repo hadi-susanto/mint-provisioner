@@ -3,7 +3,7 @@
 #
 # Prevent the library from being loaded more than once.
 #
-if [[ "${__STATE_LIB_LOADED:-false}" == "true" ]]; then
+if (( ${__STATE_LIB_LOADED:-0} )); then
     return 0
 fi
 
@@ -26,7 +26,7 @@ fi
 #
 # Validation completed, we can mark as loaded
 #
-readonly __STATE_LIB_LOADED="true"
+readonly __STATE_LIB_LOADED=1
 
 ##
 # Resolves the state file path for a module.

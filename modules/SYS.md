@@ -1,6 +1,6 @@
 # ⚙️ System (`sys`)
 
-System utilities, machine setup, performance tools, fonts, and operating system configuration. Modules in this category help configure, maintain, and optimize the operating system, including tools such as **apt-fast**, **bottom**, **procs**, **Nerd Fonts**, and your opinionated **OOBE** configuration.
+System utilities, machine setup, performance tools, fonts, and operating system configuration. Modules in this category help configure, maintain, and optimize the operating system, including tools such as **apt-fast**, **Nerd Fonts**, and your opinionated **OOBE** configuration.
 
 ---
 

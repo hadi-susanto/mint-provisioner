@@ -5,6 +5,7 @@
 #
 
 source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/messages.sh"
 
 #
 # Get the configuration directory for the current user
@@ -38,8 +39,8 @@ copy_to_config_dir() {
         return 1
     fi
 
-    config_dir=$(get_config_dir)
-    filename=$(basename "$source")
+    config_dir="$(get_config_dir)"
+    filename="${source##*/}"
     target="${config_dir}/${filename}"
 
     if [[ ! -d "$config_dir" ]]; then
@@ -191,7 +192,8 @@ add_to_path() {
         return 1
     fi
 
-    local profile_script="/etc/profile.d/99-path-${module}.sh"
+    local normalized_module="${module//\//_}"
+    local profile_script="/etc/profile.d/99-path-${normalized_module}.sh"
     log_info "[add_to_path] [$module] Registering $source_path to $profile_script"
 
     local content
@@ -206,5 +208,5 @@ EOF
     echo "$content" | sudo tee "$profile_script" > /dev/null
 
     log_warn "[$module] PATH has been updated. You may need to log out and log back in for the changes to take effect."
-    post_message "$module" "New directory added to PATH: $source_path. Please relogin to apply changes."
+    add_message "$module" "info" "New directory added to PATH: $source_path. Please relogin to apply changes."
 }

@@ -48,11 +48,11 @@ log_info() {
 }
 
 log_warn() {
-    printf "${COLOR_YELLOW}[WARN]  %s${COLOR_RESET}\n" "$*" >&2
+    printf "%s[WARN]  %s%s\n" "${COLOR_YELLOW}" "$*" "${COLOR_RESET}" >&2
 }
 
 log_error() {
-    printf "${COLOR_RED}[ERROR] %s${COLOR_RESET}\n" "$*" >&2
+    printf "%s[ERROR] %s%s\n" "${COLOR_RED}" "$*" "${COLOR_RESET}" >&2
 }
 
 #
@@ -232,23 +232,6 @@ run_script() {
     else
         env "${environment[@]}" bash -euo pipefail "$file"
     fi
-}
-
-#
-# post_message <module> <message>
-#
-# Appends a message to the module's message file in STATE_DIR.
-#
-# Parameters:
-#   module    Name of the module.
-#   message   The message to append.
-#
-post_message() {
-    local module="$1"
-    local message="$2"
-    local message_file="${STATE_DIR}/${module}.messages"
-
-    echo "$message" >> "$message_file"
 }
 
 ##

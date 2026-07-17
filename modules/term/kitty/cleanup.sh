@@ -5,23 +5,22 @@
 #
 
 source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/state.sh"
 
-MODULE="kitty"
-STATE_FILE="${STATE_DIR}/kitty.path"
+if ! load_states "$CANONICAL_ID"; then
+    log_warn "[$CANONICAL_ID] State not found, skipping cleanup"
 
-if [[ ! -f "$STATE_FILE" ]]; then
-    log_warn "[$MODULE] State file not found, skipping cleanup"
     exit 0
 fi
 
-read -r ARCHIVE_FILE < "$STATE_FILE"
+ARCHIVE_FILE="$(get_state "ARCHIVE_FILE")"
 
 if [[ -f "$ARCHIVE_FILE" ]]; then
-    log_info "[$MODULE] Removing archive file: $ARCHIVE_FILE"
+    log_info "[$CANONICAL_ID] Removing archive file: $ARCHIVE_FILE"
     rm -f "$ARCHIVE_FILE"
 fi
 
-log_info "[$MODULE] Removing state file"
-rm -f "$STATE_FILE"
+log_info "[$CANONICAL_ID] Deleting states"
+delete_states "$CANONICAL_ID"
 
-log_info "[$MODULE] Cleanup completed successfully"
+log_info "[$CANONICAL_ID] Cleanup completed successfully"

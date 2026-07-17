@@ -4,10 +4,6 @@
 #
 source "$LIB_DIR/metadata_parser.sh"
 
-#
-# Module lifecycle definitions
-#
-
 readonly MANDATORY_PHASES=(
     is_installed
     install
@@ -19,123 +15,6 @@ readonly PHASES=(
     post_install
     cleanup
 )
-
-installer_usage() {
-    cat <<'EOF'
-Usage:
-  ./install.sh [OPTIONS] [MODULE...]
-  ./install.sh --list [CATEGORY...]
-  ./install.sh --category
-
-Options:
-  -h,  --help                 Show this help message and exit.
-  -c,  --category             List available categories and exit.
-  -l,  --list                 List available modules and exit.
-  -ni, --non-interactive      Use defaults and auto-detection where possible.
-  -s,  --skip-configuration   Skip supported post-install configuration.
-  -fc, --force-configuration  Force supported post-install configuration.
-  -f,  --force-install        Install modules even if already installed.
-
-Arguments:
-  MODULE      Module to install: <category>/<module> or <module>.
-  CATEGORY    Category to filter when using -l or --list.
-
-Examples:
-  ./install.sh git
-  ./install.sh cli/git eza
-  ./install.sh -ni -f gui/flameshot term/kitty
-  ./install.sh --list
-  ./install.sh --list cli gui
-  ./install.sh --category
-
-Notes:
-  * Use <category>/<module> to resolve conflicting module names.
-  * --skip-configuration takes precedence over --force-configuration.
-
-  More details:
-  https://github.com/hadi-susanto/mint-provisioner/tree/main/modules
-EOF
-}
-
-process_installer_options() {
-    local -n output_args="$1"
-    shift
-
-    output_args=()
-
-    local arg
-    local skip_configuration=0
-    local force_configuration=0
-
-    while (($# > 0)); do
-        case "$1" in
-            -h|--help)
-                installer_usage
-
-                return 0
-                ;;
-
-            -c|--category)
-                list_available_categories
-
-                return 0
-                ;;
-
-            -l|--list)
-                shift
-                list_available_modules "$@"
-
-                return 0
-                ;;
-
-            -ni|--non-interactive)
-                export NONINTERACTIVE=true
-                log_info "Enabling non-interactive installation. Default values or auto-detection will be used."
-                ;;
-
-            -s|--skip-configuration)
-                export SKIP_CONFIGURATION=true
-                skip_configuration=1
-
-                if ((force_configuration == 1)); then
-                    log_warn "FORCE_CONFIGURATION is also active. For most modules, SKIP_CONFIGURATION will take precedence."
-                else
-                    log_info "Disabling the configuration/post_install phase when supported by the module."
-                fi
-                ;;
-
-            -fc|--force-configuration)
-                export FORCE_CONFIGURATION=true
-                force_configuration=1
-
-                if ((skip_configuration == 1)); then
-                    log_warn "SKIP_CONFIGURATION is also active. It will take precedence over FORCE_CONFIGURATION."
-                else
-                    log_info "Enabling force configuration to reset existing configuration when supported by the module."
-                fi
-                ;;
-
-            -f|--force-install)
-                export FORCE_INSTALL=true
-                log_info "Enabling force installation mode. Modules will be installed even if they are already installed."
-                ;;
-
-            -*)
-                log_error "Unknown option '$1'."
-
-                return 2
-                ;;
-
-            *)
-                output_args+=("$1")
-                ;;
-        esac
-
-        shift
-    done
-
-    return 1
-}
 
 list_available_categories() {
     local category_dir
@@ -161,7 +40,7 @@ list_available_categories() {
         printf '    %s\n' \
             "${metadata[$category_id.DESCRIPTION]:-}"
 
-        ((index++))
+        ((++index))
     done < <(list_categories)
 
     return 0
@@ -187,14 +66,13 @@ __print_module_row() {
     local module_id="$3"
     local canonical_id="$category_id/$module_id"
 
-    local status
+    local status=0
     local status_icon
     local tag
 
     local -a tags=()
 
-    get_module_status "$canonical_id"
-    status="$?"
+    get_module_status "$canonical_id" || status="$?"
     status_icon="$(get_module_status_icon "$status")"
 
     declare -A metadata=()
@@ -203,21 +81,21 @@ __print_module_row() {
     fi
 
     if [[ -n "${metadata[$canonical_id.SOURCE]:-}" ]]; then
-        tags+=("source: ${metadata[$canonical_id.SOURCE]}")
+        tags+=("src: ${metadata[$canonical_id.SOURCE]}")
     fi
 
     if ! get_module_tags "$canonical_id" tags; then
         return 1
     fi
 
-    printf "%3d. [%s] %s ${COLOR_YELLOW}[id: %s]${COLOR_RESET}" \
+    printf "%3d. [%s] %s %s[id: %s]%s" \
         "$index" \
         "$status_icon" \
         "${metadata[$canonical_id.NAME]:-N/A}" \
-        "$canonical_id"
+        "${COLOR_YELLOW}" "$canonical_id" "${COLOR_RESET}"
 
     for tag in "${tags[@]}"; do
-        printf " ${COLOR_CYAN}[%s]${COLOR_RESET}" "$tag"
+        printf " %s[%s]%s" "${COLOR_CYAN}" "$tag" "${COLOR_RESET}"
     done
 
     printf '\n'
@@ -262,7 +140,7 @@ list_available_modules() {
         while IFS= read -r module_dir; do
             module_id="${module_dir##*/}"
             contain_module=1
-            ((index++))
+            ((++index))
 
             __print_module_row "$index" "$category_id" "$module_id"
         done < <(list_modules_by_category "$category_id")
@@ -286,10 +164,10 @@ __print_header() {
     local description="$4"
 
     printf "%s\n" "----------------------------------------------------------------------"
-    printf -- "-= Installing %s =- ${COLOR_YELLOW}[id: %s]${COLOR_RESET} ${COLOR_CYAN}[source: %s]${COLOR_RESET}\n" \
+    printf -- "-= Installing %s =- %s[id: %s]%s %s[src: %s]%s\n" \
         "$name" \
-        "$canonical_id" \
-        "$source"
+        "${COLOR_YELLOW}" "$canonical_id" "${COLOR_RESET}" \
+        "${COLOR_CYAN}" "$source" "${COLOR_RESET}"
     printf '%s\n' "$description"
     printf "%s\n" "----------------------------------------------------------------------"
 }
@@ -303,7 +181,11 @@ __print_footer() {
     local duration="$3"
 
     printf "%s\n" "----------------------------------------------------------------------"
-    printf " ${COLOR_GREEN}✔${COLOR_RESET} $name ${COLOR_YELLOW}[id: $canonical_id]${COLOR_RESET} installation completed (${duration}s)\n"
+    printf " %s✔%s %s %s[id: %s]%s installation completed in %s sec(s)\n" \
+        "${COLOR_GREEN}" "${COLOR_RESET}" \
+        "$name" \
+        "${COLOR_YELLOW}" "$canonical_id" "${COLOR_RESET}" \
+        "${duration}"
 }
 
 configure_module() {
@@ -356,7 +238,7 @@ run_configuration() {
 
     for canonical_id in "$@"; do
         if configure_module "$canonical_id"; then
-            ((index++))
+            ((++index))
         else
             log_error "[configuration] Failure when configuring module: $canonical_id"
 
@@ -616,8 +498,7 @@ run_installation() {
             "${metadata[$canonical_id.time]:-0.000}"
 
         if has_messages "$canonical_id"; then
-            print_messages "$canonical_id"
-            printf '\n'
+            print_messages "$canonical_id" 4
         fi
     done
 

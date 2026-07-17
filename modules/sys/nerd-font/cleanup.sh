@@ -9,34 +9,23 @@
 #
 
 source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/state.sh"
 
-MODULE="nerd-font"
-STATE_FILE="${STATE_DIR}/nerd-font.path"
-NAME_FILE="${STATE_DIR}/nerd-font.name"
+if ! load_states "$CANONICAL_ID"; then
+    log_warn "[$CANONICAL_ID] State not found, skipping cleanup"
 
-log_info "[$MODULE] Looking for state file: ${STATE_FILE}"
-
-if [[ ! -f "$STATE_FILE" ]] && [[ ! -f "$NAME_FILE" ]]; then
-    log_warn "[$MODULE] State files not found, nothing to clean"
     exit 0
 fi
 
-if [[ -f "$STATE_FILE" ]]; then
-    read -r DOWNLOADED_FILE < "$STATE_FILE"
+DOWNLOADED_FILE="$(get_state "DOWNLOAD_FILE")"
 
-    if [[ -f "$DOWNLOADED_FILE" ]]; then
-        log_info "[$MODULE] Removing downloaded file: ${DOWNLOADED_FILE}"
-        rm -f "$DOWNLOADED_FILE"
-    fi
-
-    log_info "[$MODULE] Removing state file: $STATE_FILE"
-    rm -f "$STATE_FILE"
+if [[ -n "$DOWNLOADED_FILE" && -f "$DOWNLOADED_FILE" ]]; then
+    log_info "[$CANONICAL_ID] Removing downloaded file: ${DOWNLOADED_FILE}"
+    rm -f "$DOWNLOADED_FILE"
 fi
 
-if [[ -f "$NAME_FILE" ]]; then
-    log_info "[$MODULE] Removing name file: $NAME_FILE"
-    rm -f "$NAME_FILE"
-fi
+log_info "[$CANONICAL_ID] Deleting states"
+delete_states "$CANONICAL_ID"
 
-log_info "[$MODULE] Cleanup completed"
+log_info "[$CANONICAL_ID] Cleanup completed"
 exit 0

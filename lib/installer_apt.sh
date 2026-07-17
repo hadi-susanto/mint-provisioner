@@ -125,9 +125,10 @@ install_asc_key() {
         return 1
     fi
 
-    local keyring_file="/etc/apt/keyrings/${module}.gpg"
-    local keyring_dir="${keyring_file%/*}"
-    local source_file="/etc/apt/sources.list.d/${module}.sources"
+    local normalized_module="${module//\//_}"
+    local keyring_dir="/etc/apt/keyrings"
+    local keyring_file="${keyring_dir}/${normalized_module}.gpg"
+    local source_file="/etc/apt/sources.list.d/${normalized_module}.sources"
     local source_dir="${source_file%/*}"
     local arch
 

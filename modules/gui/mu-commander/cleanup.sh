@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #
-# Performs post-install cleanup for oh-my-posh.
+# Performs post-install cleanup for mu-commander.
 #
 
 source "${LIB_DIR}/common.sh"
@@ -13,13 +13,12 @@ if ! load_states "$CANONICAL_ID"; then
     exit 0
 fi
 
-for key in BINARY_FILE THEMES_FILE; do
-    file_path="$(get_state "$key")"
-    if [[ -n "$file_path" && -f "$file_path" ]]; then
-        log_info "[$CANONICAL_ID] Removing downloaded file: $file_path"
-        rm -f "$file_path"
-    fi
-done
+DEB_FILE="$(get_state "DEB_FILE")"
+
+if [[ -n "$DEB_FILE" && -f "$DEB_FILE" ]]; then
+    log_info "[$CANONICAL_ID] Removing package file: $DEB_FILE"
+    rm -f "$DEB_FILE"
+fi
 
 log_info "[$CANONICAL_ID] Deleting states"
 delete_states "$CANONICAL_ID"
