@@ -115,6 +115,47 @@ https://flameshot.org/
 
 ---
 
+## Insync (`insync`)
+
+Insync is a desktop cloud storage client for synchronizing Google Drive, OneDrive, and Dropbox with the local filesystem.
+It normally runs in the background after the initial account and synchronization configuration is completed through its
+graphical interface.
+
+Insync is commercial software and may require a license after its trial period.
+
+### Installation Method
+
+**Official Insync APT repository**
+
+Adds the vendor-managed Insync repository and signing key for the current Linux Mint release, then installs the `insync`
+package using APT.
+
+The module supports AMD64 systems.
+
+### File Manager Integration
+
+Insync provides optional integration packages that display synchronization badges and additional actions in supported
+file managers:
+
+| File manager | Package            |
+|--------------|--------------------|
+| Caja         | `insync-caja`      |
+| Dolphin      | `insync-dolphin`   |
+| Nautilus     | `insync-nautilus`  |
+| Nemo         | `insync-nemo`      |
+| Thunar       | `insync-thunar`    |
+
+Linux Mint Cinnamon users will normally want the `insync-nemo` package.
+
+These packages are not installed automatically because the required integration depends on the user's desktop
+environment and file manager.
+
+### Official Website
+
+https://www.insynchq.com/
+
+---
+
 ## KeePassXC (`keepass-xc`)
 
 KeePassXC is a modern, cross-platform password manager compatible with the KeePass database format. It securely stores passwords, passkeys, SSH keys, TOTP secrets, and other sensitive information in an encrypted database while providing browser integration and automatic credential filling.

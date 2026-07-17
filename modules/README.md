@@ -9,7 +9,7 @@ For an overview of the complete framework, see the [main project README](../READ
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **39 modules** across **7 categories**.
+Mint Provisioner currently provides **40 modules** across **7 categories**.
 
 Categories organize the module catalog, provide metadata for module listings, and form part of each module's canonical
 ID:
@@ -36,15 +36,15 @@ Each category document contains detailed information about its modules, includin
 - Shell integration, aliases, and helper functions.
 - Official project website.
 
-| Category                        | ID     | Modules                                                                                               |
-|---------------------------------|--------|-------------------------------------------------------------------------------------------------------|
-| [Command Line](CLI.md)          | `cli`  | `adb`, `bat`, `delta`, `eza`, `git`, `mkvtoolnix`, `procs`                                            |
-| [Development](DEV.md)           | `dev`  | `apache-maven`, `dbeaver-community`, `dbgate-community`, `sdkman`                                     |
-| [Desktop Applications](GUI.md)  | `gui`  | `cryptomator`, `deadbeef`, `double-commander`, `flameshot`, `keepass-xc`, `mu-commander`, `sunflower` |
-| [System Administration](SYS.md) | `sys`  | `apt-fast`, `dconf-editor`, `dnscrypt-proxy`, `nerd-font`, `oobe`                                     |
-| [Terminal](TERM.md)             | `term` | `alacritty`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `terminator`, `zsh`     |
-| [Terminal UI](TUI.md)           | `tui`  | `bottom`, `du-analyzer`, `du-rust`, `duf`, `git-ui`, `lazy-git`                                       |
-| [Miscellaneous](MISC.md)        | `misc` | `any-desk`, `virtual-box`                                                                             |
+| Category                        | ID     | Modules                                                                                                         |
+|---------------------------------|--------|-----------------------------------------------------------------------------------------------------------------|
+| [Command Line](CLI.md)          | `cli`  | `adb`, `bat`, `delta`, `eza`, `git`, `mkvtoolnix`, `procs`                                                      |
+| [Development](DEV.md)           | `dev`  | `apache-maven`, `dbeaver-community`, `dbgate-community`, `sdkman`                                               |
+| [Desktop Applications](GUI.md)  | `gui`  | `cryptomator`, `deadbeef`, `double-commander`, `flameshot`, `insync`, `keepass-xc`, `mu-commander`, `sunflower` |
+| [System Administration](SYS.md) | `sys`  | `apt-fast`, `dconf-editor`, `dnscrypt-proxy`, `nerd-font`, `oobe`                                               |
+| [Terminal](TERM.md)             | `term` | `alacritty`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `terminator`, `zsh`               |
+| [Terminal UI](TUI.md)           | `tui`  | `bottom`, `du-analyzer`, `du-rust`, `duf`, `git-ui`, `lazy-git`                                                 |
+| [Miscellaneous](MISC.md)        | `misc` | `any-desk`, `virtual-box`                                                                                       |
 
 ## 📁 Directory Structure
 
