@@ -1,6 +1,7 @@
 # 🛠️ Development (`dev`)
 
-Software development tools, SDK managers, build systems, and programming environments. Modules in this category help set up and maintain a productive development environment, including tools such as **Apache Maven** and **SDKMAN!**.
+Software development tools, SDK managers, build systems, and programming environments. Modules in this category help set
+up and maintain a productive development environment, including tools such as **Apache Maven** and **SDKMAN!**.
 
 ---
 
@@ -59,7 +60,8 @@ tools.
 Downloads the latest Debian package from the DbGate GitHub releases page using its permanent latest-release URL, then
 installs it using APT.
 
-Because DbGate publishes a stable `latest/download` URL, the module does not need to query the GitHub API or use a release
+Because DbGate publishes a stable `latest/download` URL, the module does not need to query the GitHub API or use a
+release
 asset regular expression.
 
 ### Official Website
@@ -69,6 +71,39 @@ https://www.dbgate.org/
 ### GitHub Repository
 
 https://github.com/dbgate/dbgate
+
+---
+
+## MongoDB Compass (`mongodb-compass`)
+
+MongoDB Compass is the official graphical database management and development application for MongoDB. It provides
+document exploration and editing, schema analysis, query construction, aggregation pipeline development, index
+management, and database performance information.
+
+### Installation Method
+
+**GitHub latest release (`.deb`)**
+
+Locates and downloads the latest AMD64 Debian package from the official MongoDB Compass GitHub releases, then installs
+it using APT.
+
+### Supported ENV
+
+- `MONGODB_COMPASS_REGEX`
+    - Regular expression used to locate the Debian package in the latest GitHub release.
+    - Default:
+
+      ```text
+      mongodb-compass_.*_amd64\.deb$
+      ```
+
+### Official Website
+
+https://www.mongodb.com/products/tools/compass/
+
+### GitHub Repository
+
+https://github.com/mongodb-js/compass
 
 ---
 
