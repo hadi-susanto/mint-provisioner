@@ -287,12 +287,12 @@ can_write() {
     fi
 
     # Start from the file's parent directory.
-    dir=$(dirname -- "$target")
+    dir="${target%/*}"
 
     # Walk upward until an existing directory is found.
     while [[ ! -d "$dir" ]]; do
         local parent
-        parent=$(dirname -- "$dir")
+        parent="${dir%/*}"
 
         [[ "$parent" == "$dir" ]] && return 1
 

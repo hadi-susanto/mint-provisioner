@@ -74,7 +74,7 @@ sudo sed -i "s|Exec=kitty|Exec=$EXEC_PATH|g" /usr/share/applications/kitty*.desk
 
 log_info "[$CANONICAL_ID] Updating xdg-terminals.list"
 XDG_TERMINALS_LIST="$(get_user_home)/.config/xdg-terminals.list"
-mkdir -p "$(dirname "$XDG_TERMINALS_LIST")"
+mkdir -p "${XDG_TERMINALS_LIST%/*}"
 touch "$XDG_TERMINALS_LIST"
 
 if ! grep -Fxq 'kitty.desktop' "$XDG_TERMINALS_LIST"; then

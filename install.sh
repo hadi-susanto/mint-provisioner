@@ -7,7 +7,7 @@ set -euo pipefail
 #
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export ROOT_DIR="$SCRIPT_DIR"
-export INSTALL_DIR="$(dirname "$ROOT_DIR")"
+export INSTALL_DIR="${ROOT_DIR%/*}"
 export LIB_DIR="$ROOT_DIR/lib"
 export MODULES_DIR="$ROOT_DIR/modules"
 
