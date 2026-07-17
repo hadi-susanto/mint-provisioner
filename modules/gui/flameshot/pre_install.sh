@@ -1,30 +1,5 @@
 #!/usr/bin/env bash
 
-#
-# Pre-install phase for Flameshot.
-#
-# Actions:
-#   1. Create a temporary file to hold the package.
-#   2. Resolve the latest Ubuntu .deb release from GitHub.
-#   3. Persist the temporary file path into the module state file.
-#   4. Download the package into the temporary file.
-#
-# Environment:
-#   FLAMESHOT_REGEX
-#       Optional regular expression used to locate the release asset.
-#       When set, the default Ubuntu-version-specific pattern is ignored.
-#
-# State:
-#   Writes the download path to:
-#       ${STATE_DIR}/flameshot.path
-#
-# Exit codes:
-#   1 - Failed to create temporary file
-#   2 - Failed to resolve latest release
-#   3 - Failed to create state file
-#   4 - Failed to download package
-#
-
 source "$LIB_DIR/installer_external.sh"
 source "$LIB_DIR/distro.sh"
 source "$LIB_DIR/state.sh"

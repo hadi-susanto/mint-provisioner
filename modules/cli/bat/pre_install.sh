@@ -3,6 +3,8 @@
 source "$LIB_DIR/installer_external.sh"
 source "$LIB_DIR/state.sh"
 
+log_info "[$CANONICAL_ID] Creating temporary download file"
+
 if ! download_file="$(mktemp --suffix=.deb)"; then
     log_error "[$CANONICAL_ID] Failed to create temporary file"
 
@@ -23,7 +25,6 @@ if ! url="$(
         "$BAT_REGEX"
 )"; then
     log_error "[$CANONICAL_ID] Failed to resolve latest release"
-
     rm -f "$download_file"
 
     exit 2
@@ -31,7 +32,6 @@ fi
 
 if ! download_file "$CANONICAL_ID" "$url" "$download_file"; then
     log_error "[$CANONICAL_ID] Download failed"
-
     rm -f "$download_file"
 
     exit 3

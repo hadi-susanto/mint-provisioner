@@ -1,26 +1,5 @@
 #!/usr/bin/env bash
 
-#
-# Pre-install phase for Nerd Font.
-#
-# Actions:
-#   1. Create a temporary file to hold the zip archive.
-#   2. Resolve the latest release from GitHub (ryanoasis/nerd-fonts).
-#   3. Persist the temporary file path into the module state file.
-#   4. Download the package into the temporary file.
-#
-# Environment:
-#   NERD_FONT_FAMILY
-#       Optional font family name to install.
-#       Defaults to Inconsolata.
-#
-# State:
-#   Writes the download path to:
-#       ${STATE_DIR}/nerd-font.path
-#   Writes the font name to:
-#       ${STATE_DIR}/nerd-font.name
-#
-
 source "$LIB_DIR/installer_external.sh"
 source "$LIB_DIR/state.sh"
 

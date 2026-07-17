@@ -6,12 +6,11 @@
 
 source "${LIB_DIR}/installer_common.sh"
 
-MODULE="oh-my-posh"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="${MODULES_DIR}/${CANONICAL_ID}"
 PAYLOAD_DIR="$SCRIPT_DIR/payload"
 
 if [[ "${OH_MY_POSH_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
-    log_warn "[$MODULE] OH_MY_POSH_SKIP_CONFIGURATION is set to true, skipping configuration"
+    log_warn "[$CANONICAL_ID] OH_MY_POSH_SKIP_CONFIGURATION is set to true, skipping configuration"
 
     return 0
 fi
@@ -24,10 +23,10 @@ fi
 # Copy payloads
 #
 for file in "$PAYLOAD_DIR"/*; do
-    copy_to_config_dir "$MODULE" "$file" "OH_MY_POSH_FORCE_CONFIGURATION"
+    copy_to_config_dir "$CANONICAL_ID" "$file" "OH_MY_POSH_FORCE_CONFIGURATION"
 done
 
-add_bash_source "$MODULE" "$(get_config_dir)/oh-my-posh.sh"
-add_zsh_source "$MODULE" "$(get_config_dir)/oh-my-posh.zsh"
+add_bash_source "$CANONICAL_ID" "$(get_config_dir)/oh-my-posh.sh"
+add_zsh_source "$CANONICAL_ID" "$(get_config_dir)/oh-my-posh.zsh"
 
-log_info "[$MODULE] oh-my-posh configuration completed"
+log_info "[$CANONICAL_ID] oh-my-posh configuration completed"

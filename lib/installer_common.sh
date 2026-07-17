@@ -39,8 +39,8 @@ copy_to_config_dir() {
         return 1
     fi
 
-    config_dir=$(get_config_dir)
-    filename=$(basename "$source")
+    config_dir="$(get_config_dir)"
+    filename="${source##*/}"
     target="${config_dir}/${filename}"
 
     if [[ ! -d "$config_dir" ]]; then

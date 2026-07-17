@@ -6,7 +6,7 @@
 
 source "${LIB_DIR}/installer_common.sh"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="${MODULES_DIR}/${CANONICAL_ID}"
 PAYLOAD_DIR="$SCRIPT_DIR/payload"
 
 if [[ "${MKVTOOLNIX_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
@@ -40,12 +40,13 @@ __write_loader() {
 
 EOF
 
+    local filename="$CONFIG_DIR/${file##*/}"
     for file in "$PAYLOAD_DIR"/*; do
         [[ -f "$file" ]] || continue
 
         printf '[[ -f %q ]] && source %q\n' \
-            "$CONFIG_DIR/$(basename "$file")" \
-            "$CONFIG_DIR/$(basename "$file")" \
+            "$filename" \
+            "$filename" \
             >> "$LOADER_FILE"
     done
 }
