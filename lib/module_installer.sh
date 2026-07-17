@@ -81,21 +81,21 @@ __print_module_row() {
     fi
 
     if [[ -n "${metadata[$canonical_id.SOURCE]:-}" ]]; then
-        tags+=("source: ${metadata[$canonical_id.SOURCE]}")
+        tags+=("src: ${metadata[$canonical_id.SOURCE]}")
     fi
 
     if ! get_module_tags "$canonical_id" tags; then
         return 1
     fi
 
-    printf "%3d. [%s] %s ${COLOR_YELLOW}[id: %s]${COLOR_RESET}" \
+    printf "%3d. [%s] %s %s[id: %s]%s" \
         "$index" \
         "$status_icon" \
         "${metadata[$canonical_id.NAME]:-N/A}" \
-        "$canonical_id"
+        "${COLOR_YELLOW}" "$canonical_id" "${COLOR_RESET}"
 
     for tag in "${tags[@]}"; do
-        printf " ${COLOR_CYAN}[%s]${COLOR_RESET}" "$tag"
+        printf " %s[%s]%s" "${COLOR_CYAN}" "$tag" "${COLOR_RESET}"
     done
 
     printf '\n'
@@ -164,10 +164,10 @@ __print_header() {
     local description="$4"
 
     printf "%s\n" "----------------------------------------------------------------------"
-    printf -- "-= Installing %s =- ${COLOR_YELLOW}[id: %s]${COLOR_RESET} ${COLOR_CYAN}[source: %s]${COLOR_RESET}\n" \
+    printf -- "-= Installing %s =- %s[id: %s]%s %s[src: %s]%s\n" \
         "$name" \
-        "$canonical_id" \
-        "$source"
+        "${COLOR_YELLOW}" "$canonical_id" "${COLOR_RESET}" \
+        "${COLOR_CYAN}" "$source" "${COLOR_RESET}"
     printf '%s\n' "$description"
     printf "%s\n" "----------------------------------------------------------------------"
 }
@@ -181,7 +181,11 @@ __print_footer() {
     local duration="$3"
 
     printf "%s\n" "----------------------------------------------------------------------"
-    printf " ${COLOR_GREEN}✔${COLOR_RESET} $name ${COLOR_YELLOW}[id: $canonical_id]${COLOR_RESET} installation completed (${duration}s)\n"
+    printf " %s✔%s %s %s[id: %s]%s installation completed in %s sec(s)\n" \
+        "${COLOR_GREEN}" "${COLOR_RESET}" \
+        "$name" \
+        "${COLOR_YELLOW}" "$canonical_id" "${COLOR_RESET}" \
+        "${duration}"
 }
 
 configure_module() {
@@ -494,8 +498,7 @@ run_installation() {
             "${metadata[$canonical_id.time]:-0.000}"
 
         if has_messages "$canonical_id"; then
-            print_messages "$canonical_id"
-            printf '\n'
+            print_messages "$canonical_id" 4
         fi
     done
 

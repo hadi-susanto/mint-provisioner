@@ -192,7 +192,8 @@ add_to_path() {
         return 1
     fi
 
-    local profile_script="/etc/profile.d/99-path-${module}.sh"
+    local normalized_module="${module//\//_}"
+    local profile_script="/etc/profile.d/99-path-${normalized_module}.sh"
     log_info "[add_to_path] [$module] Registering $source_path to $profile_script"
 
     local content

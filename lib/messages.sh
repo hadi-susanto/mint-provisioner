@@ -188,17 +188,20 @@ has_messages() {
 # Prints all stored messages for a module.
 #
 # Messages are grouped by level and printed in the following order:
-# info, warn, and error. Empty message levels are skipped.
+# info, warn, and error. Empty message levels are skipped. Each output line
+# can optionally be indented with the specified number of spaces.
 #
 # Parameters:
 #   $1 - Canonical module ID in <category>/<module> format.
+#   $2 - Optional number of spaces used to indent the output. Defaults to 0.
 #
 # Returns:
 #   0 - One or more messages were printed.
-#   1 - No messages exist or an error occurred.
+#   1 - No messages exist, the padding is invalid, or an error occurred.
 #
 print_messages() {
     local canonical_id="${1:-}"
+    local padding="${2:-0}"
 
     local level
     local message_file
@@ -206,8 +209,17 @@ print_messages() {
     local title_color
     local messages_found=false
 
+    if [[ ! "$padding" =~ ^[0-9]+$ ]]; then
+        log_error \
+            "[print_messages] Padding must be a non-negative integer."
+
+        return 1
+    fi
+
     for level in info warn error; do
-        if ! message_file="$(__resolve_message_file "$canonical_id" "$level")"; then
+        if ! message_file="$(
+            __resolve_message_file "$canonical_id" "$level"
+        )"; then
             return 1
         fi
 
@@ -236,26 +248,35 @@ print_messages() {
             printf '\n'
         fi
 
-        printf '%s%s:%s\n' \
+        printf '%*s%s[%s]:%s\n' \
+            "$padding" "" \
             "$title_color" \
             "$title" \
-            "$COLOR_RESET"
+            "${COLOR_RESET}"
 
-        if ! "${__MESSAGES_SUDO_CMD[@]}" cat "$message_file"; then
-            log_error \
-                "[print_messages] Failed to print messages: $message_file."
+        if (( padding == 0 )); then
+            if ! "${__MESSAGES_SUDO_CMD[@]}" cat "$message_file"; then
+                log_error \
+                    "[print_messages] Failed to print messages: $message_file."
 
-            return 1
+                return 1
+            fi
+        else
+            if ! "${__MESSAGES_SUDO_CMD[@]}" awk \
+                -v padding="$padding" \
+                '{ printf "%*s%s\n", padding, "", $0 }' \
+                "$message_file"; then
+                log_error \
+                    "[print_messages] Failed to print messages: $message_file."
+
+                return 1
+            fi
         fi
 
         messages_found=true
     done
 
-    if [[ "$messages_found" == "false" ]]; then
-        return 1
-    fi
-
-    return 0
+    [[ "$messages_found" == "true" ]]
 }
 
 ##

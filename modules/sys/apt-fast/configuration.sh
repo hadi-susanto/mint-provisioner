@@ -3,7 +3,7 @@
 source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/state.sh"
 
-if [[ "${NONINTERACTIVE:-false}" == "true" ]]; then
+if [[ "${APT_FAST_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]; then
     set_state \
         "APT_FAST_PACKAGE_MANAGER" \
         "${APT_FAST_PACKAGE_MANAGER:-apt-get}"

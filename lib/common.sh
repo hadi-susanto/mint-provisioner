@@ -48,11 +48,11 @@ log_info() {
 }
 
 log_warn() {
-    printf "${COLOR_YELLOW}[WARN]  %s${COLOR_RESET}\n" "$*" >&2
+    printf "%s[WARN]  %s%s\n" "${COLOR_YELLOW}" "$*" "${COLOR_RESET}" >&2
 }
 
 log_error() {
-    printf "${COLOR_RED}[ERROR] %s${COLOR_RESET}\n" "$*" >&2
+    printf "%s[ERROR] %s%s\n" "${COLOR_RED}" "$*" "${COLOR_RESET}" >&2
 }
 
 #

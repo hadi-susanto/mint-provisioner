@@ -32,21 +32,21 @@ __print_module_row() {
 
     local -a tags=()
     if [[ -n "${metadata[$canonical_id.SOURCE]:-}" ]]; then
-        tags+=("source: ${metadata[$canonical_id.SOURCE]}")
+        tags+=("src: ${metadata[$canonical_id.SOURCE]}")
     fi
 
     if ! get_module_tags "$canonical_id" tags; then
         return 1
     fi
 
-    printf "%3d. [%s] %s ${COLOR_YELLOW}[id: %s]${COLOR_RESET}" \
+    printf "%3d. [%s] %s %s[id: %s]%s" \
         "$index" \
         "$post_install_icon" \
         "${metadata[$canonical_id.NAME]:-N/A}" \
-        "$canonical_id"
+        "${COLOR_YELLOW}" "$canonical_id" "${COLOR_RESET}"
 
     for tag in "${tags[@]}"; do
-        printf " ${COLOR_CYAN}[%s]${COLOR_RESET}" "$tag"
+        printf " %s[%s]%s" "${COLOR_CYAN}" "$tag" "${COLOR_RESET}"
     done
 
     printf '\n'
@@ -95,8 +95,8 @@ list_installed_modules() {
     done < <(list_categories)
 
     printf '\nLegends:\n'
-    printf "  [${COLOR_GREEN}✓${COLOR_RESET}] Module has a post-install phase and can be configured.\n"
-    printf "  [${COLOR_RED}✗${COLOR_RESET}] Module does not have a post-install phase and cannot be configured.\n"
+    printf "  [%s] Module has a post-install phase and can be configured.\n" "${COLOR_GREEN}✓${COLOR_RESET}"
+    printf "  [%s] Module does not have a post-install phase and cannot be configured.\n" "${COLOR_RED}✗${COLOR_RESET}"
 
     return 0
 }
@@ -111,10 +111,10 @@ __print_header() {
     local description="$4"
 
     printf "%s\n" "----------------------------------------------------------------------"
-    printf -- "-= Configuring %s =- ${COLOR_YELLOW}[id: %s]${COLOR_RESET} ${COLOR_CYAN}[source: %s] [post-install]${COLOR_RESET}\n" \
+    printf -- "-= Configuring %s =- %s[id: %s]%s %s[src: %s] [post-install]%s\n" \
         "$name" \
-        "$canonical_id" \
-        "$source"
+        "${COLOR_YELLOW}" "$canonical_id" "${COLOR_RESET}" \
+        "${COLOR_CYAN}" "$source" "${COLOR_RESET}"
     printf '%s\n' "$description"
     printf "%s\n" "----------------------------------------------------------------------"
 }
@@ -128,7 +128,11 @@ __print_footer() {
     local duration="$3"
 
     printf "%s\n" "----------------------------------------------------------------------"
-    printf " ${COLOR_GREEN}✔${COLOR_RESET} $name ${COLOR_YELLOW}[id: $canonical_id]${COLOR_RESET} configuration completed (${duration}s)\n"
+    printf " %s %s %s[id: %s]%s configuration completed in %s sec(s)\n" \
+        "${COLOR_GREEN}✔${COLOR_RESET}" \
+        "$name" \
+        "${COLOR_YELLOW}" "$canonical_id" "${COLOR_RESET}" \
+        "${duration}"
 }
 
 #
@@ -144,29 +148,29 @@ __print_footer() {
 #   1   Failure in configuration.
 #
 post_install_module() {
-    local module="$1"
-    local module_dir="$MODULES_DIR/$module"
+    local canonical_id="$1"
+    local module_dir="$MODULES_DIR/$canonical_id"
     local is_installed_script="$module_dir/is_installed.sh"
     local post_install_script="$module_dir/post_install.sh"
 
-    log_info "[configuring] [$module] Checking installation status..."
+    log_info "[configuring] [$canonical_id] Checking installation status..."
 
     # Use run_script directly. non-zero return (like 1) means not installed or error.
-    if ! run_script "$is_installed_script" >/dev/null 2>&1; then
-        log_info "[configuring] [$module] Not installed or check failed, skipping"
+    if ! run_script "$is_installed_script" "CANONICAL_ID" "$canonical_id" >/dev/null 2>&1; then
+        log_info "[configuring] [$canonical_id] Not installed or check failed, skipping"
 
         return 0
     fi
 
     if [[ ! -f "$post_install_script" ]]; then
-        log_info "[configuring] [$module] No post_install.sh found, skipping configuration"
+        log_info "[configuring] [$canonical_id] No post_install.sh found, skipping configuration"
 
         return 0
     fi
 
-    log_info "[configuring] [$module] Running phase: post_install"
-    if ! run_script "$post_install_script"; then
-        log_error "[configuring] [$module] configuration failed"
+    log_info "[configuring] [$canonical_id] Running phase: post_install"
+    if ! run_script "$post_install_script" "CANONICAL_ID" "$canonical_id"; then
+        log_error "[configuring] [$canonical_id] configuration failed"
 
         return 1
     fi
@@ -271,17 +275,16 @@ run_post_install() {
             status_color="$COLOR_RED"
         fi
 
-        printf "%2d. [%s%s%s] %s ${COLOR_YELLOW}[id: %s]${COLOR_RESET} %s[%s: %s second(s)]${COLOR_RESET}\n" \
+        printf "%2d. [%s] %s %s[id: %s]%s %s[%s: %s sec(s)]%s\n" \
             "$index" \
-            "$status_color" "$icon" "$COLOR_RESET" \
+            "${status_color}${icon}${COLOR_RESET}" \
             "$name" \
-            "$canonical_id" \
+            "${COLOR_YELLOW}" "$canonical_id" "${COLOR_RESET}" \
             "$status_color" "$status" \
-            "${metadata[$canonical_id.time]:-0.000}"
+            "${metadata[$canonical_id.time]:-0.000}" "${COLOR_RESET}"
 
         if has_messages "$canonical_id"; then
-            print_messages "$canonical_id"
-            printf '\n'
+            print_messages "$canonical_id" 4
         fi
     done
 
