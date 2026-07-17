@@ -74,6 +74,70 @@ https://github.com/dbgate/dbgate
 
 ---
 
+## Docker (`docker`)
+
+Docker Engine is a container runtime and development platform for building, running, and managing containerized
+applications. The module also installs Docker Compose and Docker Buildx.
+
+### Installation Method
+
+**Official Docker APT repository**
+
+Adds Docker's vendor-managed Ubuntu repository and signing key, then installs:
+
+- `docker-ce`
+- `docker-ce-cli`
+- `containerd.io`
+- `docker-buildx-plugin`
+- `docker-compose-plugin`
+
+The module requires `rsync` before installation because existing Docker data is migrated to the configured library
+directory. The pre-installation phase fails when `rsync` is unavailable.
+
+### Supported ENV
+
+- `DOCKER_LIB_INSTALL_DIR`
+    - Directory used to store Docker images, containers, volumes, and other daemon data.
+    - Must be an absolute path.
+    - Must not be `/` or `/var/lib/docker`.
+    - Default: `${INSTALL_DIR}/docker-lib`
+
+- `DOCKER_NON_INTERACTIVE`
+    - Disables the Docker-specific installation prompt.
+    - Falls back to `${NON_INTERACTIVE}`.
+    - Default: `${NON_INTERACTIVE}`
+
+### Installation Configuration
+
+During installation, the module:
+
+- Installs Docker Engine, Docker Compose, and Docker Buildx.
+- Checks whether `/var/lib/docker` was created by Docker.
+- Skips data migration and displays a warning when `/var/lib/docker` does not exist.
+- Stops the Docker service and socket before migrating existing data.
+- Copies `/var/lib/docker` into `DOCKER_LIB_INSTALL_DIR` using `rsync`.
+- Preserves numeric user and group IDs during migration.
+- Configures Docker's `data-root` in `/etc/docker/daemon.json`.
+- Preserves an existing `daemon.json` and asks the user to verify it manually.
+- Restarts Docker after migration.
+- Adds the current non-root user to the `docker` group when the group exists.
+- Displays manual instructions when the `docker` group does not exist.
+- Preserves the original `/var/lib/docker` contents for manual verification and removal.
+
+The saved installation state is removed by `cleanup.sh` after installation completes.
+
+After being added to the `docker` group, log out and sign in again before running Docker commands without `sudo`.
+
+### Official Website
+
+https://www.docker.com/
+
+### Documentation
+
+https://docs.docker.com/engine/
+
+---
+
 ## MongoDB Compass (`mongodb-compass`)
 
 MongoDB Compass is the official graphical database management and development application for MongoDB. It provides
