@@ -27,6 +27,25 @@ https://maven.apache.org/
 
 ---
 
+## DBeaver Community (`dbeaver-community`)
+
+DBeaver Community is a free and open-source database management tool. It supports many database engines, including
+PostgreSQL, MySQL, MariaDB, SQLite, SQL Server, and Oracle.
+
+### Installation Method
+
+**Official DBeaver Community PPA**
+
+Adds the DBeaver Community PPA and installs the `dbeaver-ce` package using APT.
+
+Installing from the PPA allows DBeaver to receive updates through the standard system package upgrade process.
+
+### Official Website
+
+https://dbeaver.io/
+
+---
+
 ## SDKMAN! (`sdkman`)
 
 SDKMAN! is a Software Development Kit manager for the JVM ecosystem. It simplifies installing, updating, and switching
