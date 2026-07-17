@@ -280,10 +280,11 @@ The package installed depends on the selected configuration:
 
 * `MKVTOOLNIX_GUI_ENABLED`
 
-    * Install the MKVToolNix graphical interface in addition to the command-line tools.
+    * Controls whether the MKVToolNix graphical interface is installed alongside the command-line tools.
     * When set to `true`, installs the `mkvtoolnix-gui` package.
-    * When set to any other value, installs the command-line-only `mkvtoolnix` package.
-    * Default: `false`
+    * When set to `false`, installs the command-line-only `mkvtoolnix` package.
+    * When unset during an interactive installation, the module asks whether the GUI should be installed.
+    * When unset during a non-interactive installation, defaults to `false`.
 
 * `MKVTOOLNIX_SKIP_CONFIGURATION`
 
@@ -296,6 +297,37 @@ The package installed depends on the selected configuration:
     * Overwrite existing MKVToolNix helper files and regenerate the MKVToolNix loader.
     * Falls back to the global `FORCE_CONFIGURATION` value when not explicitly set.
     * Default: `${FORCE_CONFIGURATION}`
+
+### Installation Detection
+
+The module always checks for the following command-line tools:
+
+- `mkvextract`
+- `mkvinfo`
+- `mkvmerge`
+- `mkvpropedit`
+
+When `MKVTOOLNIX_GUI_ENABLED=true`, the module additionally requires `mkvtoolnix-gui` to consider the installation
+complete.
+
+When the variable is unset or set to `false`, an existing command-line-only installation is considered complete. The
+configuration phase is therefore skipped, and the user is not prompted to install the GUI.
+
+To add the GUI to an existing command-line-only installation, explicitly enable it:
+
+```bash
+MKVTOOLNIX_GUI_ENABLED=true ./install.sh cli/mkvtoolnix
+```
+
+Alternatively, force the configuration phase to run and select the GUI interactively:
+
+```bash
+FORCE_INSTALL=true ./install.sh cli/mkvtoolnix
+```
+
+```bash
+./install.sh --force-install cli/mkvtoolnix
+```
 
 ### Post-install Configuration
 
@@ -319,7 +351,7 @@ The package installed depends on the selected configuration:
 #### Shell Functions
 
 | Function                | Description                                                                                                                                                                                                                                                                                                                                                      |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|-------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `mkvmerge-extract-info` | Displays track information for a single media file or every matching file in a directory. The output includes the track ID, type, language, name, enabled flag, default flag, and forced flag. It accepts custom file extensions through `-e` or `--extension`, defaults to MKV files, and uses colored status icons when terminal color output is available.    |
 | `mkvmerge-process`      | Processes a single media file or every matching file in a directory using `mkvmerge`. It supports custom input and output paths, multiple file extensions, default-track and forced-track shorthand options, automatic expansion of repeated MKVToolNix option values, interactive confirmation, and a dry-run mode that prints commands without executing them. |
 
@@ -331,7 +363,7 @@ information into a readable table.
 #### Options
 
 | Option                   | Description                                                                                                                |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+|--------------------------|----------------------------------------------------------------------------------------------------------------------------|
 | `-i`, `--input FILE/DIR` | Inspect a specific file or every matching file directly inside a directory. Defaults to `.`.                               |
 | `-e`, `--extension EXT`  | Process files with the specified extension. May be repeated. Extensions are matched case-insensitively. Defaults to `mkv`. |
 | `-h`, `--help`           | Display usage information.                                                                                                 |
@@ -371,7 +403,7 @@ Unless dry-run mode is enabled, the function asks for confirmation before proces
 #### Options
 
 | Option                   | Description                                                                                                                |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+|--------------------------|----------------------------------------------------------------------------------------------------------------------------|
 | `-i`, `--input FILE/DIR` | Process a specific file or every matching file directly inside a directory. Defaults to `.`.                               |
 | `-o`, `--output DIR`     | Write processed files into the specified directory. Defaults to an `output` directory associated with the input path.      |
 | `-e`, `--extension EXT`  | Process files with the specified extension. May be repeated. Extensions are matched case-insensitively. Defaults to `mkv`. |
