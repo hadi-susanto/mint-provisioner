@@ -27,6 +27,43 @@ https://cryptomator.org/
 
 ---
 
+## DeaDBeeF (`deadbeef`)
+
+DeaDBeeF is a lightweight and highly customizable audio player. It supports numerous audio formats, playlists, internet
+radio, metadata editing, gapless playback, equalization, and an extensible plugin system.
+
+### Installation Method
+
+**Official website (precompiled archive)**
+
+Locates and downloads the latest Linux x86_64 TAR.BZ2 release from the official DeaDBeeF download page. The module
+extracts the standalone application into the configured installation directory and creates a symbolic link for the main
+`deadbeef` executable.
+
+### Supported ENV
+
+- `DEADBEEF_INSTALL_DIR`
+    - Installation directory.
+    - Default: `${INSTALL_DIR}/deadbeef`
+
+### Desktop Integration
+
+- Installs `deadbeef.desktop` into `/usr/share/applications`.
+- Registers DeaDBeeF as an audio player for supported audio files, playlists, cue sheets, and directories.
+- Adds desktop actions for playing, pausing, stopping, and navigating tracks.
+- Uses the bundled DeaDBeeF icon when available, with the system audio icon as a fallback.
+
+### Cleanup
+
+- Removes the downloaded TAR.BZ2 archive.
+- Removes the module state file.
+
+### Official Website
+
+https://deadbeef.sourceforge.io/
+
+---
+
 ## Double Commander (`double-commander`)
 
 Double Commander is a cross-platform dual-pane file manager inspired by Total Commander. It includes built-in archive support, batch renaming, advanced search, internal viewers, and extensive keyboard shortcuts for efficient file management.
