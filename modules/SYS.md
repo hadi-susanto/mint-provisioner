@@ -45,6 +45,32 @@ https://github.com/ilikenwf/apt-fast
 
 ---
 
+## Dconf Editor (`dconf-editor`)
+
+Dconf Editor is a graphical tool for viewing and modifying low-level desktop environment settings stored in the dconf
+configuration database.
+
+> **Warning:** Dconf Editor exposes settings that may not be available through the regular system settings interface.
+> Invalid changes can cause unexpected desktop behavior.
+
+### Installation Method
+
+**Native distribution package**
+
+Installs the `dconf-editor` package from the Linux Mint or Ubuntu distribution repository using APT.
+
+After installation, the provisioner displays a reminder that Linux Mint battery settings are available under:
+
+```text
+/org/cinnamon/settings-daemon/plugins/power/
+```
+
+### Official Website
+
+https://apps.gnome.org/DconfEditor/
+
+---
+
 ## Nerd Fonts (`nerd-font`)
 
 Nerd Fonts provides patched developer fonts containing thousands of additional glyphs used by modern terminal prompts, CLI applications, editors, and programming tools.
