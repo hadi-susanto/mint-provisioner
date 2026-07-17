@@ -46,6 +46,32 @@ https://dbeaver.io/
 
 ---
 
+## DbGate Community (`dbgate-community`)
+
+DbGate Community is a cross-platform database management application supporting relational databases, NoSQL databases,
+and Redis. It provides database browsing, data editing, SQL development, import and export, and database administration
+tools.
+
+### Installation Method
+
+**GitHub latest release (`.deb`)**
+
+Downloads the latest Debian package from the DbGate GitHub releases page using its permanent latest-release URL, then
+installs it using APT.
+
+Because DbGate publishes a stable `latest/download` URL, the module does not need to query the GitHub API or use a release
+asset regular expression.
+
+### Official Website
+
+https://www.dbgate.org/
+
+### GitHub Repository
+
+https://github.com/dbgate/dbgate
+
+---
+
 ## SDKMAN! (`sdkman`)
 
 SDKMAN! is a Software Development Kit manager for the JVM ecosystem. It simplifies installing, updating, and switching
