@@ -222,3 +222,56 @@ Downloads the latest Debian package from the official GitHub releases page, stor
 ### Official Website
 
 https://github.com/MeanEYE/Sunflower
+
+---
+
+## TLP UI (`tlp-ui`)
+
+TLP UI is a GTK-based graphical interface for viewing and editing TLP power-management configuration. It provides an
+easier way to inspect available TLP settings, modify configuration values, and view TLP status information.
+
+### Installation Method
+
+**GitHub repository (source installation)**
+
+Installs the required Python and GTK runtime packages, then performs a shallow clone of the official TLPUI GitHub
+repository.
+
+The module requires:
+
+- Python 3.10 or newer
+- Git
+- An existing TLP installation
+
+The following runtime packages are installed using APT:
+
+- `python3-gi`
+- `python3-yaml`
+- `python3-toml`
+- `gir1.2-gtk-3.0`
+
+### Supported ENV
+
+- `TLP_UI_INSTALL_DIR`
+    - Directory where the TLPUI Git repository is cloned.
+    - Default: `${INSTALL_DIR}/tlp-ui`
+
+### Installed Configuration
+
+- Creates `/usr/local/bin/tlp-ui`.
+- The launcher changes to the TLPUI installation directory and executes:
+
+```bash
+python3 -m tlpui
+```
+
+### Desktop Integration
+
+- Installs `tlp-ui.desktop` into `/usr/share/applications`.
+- Installs the application icon into `/usr/share/icons/hicolor/512x512/apps/tlp-ui.png`.
+- Registers TLP UI under the system settings and hardware settings categories.
+- Refreshes the desktop application database and icon cache when the required utilities are available.
+
+### Official Website
+
+https://github.com/d4nj1/TLPUI
