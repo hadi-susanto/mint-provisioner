@@ -1,6 +1,7 @@
 # 🛠️ Development (`dev`)
 
-Software development tools, SDK managers, build systems, and programming environments. Modules in this category help set up and maintain a productive development environment, including tools such as **Apache Maven** and **SDKMAN!**.
+Software development tools, SDK managers, build systems, and programming environments. Modules in this category help set
+up and maintain a productive development environment, including tools such as **Apache Maven** and **SDKMAN!**.
 
 ---
 
@@ -24,6 +25,156 @@ Automatically downloads the latest binary TAR.GZ release from the Apache Maven p
 ### Official Website
 
 https://maven.apache.org/
+
+---
+
+## DBeaver Community (`dbeaver-community`)
+
+DBeaver Community is a free and open-source database management tool. It supports many database engines, including
+PostgreSQL, MySQL, MariaDB, SQLite, SQL Server, and Oracle.
+
+### Installation Method
+
+**Official DBeaver Community PPA**
+
+Adds the DBeaver Community PPA and installs the `dbeaver-ce` package using APT.
+
+Installing from the PPA allows DBeaver to receive updates through the standard system package upgrade process.
+
+### Supported ENV
+
+- `DBEAVER_COMMUNITY_USE_APT_ADD_REPOSITORY`
+    - Controls whether the Launchpad repository is added using `add-apt-repository`.
+    - Default:
+      `${USE_APT_ADD_REPOSITORY}`
+
+### Official Website
+
+https://dbeaver.io/
+
+---
+
+## DbGate Community (`dbgate-community`)
+
+DbGate Community is a cross-platform database management application supporting relational databases, NoSQL databases,
+and Redis. It provides database browsing, data editing, SQL development, import and export, and database administration
+tools.
+
+### Installation Method
+
+**GitHub latest release (`.deb`)**
+
+Downloads the latest Debian package from the DbGate GitHub releases page using its permanent latest-release URL, then
+installs it using APT.
+
+Because DbGate publishes a stable `latest/download` URL, the module does not need to query the GitHub API or use a
+release
+asset regular expression.
+
+### Official Website
+
+https://www.dbgate.org/
+
+### GitHub Repository
+
+https://github.com/dbgate/dbgate
+
+---
+
+## Docker (`docker`)
+
+Docker Engine is a container runtime and development platform for building, running, and managing containerized
+applications. The module also installs Docker Compose and Docker Buildx.
+
+### Installation Method
+
+**Official Docker APT repository**
+
+Adds Docker's vendor-managed Ubuntu repository and signing key, then installs:
+
+- `docker-ce`
+- `docker-ce-cli`
+- `containerd.io`
+- `docker-buildx-plugin`
+- `docker-compose-plugin`
+
+The module requires `rsync` before installation because existing Docker data is migrated to the configured library
+directory. The pre-installation phase fails when `rsync` is unavailable.
+
+### Supported ENV
+
+- `DOCKER_LIB_INSTALL_DIR`
+    - Directory used to store Docker images, containers, volumes, and other daemon data.
+    - Must be an absolute path.
+    - Must not be `/`, `/var/lib/docker`, a parent of `/var/lib/docker`, or a directory inside it.
+    - Default: `${INSTALL_DIR}/docker-lib`
+
+- `DOCKER_NON_INTERACTIVE`
+    - Disables the Docker-specific installation prompt.
+    - Falls back to `${NON_INTERACTIVE}`.
+    - Default: `${NON_INTERACTIVE}`
+
+### Installation Configuration
+
+During installation, the module:
+
+- Installs Docker Engine, Docker Compose, and Docker Buildx.
+- Checks whether `/var/lib/docker` was created by Docker.
+- Skips data migration and displays a warning when `/var/lib/docker` does not exist.
+- Stops the Docker service and socket before migrating existing data.
+- Copies `/var/lib/docker` into `DOCKER_LIB_INSTALL_DIR` using `rsync`.
+- Preserves numeric user and group IDs during migration.
+- Configures Docker's `data-root` in `/etc/docker/daemon.json`.
+- Preserves an existing `daemon.json` and asks the user to verify it manually.
+- Restarts Docker after migration.
+- Adds the current non-root user to the `docker` group when the group exists.
+- Displays manual instructions when the `docker` group does not exist.
+- Preserves the original `/var/lib/docker` contents for manual verification and removal.
+
+The saved installation state is removed by `cleanup.sh` after installation completes.
+
+After being added to the `docker` group, log out and sign in again before running Docker commands without `sudo`.
+
+### Official Website
+
+https://www.docker.com/
+
+### Documentation
+
+https://docs.docker.com/engine/
+
+---
+
+## MongoDB Compass (`mongodb-compass`)
+
+MongoDB Compass is the official graphical database management and development application for MongoDB. It provides
+document exploration and editing, schema analysis, query construction, aggregation pipeline development, index
+management, and database performance information.
+
+### Installation Method
+
+**GitHub latest release (`.deb`)**
+
+Locates and downloads the latest AMD64 Debian package from the official MongoDB Compass GitHub releases, then installs
+it using APT.
+
+### Supported ENV
+
+- `MONGODB_COMPASS_REGEX`
+    - Regular expression used to locate the Debian package in the latest GitHub release.
+    - Default:
+
+      ```text
+      mongodb-compass_.*_amd64\.deb$
+      ```
+
+### Official Website
+
+https://www.mongodb.com/products/tools/compass/
+
+### GitHub Repository
+
+https://github.com/mongodb-js/compass
 
 ---
 

@@ -27,6 +27,43 @@ https://cryptomator.org/
 
 ---
 
+## DeaDBeeF (`deadbeef`)
+
+DeaDBeeF is a lightweight and highly customizable audio player. It supports numerous audio formats, playlists, internet
+radio, metadata editing, gapless playback, equalization, and an extensible plugin system.
+
+### Installation Method
+
+**Official website (precompiled archive)**
+
+Locates and downloads the latest Linux x86_64 TAR.BZ2 release from the official DeaDBeeF download page. The module
+extracts the standalone application into the configured installation directory and creates a symbolic link for the main
+`deadbeef` executable.
+
+### Supported ENV
+
+- `DEADBEEF_INSTALL_DIR`
+    - Installation directory.
+    - Default: `${INSTALL_DIR}/deadbeef`
+
+### Desktop Integration
+
+- Installs `deadbeef.desktop` into `/usr/share/applications`.
+- Registers DeaDBeeF as an audio player for supported audio files, playlists, cue sheets, and directories.
+- Adds desktop actions for playing, pausing, stopping, and navigating tracks.
+- Uses the bundled DeaDBeeF icon when available, with the system audio icon as a fallback.
+
+### Cleanup
+
+- Removes the downloaded TAR.BZ2 archive.
+- Removes the module state file.
+
+### Official Website
+
+https://deadbeef.sourceforge.io/
+
+---
+
 ## Double Commander (`double-commander`)
 
 Double Commander is a cross-platform dual-pane file manager inspired by Total Commander. It includes built-in archive support, batch renaming, advanced search, internal viewers, and extensive keyboard shortcuts for efficient file management.
@@ -75,6 +112,47 @@ Downloads the latest Ubuntu-specific AMD64 release asset from the official GitHu
 ### Official Website
 
 https://flameshot.org/
+
+---
+
+## Insync (`insync`)
+
+Insync is a desktop cloud storage client for synchronizing Google Drive, OneDrive, and Dropbox with the local filesystem.
+It normally runs in the background after the initial account and synchronization configuration is completed through its
+graphical interface.
+
+Insync is commercial software and may require a license after its trial period.
+
+### Installation Method
+
+**Official Insync APT repository**
+
+Adds the vendor-managed Insync repository and signing key for the current Linux Mint release, then installs the `insync`
+package using APT.
+
+The module supports AMD64 systems.
+
+### File Manager Integration
+
+Insync provides optional integration packages that display synchronization badges and additional actions in supported
+file managers:
+
+| File manager | Package            |
+|--------------|--------------------|
+| Caja         | `insync-caja`      |
+| Dolphin      | `insync-dolphin`   |
+| Nautilus     | `insync-nautilus`  |
+| Nemo         | `insync-nemo`      |
+| Thunar       | `insync-thunar`    |
+
+Linux Mint Cinnamon users will normally want the `insync-nemo` package.
+
+These packages are not installed automatically because the required integration depends on the user's desktop
+environment and file manager.
+
+### Official Website
+
+https://www.insynchq.com/
 
 ---
 
