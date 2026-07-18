@@ -521,7 +521,7 @@ mkvmerge-process() {
     #
     if [[ -z "$output_folder" ]]; then
         if [[ -f "$input" ]]; then
-            output_folder="${input%/*}/output"
+            output_folder="$(dirname "$input")/output"
         else
             output_folder="${input}/output"
         fi

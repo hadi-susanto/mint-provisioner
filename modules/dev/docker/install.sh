@@ -200,7 +200,7 @@ Docker library directory:
   $DOCKER_LIB_INSTALL_DIR
 
 The original $docker_source_dir directory was not removed.
-After confirming that Docker is working and all existing images,containers,
+After confirming that Docker is working and all existing images, containers,
 and volumes are available, you may remove its old contents manually.
 
 If your user was newly added to the docker group,

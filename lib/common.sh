@@ -272,7 +272,7 @@ run_script() {
 #   can_write /tmp
 #
 can_write() {
-    local target="$1"
+    local target="${1:-}"
     local dir
 
     [[ -n "$target" ]] || return 1
@@ -286,13 +286,14 @@ can_write() {
         return
     fi
 
+    # use dirname to prevent edge case: target == file.txt
     # Start from the file's parent directory.
-    dir="${target%/*}"
+    dir=$(dirname -- "$target")
 
     # Walk upward until an existing directory is found.
     while [[ ! -d "$dir" ]]; do
         local parent
-        parent="${dir%/*}"
+        parent=$(dirname -- "$dir")
 
         [[ "$parent" == "$dir" ]] && return 1
 

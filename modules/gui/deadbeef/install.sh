@@ -85,7 +85,7 @@ Name=DeaDBeeF
 GenericName=Audio Player
 Comment=Listen to music
 Icon=$ICON_PATH
-Exec=$EXEC_PATH %F
+Exec="$EXEC_PATH" %F
 StartupWMClass=deadbeef
 Terminal=false
 Actions=Play;Pause;Toggle-Pause;Stop;Next;Prev;
@@ -95,27 +95,27 @@ Keywords=Sound;Music;Audio;Player;Musicplayer;MP3;
 
 [Desktop Action Play]
 Name=Play
-Exec=$EXEC_PATH --play
+Exec="$EXEC_PATH" --play
 
 [Desktop Action Pause]
 Name=Pause
-Exec=$EXEC_PATH --pause
+Exec="$EXEC_PATH" --pause
 
 [Desktop Action Toggle-Pause]
 Name=Toggle Pause
-Exec=$EXEC_PATH --toggle-pause
+Exec="$EXEC_PATH" --toggle-pause
 
 [Desktop Action Stop]
 Name=Stop
-Exec=$EXEC_PATH --stop
+Exec="$EXEC_PATH" --stop
 
 [Desktop Action Next]
 Name=Next
-Exec=$EXEC_PATH --next
+Exec="$EXEC_PATH" --next
 
 [Desktop Action Prev]
 Name=Previous
-Exec=$EXEC_PATH --prev
+Exec="$EXEC_PATH" --prev
 EOF
 then
     log_error "[$CANONICAL_ID] Failed to install desktop file"

@@ -5,6 +5,7 @@ source "${LIB_DIR}/state.sh"
 
 __set_docker_lib_install_dir() {
     local install_dir="$1"
+    local docker_source_dir="/var/lib/docker"
 
     if [[ "$install_dir" != /* ]]; then
         log_error \
@@ -13,6 +14,13 @@ __set_docker_lib_install_dir() {
         return 1
     fi
 
+    #
+    # Remove trailing slashes before validating path relationships.
+    #
+    while [[ "$install_dir" != "/" && "$install_dir" == */ ]]; do
+        install_dir="${install_dir%/}"
+    done
+
     if [[ "$install_dir" == "/" ]]; then
         log_error \
             "[$CANONICAL_ID] Docker library installation directory must not be the filesystem root"
@@ -20,9 +28,12 @@ __set_docker_lib_install_dir() {
         return 1
     fi
 
-    if [[ "$install_dir" == "/var/lib/docker" ]]; then
+    if [[ "$install_dir" == "$docker_source_dir" ||
+        "$install_dir" == "$docker_source_dir/"* ||
+        "$docker_source_dir" == "$install_dir/"* ]]
+    then
         log_error \
-            "[$CANONICAL_ID] Docker library installation directory must differ from /var/lib/docker"
+            "[$CANONICAL_ID] Docker library installation directory must not overlap with $docker_source_dir: $install_dir"
 
         return 1
     fi
@@ -36,13 +47,6 @@ __set_docker_lib_install_dir() {
 
         return 1
     fi
-
-    #
-    # Remove trailing slashes while preserving the absolute path.
-    #
-    while [[ "$install_dir" != "/" && "$install_dir" == */ ]]; do
-        install_dir="${install_dir%/}"
-    done
 
     set_state "DOCKER_LIB_INSTALL_DIR" "$install_dir"
 

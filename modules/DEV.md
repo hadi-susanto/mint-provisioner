@@ -41,6 +41,13 @@ Adds the DBeaver Community PPA and installs the `dbeaver-ce` package using APT.
 
 Installing from the PPA allows DBeaver to receive updates through the standard system package upgrade process.
 
+### Supported ENV
+
+- `DBEAVER_COMMUNITY_USE_APT_ADD_REPOSITORY`
+    - Controls whether the Launchpad repository is added using `add-apt-repository`.
+    - Default:
+      `${USE_APT_ADD_REPOSITORY}`
+
 ### Official Website
 
 https://dbeaver.io/
@@ -99,7 +106,7 @@ directory. The pre-installation phase fails when `rsync` is unavailable.
 - `DOCKER_LIB_INSTALL_DIR`
     - Directory used to store Docker images, containers, volumes, and other daemon data.
     - Must be an absolute path.
-    - Must not be `/` or `/var/lib/docker`.
+    - Must not be `/`, `/var/lib/docker`, a parent of `/var/lib/docker`, or a directory inside it.
     - Default: `${INSTALL_DIR}/docker-lib`
 
 - `DOCKER_NON_INTERACTIVE`
