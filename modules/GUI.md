@@ -213,6 +213,72 @@ https://keepassxc.org/
 
 ---
 
+---
+
+## Microsoft Edge (`microsoft-edge`)
+
+---
+
+## Microsoft Edge (`microsoft-edge`)
+
+Microsoft Edge is Microsoft's Chromium-based web browser. The module supports Stable, Beta, Dev, and Canary channels.
+Canary is the daily experimental channel; there is no separate Nightly channel.
+
+### Installation Method
+
+**Official Microsoft Edge APT repository**
+
+Configures Microsoft's Edge repository and installs the selected package:
+
+| Channel | Package                         |
+|---------|---------------------------------|
+| Stable  | `microsoft-edge-stable`         |
+| Beta    | `microsoft-edge-beta`           |
+| Dev     | `microsoft-edge-dev`            |
+| Canary  | `microsoft-edge-canary`         |
+
+Multiple Microsoft Edge channels can be installed side by side. Use `MICROSOFT_EDGE_CHANNEL` to select a channel
+directly. If an Edge channel is already installed, add `--force` to run the module again and install another channel.
+
+Example for non-interactive:
+
+```bash
+MICROSOFT_EDGE_CHANNEL=dev ./install.sh gui/microsoft-edge
+```
+
+For interactive could use:
+
+```bash
+./install.sh --force gui/microsoft-edge
+```
+
+### Supported ENV
+
+- `MICROSOFT_EDGE_CHANNEL`
+    - Supported values: `stable`, `beta`, `dev`, `canary`.
+    - Default: `stable` in non-interactive mode.
+
+- `MICROSOFT_EDGE_NON_INTERACTIVE`
+    - Disables the channel selection prompt.
+    - Default: `${NON_INTERACTIVE}`
+
+### Post-install Configuration
+
+Disables Edge's repository updater and removes vendor-generated APT source files that may conflict with the repository
+managed by Mint Provisioner.
+
+Reapply the configuration with:
+
+```bash
+./configure.sh gui/microsoft-edge
+```
+
+### Official Website
+
+https://www.microsoft.com/edge/download
+
+---
+
 ## Mu Commander (`mu-commander`)
 
 Mu Commander is a lightweight, cross-platform dual-pane file manager. It provides a Commander-style interface for file management with support for common file operations, keyboard-driven workflows, archive handling, and multiple storage locations.
