@@ -115,6 +115,40 @@ https://flameshot.org/
 
 ---
 
+## fman (`fman`)
+
+fman is an open-source, cross-platform dual-pane file manager designed for efficient keyboard-driven workflows. It
+provides fast directory navigation, a Commander-style interface, and extensibility through plugins.
+
+### Installation Method
+
+**GitHub latest release (.deb)**
+
+Locates and downloads the latest Ubuntu x64 Debian package from the official GitHub releases page, stores the downloaded
+package path in a module state file, then installs the package using APT.
+
+### Supported ENV
+
+- `FMAN_REGEX`
+    - Regular expression used to locate the Ubuntu x64 Debian package in the latest GitHub release.
+    - Default:
+      `fman-.*-ubuntu-x64\\.deb$`
+
+### Cleanup
+
+- Removes the downloaded `.deb` package.
+- Removes the module state file.
+
+### External Source
+
+https://github.com/mherrmann/fman
+
+### Official Website
+
+https://fman.io/
+
+---
+
 ## Insync (`insync`)
 
 Insync is a desktop cloud storage client for synchronizing Google Drive, OneDrive, and Dropbox with the local filesystem.
