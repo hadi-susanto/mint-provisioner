@@ -4,6 +4,62 @@ Graphical applications for productivity, file management, security, and everyday
 
 ---
 
+## Brave Browser (`brave-browser`)
+
+Brave is a privacy-focused Chromium browser with built-in ad and tracker blocking.
+
+### Installation Method
+
+**Official Brave APT repositories**
+
+Supports Release, Beta, and Nightly channels.
+
+### Supported ENV
+
+- `BRAVE_BROWSER_CHANNEL`
+    - Supported values: `release`, `stable`, `beta`, `nightly`.
+    - Default: `release`
+
+- `BRAVE_BROWSER_NON_INTERACTIVE`
+    - Disables channel selection.
+    - Default: `${NON_INTERACTIVE}`
+
+Multiple channels can be installed side by side. Use `--force` when another Brave Browser channel is already installed.
+
+### Official Website
+
+https://brave.com/
+
+---
+
+## Brave Origin (`brave-origin`)
+
+Brave Origin is a streamlined Brave browser with optional features disabled by default. It is available for free on Linux.
+
+### Installation Method
+
+**Official Brave APT repositories**
+
+Supports Release, Beta, and Nightly channels.
+
+### Supported ENV
+
+- `BRAVE_ORIGIN_CHANNEL`
+    - Supported values: `release`, `stable`, `beta`, `nightly`.
+    - Default: `release`
+
+- `BRAVE_ORIGIN_NON_INTERACTIVE`
+    - Disables channel selection.
+    - Default: `${NON_INTERACTIVE}`
+
+Multiple channels can be installed side by side. Use `--force` when another Brave Origin channel is already installed.
+
+### Official Website
+
+https://brave.com/origin/
+
+---
+
 ## Cryptomator (`cryptomator`)
 
 Cryptomator is an easy-to-use encryption utility for protecting files stored locally or in cloud storage. It creates encrypted vaults that can be transparently mounted when unlocked, making it useful for securely storing sensitive files while remaining compatible with services such as OneDrive, Google Drive, and Dropbox.

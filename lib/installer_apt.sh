@@ -3,14 +3,14 @@
 source "${LIB_DIR}/common.sh"
 
 #
-# add_ppa <module> <repository>
+# add_ppa <canonical_id> <repository>
 #
 # Adds a PPA repository and refreshes the local APT package index.
 # Existing configuration is left to add-apt-repository (overwrite behavior).
 #
 # Parameters:
-#   module       Logical module or component name used for logging.
-#   repository   PPA repository identifier (e.g. "ppa:git-core/ppa").
+#   canonical_id   Logical module or component name used for logging.
+#   repository     PPA repository identifier (e.g. "ppa:git-core/ppa").
 #
 # Returns:
 #   0            Repository added and package list updated successfully.
@@ -24,33 +24,33 @@ source "${LIB_DIR}/common.sh"
 #   - log_error()
 #
 add_ppa() {
-    local module="$1"
+    local canonical_id="$1"
     local repository="$2"
 
-    if [[ -z "$module" ]]; then
-        log_error "[add_ppa] Missing module parameter"
+    if [[ -z "$canonical_id" ]]; then
+        log_error "[add_ppa] Missing canonical_id parameter"
 
         return 1
     fi
 
     if [[ -z "$repository" ]]; then
-        log_error "[add_ppa] [$module] Missing repository parameter"
+        log_error "[add_ppa] [$canonical_id] Missing repository parameter"
 
         return 1
     fi
 
-    log_info "[add_ppa] [$module] Adding PPA repository: $repository"
+    log_info "[add_ppa] [$canonical_id] Adding PPA repository: $repository"
 
     if ! sudo add-apt-repository -y "$repository"; then
-        log_error "[add_ppa] [$module] Failed to add PPA repository: $repository"
+        log_error "[add_ppa] [$canonical_id] Failed to add PPA repository: $repository"
 
         return 1
     fi
 
-    log_info "[add_ppa] [$module] Updating package list(s)"
+    log_info "[add_ppa] [$canonical_id] Updating package list(s)"
 
     if ! sudo apt-get update; then
-        log_error "[add_ppa] [$module] Failed to update package list(s)"
+        log_error "[add_ppa] [$canonical_id] Failed to update package list(s)"
 
         return 1
     fi
@@ -58,129 +58,114 @@ add_ppa() {
     return 0
 }
 
+##
+# install_asc_key <canonical_id> <asc_url> <uri> <suite> <components> [filename]
 #
-# install_asc_key <module> <asc_url> <uri> <suite> <components>
-#
-# Downloads an ASCII-armored GPG signing key, installs it into the APT
-# keyring directory, recreates the repository source definition, and
+# Downloads an ASCII-armored or binary OpenPGP signing key, installs it into
+# the APT keyring directory, creates a repository source definition, and
 # refreshes the local package index.
 #
 # Parameters:
-#   module       Repository identifier used for generated file names.
-#   asc_url      URL of the repository ASC signing key.
-#   uri          Repository URI.
-#   suite        Repository suite/distribution.
-#   components   Repository components.
+#   canonical_id  Canonical ID in <category>/<module> format used for logging.
+#   asc_url       URL of the repository signing key.
+#   uri           Repository URI.
+#   suite         Repository suite/distribution.
+#   components    Repository components.
+#   filename      Optional generated filename without extension.
+#                 Defaults to canonical_id.
 #
 # Generated Files:
-#   /etc/apt/keyrings/<module>.gpg
-#   /etc/apt/sources.list.d/<module>.sources
-#
-# Behavior:
-#   1. Validates all required parameters.
-#   2. Creates the APT keyring directory if necessary.
-#   3. Removes any existing keyring and source files for the module.
-#   4. Downloads and installs the repository signing key.
-#   5. Creates a deb822 repository source definition.
-#   6. Updates the local APT package cache.
-#
-# Notes:
-#   - Existing configuration is always replaced.
-#   - The function is intentionally idempotent; repeated executions
-#     produce the same repository configuration.
-#   - Assumes 'set -o pipefail' is enabled by the caller.
-#
-# Returns:
-#   0            Repository configured successfully.
-#   Non-zero     An error occurred.
+#   /etc/apt/keyrings/<filename>.gpg
+#   /etc/apt/sources.list.d/<filename>.sources
 #
 install_asc_key() {
-    local module="$1"
+    local canonical_id="$1"
     local asc_url="$2"
     local uri="$3"
     local suite="$4"
     local components="$5"
+    local filename="${6:-$canonical_id}"
 
-    if [[ -z "$module" ]]; then
-        log_error "[install_asc_key] Missing module parameter"
+    if [[ -z "$canonical_id" ]]; then
+        log_error "[install_asc_key] Missing canonical_id parameter"
 
         return 1
     fi
 
     if [[ -z "$asc_url" ]]; then
-        log_error "[install_asc_key] [$module] Missing ASC key URL"
+        log_error "[install_asc_key] [$canonical_id] Missing ASC key URL"
 
         return 1
     fi
 
     if [[ -z "$uri" ]]; then
-        log_error "[install_asc_key] [$module] Missing repository URI"
+        log_error "[install_asc_key] [$canonical_id] Missing repository URI"
 
         return 1
     fi
 
     if [[ -z "$suite" ]]; then
-        log_error "[install_asc_key] [$module] Missing repository suite"
+        log_error "[install_asc_key] [$canonical_id] Missing repository suite"
 
         return 1
     fi
 
-    local normalized_module="${module//\//_}"
+    local normalized_filename="${filename//\//_}"
     local keyring_dir="/etc/apt/keyrings"
-    local keyring_file="${keyring_dir}/${normalized_module}.gpg"
-    local source_file="/etc/apt/sources.list.d/${normalized_module}.sources"
+    local keyring_file="${keyring_dir}/${normalized_filename}.gpg"
+    local source_file="/etc/apt/sources.list.d/${normalized_filename}.sources"
     local source_dir="${source_file%/*}"
     local arch
 
     if ! arch="$(dpkg --print-architecture)"; then
-        log_error "[install_asc_key] [$module] Failed to determine system architecture"
+        log_error "[install_asc_key] [$canonical_id] Failed to determine system architecture"
 
         return 1
     fi
 
-    log_info "[install_asc_key] [$module] Preparing APT keyring directory"
+    log_info "[install_asc_key] [$canonical_id] Preparing APT keyring directory"
 
     if ! sudo mkdir -p "$keyring_dir"; then
-        log_error "[install_asc_key] [$module] Failed to create keyring directory: $keyring_dir"
+        log_error "[install_asc_key] [$canonical_id] Failed to create keyring directory: $keyring_dir"
 
         return 1
     fi
 
     if ! sudo mkdir -p "$source_dir"; then
-        log_error "[install_asc_key] [$module] Failed to create source directory: $source_dir"
+        log_error "[install_asc_key] [$canonical_id] Failed to create source directory: $source_dir"
 
         return 1
     fi
 
     if [[ -f "$source_file" ]]; then
-        log_warn "[install_asc_key] [$module] Removing existing source file: $source_file"
+        log_warn "[install_asc_key] [$canonical_id] Removing existing source file: $source_file"
 
         if ! sudo rm -f "$source_file"; then
-            log_error "[install_asc_key] [$module] Failed to remove source file"
+            log_error "[install_asc_key] [$canonical_id] Failed to remove source file"
 
             return 1
         fi
     fi
 
     if [[ -f "$keyring_file" ]]; then
-        log_warn "[install_asc_key] [$module] Removing existing keyring: $keyring_file"
+        log_warn "[install_asc_key] [$canonical_id] Removing existing keyring: $keyring_file"
 
         if ! sudo rm -f "$keyring_file"; then
-            log_error "[install_asc_key] [$module] Failed to remove keyring"
+            log_error "[install_asc_key] [$canonical_id] Failed to remove keyring"
 
             return 1
         fi
     fi
 
-    log_info "[install_asc_key] [$module] Downloading ASC key from: $asc_url"
+    log_info "[install_asc_key] [$canonical_id] Downloading ASC key from: $asc_url"
 
     if ! curl -fsSL "$asc_url" | sudo gpg --dearmor -o "$keyring_file"; then
-        log_error "[install_asc_key] [$module] Failed to download or install signing key"
+        log_error "[install_asc_key] [$canonical_id] Failed to download or install signing key"
 
         return 1
     fi
 
-    log_info "[install_asc_key] [$module] Creating source file: $source_file"
+    log_info "[install_asc_key] [$canonical_id] Creating source file: $source_file"
 
     if ! sudo tee "$source_file" >/dev/null <<EOF
 Types: deb
@@ -191,16 +176,16 @@ Signed-By: ${keyring_file}
 Architectures: ${arch}
 EOF
     then
-        log_error "[install_asc_key] [$module] Failed to create source file"
+        log_error "[install_asc_key] [$canonical_id] Failed to create source file"
 
         return 1
     fi
 
-    log_info "[install_asc_key] [$module] Repository configuration completed"
-    log_info "[install_asc_key] [$module] Updating package list(s)"
+    log_info "[install_asc_key] [$canonical_id] Repository configuration completed"
+    log_info "[install_asc_key] [$canonical_id] Updating package list(s)"
 
     if ! sudo apt-get update; then
-        log_error "[install_asc_key] [$module] Failed to update package list(s)"
+        log_error "[install_asc_key] [$canonical_id] Failed to update package list(s)"
 
         return 1
     fi

@@ -36,15 +36,15 @@ Each category document contains detailed information about its modules, includin
 - Shell integration, aliases, and helper functions.
 - Official project website.
 
-| Category                        | ID     | Modules                                                                                                                           |
-|---------------------------------|--------|-----------------------------------------------------------------------------------------------------------------------------------|
-| [Command Line](CLI.md)          | `cli`  | `adb`, `bat`, `delta`, `eza`, `git`, `mkvtoolnix`, `procs`, `tlp`                                                                 |
-| [Development](DEV.md)           | `dev`  | `apache-maven`, `dbeaver-community`, `dbgate-community`, `docker`, `mongodb-compass`, `pg-admin`, `sdkman`                        |
-| [Desktop Applications](GUI.md)  | `gui`  | `cryptomator`, `deadbeef`, `double-commander`, `flameshot`, `fman`, `insync`, `keepass-xc`, `mu-commander`, `sunflower`, `tlp-ui` |
-| [System Administration](SYS.md) | `sys`  | `apt-fast`, `dconf-editor`, `dnscrypt-proxy`, `nerd-font`, `oobe`                                                                 |
-| [Terminal](TERM.md)             | `term` | `alacritty`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `terminator`, `zsh`                                 |
-| [Terminal UI](TUI.md)           | `tui`  | `bottom`, `du-analyzer`, `du-rust`, `duf`, `git-ui`, `lazy-git`                                                                   |
-| [Miscellaneous](MISC.md)        | `misc` | `any-desk`, `virtual-box`                                                                                                         |
+| Category                        | ID     | Modules                                                                                                                                                            |
+|---------------------------------|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [Command Line](CLI.md)          | `cli`  | `adb`, `bat`, `delta`, `eza`, `git`, `mkvtoolnix`, `procs`, `tlp`                                                                                                  |
+| [Development](DEV.md)           | `dev`  | `apache-maven`, `dbeaver-community`, `dbgate-community`, `docker`, `mongodb-compass`, `pg-admin`, `sdkman`                                                         |
+| [Desktop Applications](GUI.md)  | `gui`  | `brave-browser`, `brave-origin`, `cryptomator`, `deadbeef`, `double-commander`, `flameshot`, `fman`, `insync`, `keepass-xc`, `mu-commander`, `sunflower`, `tlp-ui` |
+| [System Administration](SYS.md) | `sys`  | `apt-fast`, `dconf-editor`, `dnscrypt-proxy`, `nerd-font`, `oobe`                                                                                                  |
+| [Terminal](TERM.md)             | `term` | `alacritty`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `terminator`, `zsh`                                                                  |
+| [Terminal UI](TUI.md)           | `tui`  | `bottom`, `du-analyzer`, `du-rust`, `duf`, `git-ui`, `lazy-git`                                                                                                    |
+| [Miscellaneous](MISC.md)        | `misc` | `any-desk`, `virtual-box`                                                                                                                                          |
 
 ## 📁 Directory Structure
 
