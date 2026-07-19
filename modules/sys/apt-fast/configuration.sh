@@ -3,18 +3,93 @@
 source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/state.sh"
 
-if [[ "${APT_FAST_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]; then
-    set_state \
-        "APT_FAST_PACKAGE_MANAGER" \
-        "${APT_FAST_PACKAGE_MANAGER:-apt-get}"
+__resolve_apt_fast_package_manager() {
+    local package_manager="${1:-}"
+
+    case "$package_manager" in
+        apt-get | apt | aptitude)
+            set_state \
+                "APT_FAST_PACKAGE_MANAGER" \
+                "$package_manager"
+
+            log_info \
+                "[$CANONICAL_ID] apt-fast package manager: $package_manager"
+            ;;
+        *)
+            log_error \
+                "[$CANONICAL_ID] Invalid apt-fast package manager: $package_manager. Expected apt-get, apt, or aptitude."
+
+            return 1
+            ;;
+    esac
+
+    return 0
+}
+
+__resolve_apt_fast_max_connection() {
+    local max_connection="${1:-}"
+    local normalized_value
+
+    if [[ ! "$max_connection" =~ ^[0-9]+$ ]]; then
+        log_error \
+            "[$CANONICAL_ID] Maximum connections must be an integer from 1 to 10: $max_connection"
+
+        return 1
+    fi
+
+    normalized_value="$((10#$max_connection))"
+
+    if ((normalized_value < 1 || normalized_value > 10)); then
+        log_error \
+            "[$CANONICAL_ID] Maximum connections must be between 1 and 10: $max_connection"
+
+        return 1
+    fi
 
     set_state \
         "APT_FAST_MAX_CONNECTION" \
-        "${APT_FAST_MAX_CONNECTION:-5}"
+        "$normalized_value"
 
-    set_state \
-        "APT_FAST_SUPPRESS_CONFIRM_DIALOG" \
-        "${APT_FAST_SUPPRESS_CONFIRM_DIALOG:-false}"
+    log_info \
+        "[$CANONICAL_ID] apt-fast maximum connections: $normalized_value"
+
+    return 0
+}
+
+__resolve_apt_fast_suppress_confirm_dialog() {
+    local suppress_confirm_dialog="${1:-}"
+
+    suppress_confirm_dialog="${suppress_confirm_dialog,,}"
+
+    case "$suppress_confirm_dialog" in
+        true | false)
+            set_state \
+                "APT_FAST_SUPPRESS_CONFIRM_DIALOG" \
+                "$suppress_confirm_dialog"
+
+            log_info \
+                "[$CANONICAL_ID] Suppress apt-fast confirmation dialog: $suppress_confirm_dialog"
+            ;;
+        *)
+            log_error \
+                "[$CANONICAL_ID] Invalid APT_FAST_SUPPRESS_CONFIRM_DIALOG value: $1. Expected true or false."
+
+            return 1
+            ;;
+    esac
+
+    return 0
+}
+
+if [[ "${APT_FAST_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]; then
+    __resolve_apt_fast_package_manager \
+        "${APT_FAST_PACKAGE_MANAGER:-apt-get}" || exit $?
+
+    __resolve_apt_fast_max_connection \
+        "${APT_FAST_MAX_CONNECTION:-5}" || exit $?
+
+    __resolve_apt_fast_suppress_confirm_dialog \
+        "${APT_FAST_SUPPRESS_CONFIRM_DIALOG:-false}" || exit $?
 
     save_states "$CANONICAL_ID" || exit $?
 
@@ -25,99 +100,98 @@ source "${LIB_DIR}/prompt.sh"
 
 __ask_apt_fast_package_manager() {
     local selected_index
-    local package_manager
 
     selected_index="$(
         choose_option \
-            "Package manager to install and remove software:" \
-            "apt-get" \
+            "Which package manager should apt-fast use?" \
+            "apt-get (recommended)" \
             "apt" \
             "aptitude"
     )" || return $?
 
     case "$selected_index" in
         0)
-            package_manager="apt-get"
+            __resolve_apt_fast_package_manager "apt-get"
             ;;
-
         1)
-            package_manager="apt"
+            __resolve_apt_fast_package_manager "apt"
             ;;
-
         2)
-            package_manager="aptitude"
+            __resolve_apt_fast_package_manager "aptitude"
             ;;
-
         *)
             log_error \
-                "[$CANONICAL_ID] Unexpected apt-fast package manager selection index: $selected_index"
+                "[$CANONICAL_ID] Unexpected package manager selection index: $selected_index"
 
             return 1
             ;;
     esac
-
-    set_state \
-        "APT_FAST_PACKAGE_MANAGER" "$package_manager"
-    log_info "[$CANONICAL_ID] $package_manager was chosen as apt-fast package manager"
-
-    return 0
 }
-
-if [[ -n "${APT_FAST_PACKAGE_MANAGER:-}" ]]; then
-    set_state "APT_FAST_PACKAGE_MANAGER" "$APT_FAST_PACKAGE_MANAGER"
-else
-    __ask_apt_fast_package_manager || exit $?
-    printf "\n"
-fi
 
 __ask_apt_fast_max_connection() {
     local max_connection
 
-    max_connection="$(ask_number "Maximum number of connections" "5" "1" "10")" || return $?
+    max_connection="$(
+        ask_number \
+            "Maximum simultaneous download connections" \
+            "5" \
+            "1" \
+            "10"
+    )" || return $?
 
-    set_state \
-        "APT_FAST_MAX_CONNECTION" "$max_connection"
-    log_info "[$CANONICAL_ID] apt-fast maximum connection is: $max_connection"
-
-    return 0
+    __resolve_apt_fast_max_connection "$max_connection"
 }
-
-if [[ -n "${APT_FAST_MAX_CONNECTION:-}" ]]; then
-    set_state "APT_FAST_MAX_CONNECTION" "$APT_FAST_MAX_CONNECTION"
-else
-    __ask_apt_fast_max_connection || exit $?
-    printf "\n"
-fi
 
 __ask_apt_fast_suppress_confirm_dialog() {
     local selected_index
-    local question="This does not affect the package manager's own confirmation dialog. apt-fast will download the installable packages before the package manager asks for confirmation.
-
-Suppress apt-fast confirmation dialog?"
 
     selected_index="$(
         choose_option \
-            "$question" \
-            "Yes, Suppress any confirmation dialog" \
-            "No, Ask for user confirmation whenever required"
+            "Suppress the apt-fast confirmation dialog?
+
+The package manager may still ask for confirmation before installation." \
+            "Yes, suppress the apt-fast dialog" \
+            "No, ask before downloading packages"
     )" || return $?
 
-    if ((selected_index == 0)); then
-        set_state "APT_FAST_SUPPRESS_CONFIRM_DIALOG" "true"
-        log_info "[$CANONICAL_ID] Will configure to suppress apt-fast confirmation dialog"
-    else
-        set_state "APT_FAST_SUPPRESS_CONFIRM_DIALOG" "false"
-        log_info "[$CANONICAL_ID] Will configure to show apt-fast confirmation dialog"
-    fi
+    case "$selected_index" in
+        0)
+            __resolve_apt_fast_suppress_confirm_dialog "true"
+            ;;
+        1)
+            __resolve_apt_fast_suppress_confirm_dialog "false"
+            ;;
+        *)
+            log_error \
+                "[$CANONICAL_ID] Unexpected confirmation selection index: $selected_index"
 
-    return 0
+            return 1
+            ;;
+    esac
 }
 
+if [[ -n "${APT_FAST_PACKAGE_MANAGER:-}" ]]; then
+    __resolve_apt_fast_package_manager \
+        "$APT_FAST_PACKAGE_MANAGER" || exit $?
+else
+    __ask_apt_fast_package_manager || exit $?
+    printf '\n'
+fi
+
+if [[ -n "${APT_FAST_MAX_CONNECTION:-}" ]]; then
+    __resolve_apt_fast_max_connection \
+        "$APT_FAST_MAX_CONNECTION" || exit $?
+else
+    __ask_apt_fast_max_connection || exit $?
+    printf '\n'
+fi
+
 if [[ -n "${APT_FAST_SUPPRESS_CONFIRM_DIALOG:-}" ]]; then
-    set_state "APT_FAST_SUPPRESS_CONFIRM_DIALOG" "$APT_FAST_SUPPRESS_CONFIRM_DIALOG"
+    __resolve_apt_fast_suppress_confirm_dialog \
+        "$APT_FAST_SUPPRESS_CONFIRM_DIALOG" || exit $?
 else
     __ask_apt_fast_suppress_confirm_dialog || exit $?
-    printf "\n"
+    printf '\n'
 fi
 
 save_states "$CANONICAL_ID" || exit $?

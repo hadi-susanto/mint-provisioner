@@ -1,16 +1,21 @@
 #!/usr/bin/env bash
 
-for binary in \
-    mkvextract \
-    mkvinfo \
-    mkvmerge \
-    mkvpropedit
-do
-    command -v "$binary" >/dev/null 2>&1 || exit 1
+packages=(
+    "mkvtoolnix-gui"
+    "mkvtoolnix"
+)
+
+for package in "${packages[@]}"; do
+    status="$(
+        dpkg-query \
+            --show \
+            --showformat='${Status}' \
+            "$package" 2>/dev/null
+    )" || continue
+
+    if [[ "$status" == "install ok installed" ]]; then
+        exit 0
+    fi
 done
 
-if [[ "${MKVTOOLNIX_GUI_ENABLED:-false}" == "true" ]]; then
-    command -v mkvtoolnix-gui >/dev/null 2>&1 || exit 1
-fi
-
-exit 0
+exit 1
