@@ -2,22 +2,32 @@
 
 source "$LIB_DIR/installer_apt.sh"
 source "$LIB_DIR/state.sh"
+
+if ! load_states "$CANONICAL_ID"; then
+    log_error "[$CANONICAL_ID] MKVToolNix installation state was not found"
+
+    exit 1
+fi
+
+package="$(get_state "MKVTOOLNIX_PACKAGE")" || exit 2
+
+if [[ -z "$package" ]]; then
+    log_error "MKVTOOLNIX_PACKAGE must not be empty"
+
+    exit 3
+fi
+
+apt_install "$package" || exit 4
+
 source "$LIB_DIR/messages.sh"
 
-load_states "$CANONICAL_ID" || log_warn "[$CANONICAL_ID] Failed to load states. Falling back to default values."
+message="MkvToolNix package: '$package' has been installed successfully.
 
-if [[ "$(get_state "MKVTOOLNIX_GUI_ENABLED" "false")" == "true" ]]; then
-    log_info "[$CANONICAL_ID] Installing mkvtoolnix-gui (CLI + GUI)"
+The provisioner has also installed several helper commands to simplify common MkvToolNix tasks.
 
-    apt_install mkvtoolnix-gui
+Please reopen your terminal (or reload your shell) to load the new commands, then try:
 
-    message=$'MkvToolNix GUI and CLI have been installed successfully.\n\nThe provisioner has also installed several helper commands to simplify common MkvToolNix tasks.\n\nPlease reopen your terminal (or reload your shell) to load the new commands, then try:\n\n  • mkvmerge-process\n  • mkvmerge-extract-info'
-    add_message "$CANONICAL_ID" "info" "$message"
-else
-    log_info "[$CANONICAL_ID] Installing mkvtoolnix (CLI only)"
+  • mkvmerge-process
+  • mkvmerge-extract-info"
 
-    apt_install mkvtoolnix
-
-    message=$'MkvToolNix CLI has been installed successfully.\n\nThe provisioner has also installed several helper commands to simplify common MkvToolNix tasks.\n\nPlease reopen your terminal (or reload your shell) to load the new commands, then try:\n\n  • mkvmerge-process\n  • mkvmerge-extract-info'
-    add_message "$CANONICAL_ID" "info" "$message"
-fi
+add_message "$CANONICAL_ID" "info" "$message"

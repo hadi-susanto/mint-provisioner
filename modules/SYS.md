@@ -16,6 +16,27 @@ The installer configures the official Apt Fast Launchpad PPA before installing t
 
 ### Supported ENV
 
+- `APT_FAST_PACKAGE_MANAGER`
+    - Package manager used by apt-fast.
+    - Supported values: `apt-get`, `apt`, and `aptitude`.
+    - Default: `apt-get`
+
+- `APT_FAST_MAX_CONNECTION`
+    - Maximum number of simultaneous download connections.
+    - Supported values: integers from `1` to `10`.
+    - Default: `5`
+
+- `APT_FAST_SUPPRESS_CONFIRM_DIALOG`
+    - Controls whether apt-fast's confirmation dialog is suppressed.
+    - Supported values: `true` and `false`.
+    - Default: `false`
+
+- `APT_FAST_NON_INTERACTIVE`
+    - Disables apt-fast configuration prompts.
+    - Falls back to the global `NON_INTERACTIVE` value.
+    - Missing configuration values use their documented defaults.
+    - Default: `${NON_INTERACTIVE}`
+
 - `APT_FAST_USE_APT_ADD_REPOSITORY`
     - Controls whether the Launchpad repository is added using `add-apt-repository`.
     - Default: `${USE_APT_ADD_REPOSITORY}`

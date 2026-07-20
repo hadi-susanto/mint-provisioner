@@ -278,6 +278,13 @@ The package installed depends on the selected configuration:
 
 ### Supported ENV
 
+* `MKVTOOLNIX_NON_INTERACTIVE`
+
+    * Disables the MKVToolNix GUI-selection prompt.
+    * Falls back to the global `NON_INTERACTIVE` value.
+    * When enabled without `MKVTOOLNIX_GUI_ENABLED`, installs the command-line-only package.
+    * Default: `${NON_INTERACTIVE}`
+
 * `MKVTOOLNIX_GUI_ENABLED`
 
     * Controls whether the MKVToolNix graphical interface is installed alongside the command-line tools.
@@ -512,3 +519,44 @@ a symbolic link for the executable.
 ### Official Website
 
 https://github.com/dalance/procs
+
+---
+
+## TLP (`tlp`)
+
+TLP is an advanced power-management utility for Linux laptops. It applies optimized settings for battery life and
+performance without requiring extensive manual configuration, while still providing detailed configuration options for
+advanced users.
+
+### Installation Method
+
+**APT packages (Linux Mint / Ubuntu repository)**
+
+Installs the following packages from the native distribution repository:
+
+- `tlp`
+- `tlp-rdw`
+
+The installer also enables and starts `tlp.service`.
+
+### Installed Configuration
+
+After installation, the module displays commands for checking battery support and modifying the TLP configuration:
+
+```bash
+sudo tlp-stat --battery
+```
+
+```bash
+sudo nano /etc/tlp.conf
+```
+
+The optional graphical configuration interface can be installed separately:
+
+```bash
+./install.sh gui/tlp-ui
+```
+
+### Official Website
+
+https://linrunner.de/tlp/

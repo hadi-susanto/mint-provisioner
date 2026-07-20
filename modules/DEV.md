@@ -176,6 +176,85 @@ https://www.mongodb.com/products/tools/compass/
 
 https://github.com/mongodb-js/compass
 
+
+
+---
+
+## pgAdmin 4 (`pg-admin`)
+
+pgAdmin 4 is an open-source graphical administration and development platform for PostgreSQL. It provides tools for
+managing database servers, executing SQL queries, inspecting database objects, monitoring activity, performing
+maintenance, and backing up or restoring databases.
+
+### Installation Method
+
+**Official pgAdmin APT repository**
+
+Adds the official pgAdmin signing key and an Ubuntu-codename-specific APT repository, then installs the selected
+pgAdmin package.
+
+The available installation modes are:
+
+| `PGADMIN_UI` | Package installed  | Mode            |
+|--------------|--------------------|-----------------|
+| `desktop`    | `pgadmin4-desktop` | Desktop only    |
+| `web`        | `pgadmin4-web`     | Web only        |
+| `both`       | `pgadmin4`         | Desktop and web |
+
+When `PGADMIN_UI` is unset during an interactive installation, the module asks which package should be installed.
+Desktop mode is the first/default choice.
+
+During a non-interactive installation, an unset `PGADMIN_UI` defaults to desktop mode.
+
+### Supported ENV
+
+- `PGADMIN_UI`
+    - Selects the pgAdmin installation mode.
+    - Supported values: `desktop`, `web`, and `both`.
+    - `desktop` installs `pgadmin4-desktop`.
+    - `web` installs `pgadmin4-web`.
+    - `both` installs `pgadmin4`, providing desktop and web modes.
+    - Any other value is rejected.
+    - When unset during an interactive installation, the module asks which mode should be installed.
+    - Default: `desktop`
+
+- `PGADMIN_NON_INTERACTIVE`
+    - Disables the pgAdmin package-selection prompt.
+    - Falls back to `${NON_INTERACTIVE}`.
+    - When enabled without `PGADMIN_UI`, installs `pgadmin4-desktop`.
+    - Default: `${NON_INTERACTIVE}`
+
+### Installation Detection
+
+Installation detection follows `PGADMIN_UI`:
+
+- `desktop` requires `pgadmin4-desktop`.
+- `web` requires `pgadmin4-web`.
+- `both` requires either the `pgadmin4` meta-package or both desktop and web packages.
+- Any other value is rejected as a module configuration error.
+- When `PGADMIN_UI` is unset, detection defaults to `pgadmin4-desktop`.
+
+### Desktop Integration
+
+Desktop mode provides:
+
+- A pgAdmin 4 application-menu entry.
+- Icons in the system hicolor icon theme.
+- The standalone pgAdmin desktop runtime.
+
+### Web Configuration
+
+Installing `pgadmin4-web` or `pgadmin4` installs the web application package, but the web server must still be
+configured manually:
+
+```bash
+sudo /usr/pgadmin4/bin/setup-web.sh
+```
+
+### Official Website
+
+https://www.pgadmin.org/
+
 ---
 
 ## SDKMAN! (`sdkman`)

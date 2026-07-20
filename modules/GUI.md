@@ -4,6 +4,62 @@ Graphical applications for productivity, file management, security, and everyday
 
 ---
 
+## Brave Browser (`brave-browser`)
+
+Brave is a privacy-focused Chromium browser with built-in ad and tracker blocking.
+
+### Installation Method
+
+**Official Brave APT repositories**
+
+Supports Release, Beta, and Nightly channels.
+
+### Supported ENV
+
+- `BRAVE_BROWSER_CHANNEL`
+    - Supported values: `release`, `stable`, `beta`, `nightly`.
+    - Default: `release`
+
+- `BRAVE_BROWSER_NON_INTERACTIVE`
+    - Disables channel selection.
+    - Default: `${NON_INTERACTIVE}`
+
+Multiple channels can be installed side by side. Use `--force` when another Brave Browser channel is already installed.
+
+### Official Website
+
+https://brave.com/
+
+---
+
+## Brave Origin (`brave-origin`)
+
+Brave Origin is a streamlined Brave browser with optional features disabled by default. It is available for free on Linux.
+
+### Installation Method
+
+**Official Brave APT repositories**
+
+Supports Release, Beta, and Nightly channels.
+
+### Supported ENV
+
+- `BRAVE_ORIGIN_CHANNEL`
+    - Supported values: `release`, `stable`, `beta`, `nightly`.
+    - Default: `release`
+
+- `BRAVE_ORIGIN_NON_INTERACTIVE`
+    - Disables channel selection.
+    - Default: `${NON_INTERACTIVE}`
+
+Multiple channels can be installed side by side. Use `--force` when another Brave Origin channel is already installed.
+
+### Official Website
+
+https://brave.com/origin/
+
+---
+
 ## Cryptomator (`cryptomator`)
 
 Cryptomator is an easy-to-use encryption utility for protecting files stored locally or in cloud storage. It creates encrypted vaults that can be transparently mounted when unlocked, making it useful for securely storing sensitive files while remaining compatible with services such as OneDrive, Google Drive, and Dropbox.
@@ -76,6 +132,12 @@ Configures the Double Commander repository from the openSUSE Build Service, then
 
 ### Supported ENV
 
+- `DOUBLE_COMMANDER_NON_INTERACTIVE`
+    - Disables the UI toolkit selection prompt.
+    - Falls back to the global `NON_INTERACTIVE` value.
+    - When enabled with `DOUBLE_COMMANDER_UI_TOOLKIT=auto` or without an explicit toolkit, uses automatic detection.
+    - Default: `${NON_INTERACTIVE}`
+
 - `DOUBLE_COMMANDER_UI_TOOLKIT`
     - Double Commander GUI package variant to install.
     - Supported values: `auto`, `gtk`, `qt` (will be treated as `qt5`), `qt5`, `qt6`
@@ -112,6 +174,40 @@ Downloads the latest Ubuntu-specific AMD64 release asset from the official GitHu
 ### Official Website
 
 https://flameshot.org/
+
+---
+
+## fman (`fman`)
+
+fman is an open-source, cross-platform dual-pane file manager designed for efficient keyboard-driven workflows. It
+provides fast directory navigation, a Commander-style interface, and extensibility through plugins.
+
+### Installation Method
+
+**GitHub latest release (.deb)**
+
+Locates and downloads the latest Ubuntu x64 Debian package from the official GitHub releases page, stores the downloaded
+package path in a module state file, then installs the package using APT.
+
+### Supported ENV
+
+- `FMAN_REGEX`
+    - Regular expression used to locate the Ubuntu x64 Debian package in the latest GitHub release.
+    - Default:
+      `fman-.*-ubuntu-x64\\.deb$`
+
+### Cleanup
+
+- Removes the downloaded `.deb` package.
+- Removes the module state file.
+
+### External Source
+
+https://github.com/mherrmann/fman
+
+### Official Website
+
+https://fman.io/
 
 ---
 
@@ -179,6 +275,65 @@ https://keepassxc.org/
 
 ---
 
+## Microsoft Edge (`microsoft-edge`)
+
+Microsoft Edge is Microsoft's Chromium-based web browser. The module supports Stable, Beta, Dev, and Canary channels.
+Canary is the daily experimental channel; there is no separate Nightly channel.
+
+### Installation Method
+
+**Official Microsoft Edge APT repository**
+
+Configures Microsoft's Edge repository and installs the selected package:
+
+| Channel | Package                         |
+|---------|---------------------------------|
+| Stable  | `microsoft-edge-stable`         |
+| Beta    | `microsoft-edge-beta`           |
+| Dev     | `microsoft-edge-dev`            |
+| Canary  | `microsoft-edge-canary`         |
+
+Multiple Microsoft Edge channels can be installed side by side. Use `MICROSOFT_EDGE_CHANNEL` to select a channel
+directly. If an Edge channel is already installed, add `--force` to run the module again and install another channel.
+
+Example for non-interactive:
+
+```bash
+MICROSOFT_EDGE_CHANNEL=dev ./install.sh gui/microsoft-edge
+```
+
+For interactive could use:
+
+```bash
+./install.sh --force gui/microsoft-edge
+```
+
+### Supported ENV
+
+- `MICROSOFT_EDGE_CHANNEL`
+    - Supported values: `stable`, `beta`, `dev`, `canary`.
+    - Default: `stable` in non-interactive mode.
+
+- `MICROSOFT_EDGE_NON_INTERACTIVE`
+    - Disables the channel selection prompt.
+    - Default: `${NON_INTERACTIVE}`
+
+### Post-install Configuration
+
+Disables Edge's repository updater that may conflict with the repository managed by Mint Provisioner.
+
+Reapply the configuration with:
+
+```bash
+./configure.sh gui/microsoft-edge
+```
+
+### Official Website
+
+https://www.microsoft.com/edge/download
+
+---
+
 ## Mu Commander (`mu-commander`)
 
 Mu Commander is a lightweight, cross-platform dual-pane file manager. It provides a Commander-style interface for file management with support for common file operations, keyboard-driven workflows, archive handling, and multiple storage locations.
@@ -222,3 +377,56 @@ Downloads the latest Debian package from the official GitHub releases page, stor
 ### Official Website
 
 https://github.com/MeanEYE/Sunflower
+
+---
+
+## TLP UI (`tlp-ui`)
+
+TLP UI is a GTK-based graphical interface for viewing and editing TLP power-management configuration. It provides an
+easier way to inspect available TLP settings, modify configuration values, and view TLP status information.
+
+### Installation Method
+
+**GitHub repository (source installation)**
+
+Installs the required Python and GTK runtime packages, then performs a shallow clone of the official TLPUI GitHub
+repository.
+
+The module requires:
+
+- Python 3.10 or newer
+- Git
+- An existing TLP installation
+
+The following runtime packages are installed using APT:
+
+- `python3-gi`
+- `python3-yaml`
+- `python3-toml`
+- `gir1.2-gtk-3.0`
+
+### Supported ENV
+
+- `TLP_UI_INSTALL_DIR`
+    - Directory where the TLPUI Git repository is cloned.
+    - Default: `${INSTALL_DIR}/tlp-ui`
+
+### Installed Configuration
+
+- Creates `/usr/local/bin/tlp-ui`.
+- The launcher changes to the TLPUI installation directory and executes:
+
+```bash
+python3 -m tlpui
+```
+
+### Desktop Integration
+
+- Installs `tlp-ui.desktop` into `/usr/share/applications`.
+- Installs the application icon into `/usr/share/icons/hicolor/512x512/apps/tlp-ui.png`.
+- Registers TLP UI under the system settings and hardware settings categories.
+- Refreshes the desktop application database and icon cache when the required utilities are available.
+
+### Official Website
+
+https://github.com/d4nj1/TLPUI

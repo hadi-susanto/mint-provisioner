@@ -44,12 +44,15 @@ fi
 
 EXEC_PATH="$DEADBEEF_INSTALL_DIR/deadbeef"
 
-log_info "[$CANONICAL_ID] Creating symbolic link"
+log_info "[$CANONICAL_ID] Creating symbolic links"
+if [[ "$DEADBEEF_INSTALL_DIR" != "$(symlink_location)" ]]; then
+    if ! symlink_binary "$CANONICAL_ID" "$EXEC_PATH"; then
+        log_error "[$CANONICAL_ID] Failed to create DeaDBeeF symbolic link"
 
-if ! symlink_binary "$CANONICAL_ID" "$EXEC_PATH"; then
-    log_error "[$CANONICAL_ID] Failed to create DeaDBeeF symbolic link"
-
-    exit 5
+        exit 5
+    fi
+else
+    log_info "[$CANONICAL_ID] Install directory matches symlink location, skipping symlink creation"
 fi
 
 log_info "[$CANONICAL_ID] Installing desktop file"

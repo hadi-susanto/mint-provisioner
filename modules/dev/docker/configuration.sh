@@ -4,26 +4,39 @@ source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/state.sh"
 
 __set_docker_lib_install_dir() {
-    local install_dir="$1"
+    local install_dir="${1:-}"
     local docker_source_dir="/var/lib/docker"
 
     if [[ "$install_dir" != /* ]]; then
         log_error \
-            "[$CANONICAL_ID] Docker library installation directory must be an absolute path: $install_dir"
+            "[$CANONICAL_ID] Docker data directory must be an absolute path: $install_dir"
 
         return 1
     fi
 
-    #
-    # Remove trailing slashes before validating path relationships.
-    #
-    while [[ "$install_dir" != "/" && "$install_dir" == */ ]]; do
-        install_dir="${install_dir%/}"
-    done
+    if [[ "$install_dir" == *'"'* ||
+        "$install_dir" == *'\'* ||
+        "$install_dir" == *$'\n'* ||
+        "$install_dir" == *$'\r'* ]]
+    then
+        log_error \
+            "[$CANONICAL_ID] Docker data directory contains unsupported characters"
+
+        return 1
+    fi
+
+    install_dir="$(realpath -m -- "$install_dir")" || {
+        log_error \
+            "[$CANONICAL_ID] Failed to normalize Docker data directory: $install_dir"
+
+        return 1
+    }
+
+    docker_source_dir="$(realpath -m -- "$docker_source_dir")" || return $?
 
     if [[ "$install_dir" == "/" ]]; then
         log_error \
-            "[$CANONICAL_ID] Docker library installation directory must not be the filesystem root"
+            "[$CANONICAL_ID] Docker data directory must not be the filesystem root"
 
         return 1
     fi
@@ -33,17 +46,7 @@ __set_docker_lib_install_dir() {
         "$docker_source_dir" == "$install_dir/"* ]]
     then
         log_error \
-            "[$CANONICAL_ID] Docker library installation directory must not overlap with $docker_source_dir: $install_dir"
-
-        return 1
-    fi
-
-    if [[ "$install_dir" == *'"'* ||
-        "$install_dir" == *'\'* ||
-        "$install_dir" == *$'\n'* ]]
-    then
-        log_error \
-            "[$CANONICAL_ID] Docker library installation directory contains unsupported characters"
+            "[$CANONICAL_ID] Docker data directory must not overlap with $docker_source_dir: $install_dir"
 
         return 1
     fi
@@ -51,7 +54,7 @@ __set_docker_lib_install_dir() {
     set_state "DOCKER_LIB_INSTALL_DIR" "$install_dir"
 
     log_info \
-        "[$CANONICAL_ID] Docker library installation directory: $install_dir"
+        "[$CANONICAL_ID] Docker data directory: $install_dir"
 
     return 0
 }
@@ -73,7 +76,7 @@ if [[ -n "${DOCKER_LIB_INSTALL_DIR:-}" ]]; then
 else
     selected_install_dir="$(
         ask_text \
-            "Directory used to store Docker images, containers, and volumes" \
+            "Where should Docker store images, containers, and volumes?" \
             "$default_install_dir"
     )" || exit $?
 fi

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
 packages=(
-    "mkvtoolnix-gui"
-    "mkvtoolnix"
+    "brave-browser"
+    "brave-browser-beta"
+    "brave-browser-nightly"
 )
 
 for package in "${packages[@]}"; do

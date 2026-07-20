@@ -40,10 +40,10 @@ if ! $SUDO_CMD chmod +x "$DELTA_INSTALL_DIR/delta"; then
 fi
 
 log_info "[$CANONICAL_ID] Creating symbolic links"
-if [[ -f "$DELTA_INSTALL_DIR/delta" ]]; then
+if [[ "$DELTA_INSTALL_DIR" != "$(symlink_location)" ]]; then
     symlink_binary "$CANONICAL_ID" "$DELTA_INSTALL_DIR/delta"
 else
-    log_error "[$CANONICAL_ID] Binary not found at $DELTA_INSTALL_DIR/delta"
+    log_info "[$CANONICAL_ID] Install directory matches symlink location, skipping symlink creation"
 fi
 
 log_info "[$CANONICAL_ID] Installation completed successfully"
