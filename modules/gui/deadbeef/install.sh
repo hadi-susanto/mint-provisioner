@@ -44,8 +44,6 @@ fi
 
 EXEC_PATH="$DEADBEEF_INSTALL_DIR/deadbeef"
 
-log_info "[$CANONICAL_ID] Creating symbolic link"
-
 log_info "[$CANONICAL_ID] Creating symbolic links"
 if [[ "$DEADBEEF_INSTALL_DIR" != "$(symlink_location)" ]]; then
     if ! symlink_binary "$CANONICAL_ID" "$EXEC_PATH"; then

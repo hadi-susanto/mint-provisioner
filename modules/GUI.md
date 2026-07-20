@@ -269,12 +269,6 @@ https://keepassxc.org/
 
 ---
 
----
-
-## Microsoft Edge (`microsoft-edge`)
-
----
-
 ## Microsoft Edge (`microsoft-edge`)
 
 Microsoft Edge is Microsoft's Chromium-based web browser. The module supports Stable, Beta, Dev, and Canary channels.
@@ -320,8 +314,7 @@ For interactive could use:
 
 ### Post-install Configuration
 
-Disables Edge's repository updater and removes vendor-generated APT source files that may conflict with the repository
-managed by Mint Provisioner.
+Disables Edge's repository updater that may conflict with the repository managed by Mint Provisioner.
 
 Reapply the configuration with:
 
