@@ -266,7 +266,9 @@ between multiple versions of Java, Maven, Gradle, Kotlin, Scala, Groovy, Spring 
 
 **Official installation script**
 
-Downloads and installs SDKMAN! using its official bootstrap script in a non-interactive manner.
+Reads the official SDKMAN! bootstrap script to discover the current component versions, then downloads and installs the
+standard and native Linux x86_64 (`linuxx64`) archives in a non-interactive manner. Other SDKMAN! platforms are not
+currently supported by this module.
 
 ### Supported ENV
 
@@ -288,6 +290,7 @@ Downloads and installs SDKMAN! using its official bootstrap script in a non-inte
 
 - Copies the bundled SDKMAN! configuration into `${SDKMAN_INSTALL_DIR}/etc/config`.
 - Generates `sdkman-init.sh` inside the provisioner's configuration directory.
+- Fails the post-install phase if a required configuration file or shell integration cannot be installed.
 
 #### Shell Integration
 

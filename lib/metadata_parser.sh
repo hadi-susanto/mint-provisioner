@@ -172,9 +172,15 @@ parse_category_config() {
 # Parameters:
 #   module - Module name (directory name under $MODULES_DIR)
 #
+# Returns:
+#   0 - The module is installed.
+#   1 - The module is not installed.
+#   2 - The module or its is_installed.sh script does not exist.
+#   Any other non-zero status returned by is_installed.sh or the framework.
+#
 get_module_status() {
-    local module="$1"
-    local module_dir="$MODULES_DIR/$module"
+    local canonical_id="$1"
+    local module_dir="$MODULES_DIR/$canonical_id"
 
     if [[ ! -d "$module_dir" ]]; then
         return 2
@@ -185,11 +191,10 @@ get_module_status() {
         return 2
     fi
 
-    if run_script "$script" >/dev/null 2>&1; then
-        return 0
-    else
-        return 1
-    fi
+    local status=0
+    run_script "$script" >/dev/null 2>&1 || status=$?
+
+    return "$status"
 }
 
 get_module_status_icon() {

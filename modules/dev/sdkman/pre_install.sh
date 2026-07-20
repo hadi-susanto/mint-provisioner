@@ -41,8 +41,8 @@ log_info "[$CANONICAL_ID] Extracted Service: $SDKMAN_SERVICE"
 log_info "[$CANONICAL_ID] Extracted Version: $SDKMAN_VERSION"
 log_info "[$CANONICAL_ID] Extracted Native Version: $SDKMAN_NATIVE_VERSION"
 
-# Determine platform (default to linuxx64)
-SDKMAN_PLATFORM="${SDKMAN_PLATFORM:-linuxx64}"
+# This module currently supports only the Linux x86_64 SDKMAN! archives.
+SDKMAN_PLATFORM="linuxx64"
 
 # Download standard SDKMAN
 STANDARD_URL="${SDKMAN_SERVICE}/broker/download/sdkman/install/${SDKMAN_VERSION}/${SDKMAN_PLATFORM}"

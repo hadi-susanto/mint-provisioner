@@ -188,7 +188,8 @@ Its exit status is part of the framework contract:
 |             `1` | The module is not installed   |
 | Any other value | The installation check failed |
 
-The check should verify every component promised by the module.
+Framework status helpers preserve these exit codes so callers can distinguish a missing installation from a failed
+status check. The check should verify every component promised by the module.
 
 For example, a module that installs several commands should verify all required commands instead of checking only the
 primary executable.
