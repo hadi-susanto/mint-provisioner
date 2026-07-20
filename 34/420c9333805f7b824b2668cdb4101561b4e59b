@@ -1,0 +1,44 @@
+README.md
+  3d3fef154e2580bd 258-260,275-278
+lib/messages.sh
+  3d3fef154e2580bd 297
+lib/module_configurer.sh
+  3d3fef154e2580bd 123,128-132,134-142,145-146,149,203-204,210,248,260-264,314-315,318
+lib/module_installer.sh
+  3d3fef154e2580bd 176,181-185,187-195,198-199,202,408-409,422,462,474,476-478,528-529,532
+install.sh
+  3d3fef154e2580bd 59-60,204-205,207-208,213
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "34420c9333805f7b824b2668cdb4101561b4e59b",
+  "prompts": {
+    "3d3fef154e2580bd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7d80-dfd9-7392-8225-fed27f0327a7",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null,
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 74,
+      "overriden_lines": 0
+    },
+    "4f63deecab9b0b71": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7ddb-8a2b-7d80-a5c4-332c1a87a11a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null,
+      "messages": [],
+      "total_additions": 340,
+      "total_deletions": 340,
+      "accepted_lines": 339,
+      "overriden_lines": 0
+    }
+  }
+}
