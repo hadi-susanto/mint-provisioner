@@ -278,6 +278,13 @@ The package installed depends on the selected configuration:
 
 ### Supported ENV
 
+* `MKVTOOLNIX_NON_INTERACTIVE`
+
+    * Disables the MKVToolNix GUI-selection prompt.
+    * Falls back to the global `NON_INTERACTIVE` value.
+    * When enabled without `MKVTOOLNIX_GUI_ENABLED`, installs the command-line-only package.
+    * Default: `${NON_INTERACTIVE}`
+
 * `MKVTOOLNIX_GUI_ENABLED`
 
     * Controls whether the MKVToolNix graphical interface is installed alongside the command-line tools.

@@ -132,6 +132,12 @@ Configures the Double Commander repository from the openSUSE Build Service, then
 
 ### Supported ENV
 
+- `DOUBLE_COMMANDER_NON_INTERACTIVE`
+    - Disables the UI toolkit selection prompt.
+    - Falls back to the global `NON_INTERACTIVE` value.
+    - When enabled with `DOUBLE_COMMANDER_UI_TOOLKIT=auto` or without an explicit toolkit, uses automatic detection.
+    - Default: `${NON_INTERACTIVE}`
+
 - `DOUBLE_COMMANDER_UI_TOOLKIT`
     - Double Commander GUI package variant to install.
     - Supported values: `auto`, `gtk`, `qt` (will be treated as `qt5`), `qt5`, `qt6`
