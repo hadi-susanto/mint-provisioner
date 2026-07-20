@@ -173,18 +173,33 @@ __print_header() {
 }
 
 #
-# __print_footer <name> <duration_seconds>
+# __print_footer <canonical_id> <name> <status> <duration_seconds>
 #
 __print_footer() {
     local canonical_id="$1"
     local name="$2"
-    local duration="$3"
+    local status="$3"
+    local duration="$4"
+    local icon
+    local status_color
+    local result
+
+    if [[ "$status" == "SUCCESS" ]]; then
+        icon="✔"
+        status_color="$COLOR_GREEN"
+        result="completed"
+    else
+        icon="✗"
+        status_color="$COLOR_RED"
+        result="failed"
+    fi
 
     printf "%s\n" "----------------------------------------------------------------------"
-    printf " %s✔%s %s %s[id: %s]%s installation completed in %s sec(s)\n" \
-        "${COLOR_GREEN}" "${COLOR_RESET}" \
+    printf " %s%s%s %s %s[id: %s]%s installation %s in %s sec(s)\n" \
+        "$status_color" "$icon" "${COLOR_RESET}" \
         "$name" \
         "${COLOR_YELLOW}" "$canonical_id" "${COLOR_RESET}" \
+        "$result" \
         "${duration}"
 }
 
@@ -390,6 +405,8 @@ install_module() {
 # into a single associative array.
 #
 # After execution, prints a summary table.
+# All modules are processed even if one fails. The function returns non-zero
+# after the summary when any module failed.
 #
 # Metadata keys:
 #   <module>.NAME
@@ -402,6 +419,7 @@ run_installation() {
     local canonical_id
     local start_time_ms end_time_ms duration_ms
     local total_start_time_ms total_end_time_ms total_duration_ms
+    local exit_status=0
 
     local duration
     local total_duration
@@ -441,6 +459,7 @@ run_installation() {
             metadata["$canonical_id.status"]="SUCCESS"
         else
             metadata["$canonical_id.status"]="FAILED"
+            exit_status=1
         fi
 
         end_time_ms="$(date +%s%3N)"
@@ -452,7 +471,11 @@ run_installation() {
 
         metadata["$canonical_id.time"]="$duration"
 
-        __print_footer "$canonical_id" "${metadata[$canonical_id.NAME]:-$canonical_id}" "$duration"
+        __print_footer \
+            "$canonical_id" \
+            "${metadata[$canonical_id.NAME]:-$canonical_id}" \
+            "${metadata[$canonical_id.status]}" \
+            "$duration"
 
         printf '\n'
     done
@@ -502,5 +525,9 @@ run_installation() {
         fi
     done
 
-    delete_all_messages
+    if ! delete_all_messages; then
+        exit_status=1
+    fi
+
+    return "$exit_status"
 }

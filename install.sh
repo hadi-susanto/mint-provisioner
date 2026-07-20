@@ -56,6 +56,8 @@ Examples:
 Notes:
   * Use <category>/<module> to resolve conflicting module names.
   * --skip-configuration takes precedence over --force-configuration.
+  * Non-interactive modes never prompt for sudo. Credentials must already be
+    cached, or passwordless sudo must be available.
 
   More details:
   https://github.com/hadi-susanto/mint-provisioner/tree/main/modules
@@ -198,6 +200,18 @@ try_acquire_sudo_privileges() {
     local response
 
     log_info "The script can obtain and cache sudo privileges now, so you won't need to enter your password again later."
+
+    if [[ "${NON_INTERACTIVE:-false}" == "true" ]]; then
+        log_info "Non-interactive mode: validating cached or passwordless sudo privileges..."
+
+        if ! sudo -n -v; then
+            log_error "Non-interactive mode could not acquire sudo privileges without prompting."
+
+            return 1
+        fi
+
+        return 0
+    fi
 
     read -r -p "Do you want to elevate privileges now? (Y/n): " response
     response="${response:-y}"

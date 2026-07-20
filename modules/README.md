@@ -124,7 +124,8 @@ cleanup.sh
 
 Missing optional phases are skipped automatically.
 
-The lifecycle stops immediately when a phase fails.
+A module's lifecycle stops immediately when one of its phases fails. The framework records that module as failed,
+continues with the remaining selected modules, prints the complete summary, and then exits non-zero.
 
 ### Phase responsibilities
 
