@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-#
-# Installer common functions
-#
-
 source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/messages.sh"
 
@@ -92,11 +88,18 @@ copy_to_config_dir() {
     log_warn "[copy_config] [$module] $target already exists, to overwrite existing file please set $force_var to true"
 }
 
+##
+# Adds a guarded source statement to a shell startup file when needed.
 #
-# __add_shell_source <module> <shell_name> <rc_file> <source_file> <caller_func>
+# Parameters:
+#   module         Canonical module ID used for logging.
+#   shell_name     Shell executable required for the integration.
+#   rc_file        Shell startup file to update.
+#   source_file    Existing integration file to source.
+#   caller_func    Optional public caller name used in log messages.
 #
-# Adds a source line to the shell's RC file if it doesn't already exist.
-# This function is considered private and should not be called directly.
+# Returns:
+#   Non-zero when arguments, the source file, or the startup-file update fail.
 #
 __add_shell_source() {
     local module="${1:-}"

@@ -6,7 +6,7 @@ System utilities, machine setup, performance tools, fonts, and operating system 
 
 - [Apt Fast](#apt-fast-apt-fast)
 - [Dconf Editor](#dconf-editor-dconf-editor)
-- [DNSCrypt Proxy](#dnscrypt-proxy-dnscrypt-proxy)
+- [DNSCrypt Proxy](#dnscrypt-proxy-dnscrypt-proxy-alias-dnscrypt)
 - [Nerd Fonts](#nerd-fonts-nerd-font)
 - [Out of the Box Experience](#out-of-the-box-experience-oobe)
 
@@ -100,7 +100,7 @@ https://apps.gnome.org/DconfEditor/
 
 ---
 
-## DNSCrypt Proxy (`dnscrypt-proxy`)
+## DNSCrypt Proxy (`dnscrypt-proxy`) [alias: `dnscrypt`]
 
 DNSCrypt Proxy is a local DNS proxy supporting encrypted DNS protocols, including DNSCrypt and DNS-over-HTTPS. It can
 protect DNS queries from interception and use DNS providers that offer filtering or system-wide domain blocking.

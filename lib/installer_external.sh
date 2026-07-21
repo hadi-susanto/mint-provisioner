@@ -2,34 +2,21 @@
 
 source "${LIB_DIR}/common.sh"
 
-#
-# github_find_release <module> <owner> <repo> <pattern>
-#
-# Description:
-#   Fetches the latest GitHub release and returns exactly ONE asset
-#   download URL matching the provided regex pattern.
-#
-# Contract:
-#   - Returns exactly one matching URL on stdout
-#   - Fails if no match is found
-#   - Fails if multiple matches are found (to avoid ambiguity)
+##
+# Finds exactly one matching asset URL in the latest GitHub release.
 #
 # Parameters:
-#   module   - Log prefix identifier
-#   owner    - GitHub org/user
-#   repo     - GitHub repository name
-#   pattern  - grep-compatible regex used to match asset URL
+#   module     Canonical module ID used for logging.
+#   owner      GitHub repository owner.
+#   repo       GitHub repository name.
+#   pattern    Extended regular expression matched against asset URLs.
 #
 # Output:
-#   stdout   - Single matched browser_download_url
+#   Prints the single matching download URL.
 #
-# Exit codes:
-#   0 - Success (exactly one match)
-#   1 - Invalid arguments
-#   2 - Network/API failure
-#   3 - No matching asset found
-#   4 - Multiple matching assets found (ambiguous)
-#   5 - JSON parsing error (jq failure)
+# Returns:
+#   1 for invalid arguments; 2 for API failure; 3 for no match; 4 for multiple
+#   matches; 5 when jq cannot parse the response.
 #
 github_find_release() {
     local module="${1:-}"
@@ -91,26 +78,16 @@ github_find_release() {
     return 0
 }
 
-#
-# download_file <module> <download_url> <output_file>
-#
-# Downloads a file from a URL.
+##
+# Downloads a URL to a destination file.
 #
 # Parameters:
-#   module       - Module name used for logging.
-#   download_url - URL to download.
-#   output_file  - Destination file path.
+#   module          Canonical module ID used for logging.
+#   download_url    URL to download.
+#   output_file     Destination file path.
 #
 # Returns:
-#   0 - Download successful.
-#   1 - Invalid arguments.
-#   2 - Download failed.
-#
-# Example:
-#   download_file \
-#       gui/flameshot \
-#       "https://github.com/.../flameshot.deb" \
-#       "/tmp/flameshot.deb"
+#   1 when arguments are missing; 2 when curl cannot download the file.
 #
 download_file() {
     local module="${1:-}"

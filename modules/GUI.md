@@ -4,23 +4,23 @@ Graphical applications for productivity, file management, security, and everyday
 
 ## Contents
 
-- [Brave Browser](#brave-browser-brave-browser)
-- [Brave Origin](#brave-origin-brave-origin)
+- [Brave Browser](#brave-browser-brave-browser-alias-brave)
+- [Brave Origin](#brave-origin-brave-origin-alias-origin)
 - [Cryptomator](#cryptomator-cryptomator)
 - [DeaDBeeF](#deadbeef-deadbeef)
-- [Double Commander](#double-commander-double-commander)
+- [Double Commander](#double-commander-double-commander-alias-db-cmd)
 - [Flameshot](#flameshot-flameshot)
 - [fman](#fman-fman)
 - [Insync](#insync-insync)
-- [KeePassXC](#keepassxc-keepass-xc)
-- [Microsoft Edge](#microsoft-edge-microsoft-edge)
-- [Mu Commander](#mu-commander-mu-commander)
+- [KeePassXC](#keepassxc-keepass-xc-alias-keepass-alias-keepassxc)
+- [Microsoft Edge](#microsoft-edge-microsoft-edge-alias-edge)
+- [Mu Commander](#mu-commander-mu-commander-alias-mu-cmd)
 - [Sunflower](#sunflower-sunflower)
 - [TLP UI](#tlp-ui-tlp-ui)
 
 ---
 
-## Brave Browser (`brave-browser`)
+## Brave Browser (`brave-browser`) [alias: `brave`]
 
 Brave is a privacy-focused Chromium browser with built-in ad and tracker blocking.
 
@@ -48,7 +48,7 @@ https://brave.com/
 
 ---
 
-## Brave Origin (`brave-origin`)
+## Brave Origin (`brave-origin`) [alias: `origin`]
 
 Brave Origin is a streamlined Brave browser with optional features disabled by default. It is available for free on Linux.
 
@@ -136,7 +136,7 @@ https://deadbeef.sourceforge.io/
 
 ---
 
-## Double Commander (`double-commander`)
+## Double Commander (`double-commander`) [alias: `db-cmd`]
 
 Double Commander is a cross-platform dual-pane file manager inspired by Total Commander. It includes built-in archive support, batch renaming, advanced search, internal viewers, and extensive keyboard shortcuts for efficient file management.
 
@@ -268,7 +268,7 @@ https://www.insynchq.com/
 
 ---
 
-## KeePassXC (`keepass-xc`)
+## KeePassXC (`keepass-xc`) [alias: `keepass`] [alias: `keepassxc`]
 
 KeePassXC is a modern, cross-platform password manager compatible with the KeePass database format. It securely stores passwords, passkeys, SSH keys, TOTP secrets, and other sensitive information in an encrypted database while providing browser integration and automatic credential filling.
 
@@ -291,7 +291,7 @@ https://keepassxc.org/
 
 ---
 
-## Microsoft Edge (`microsoft-edge`)
+## Microsoft Edge (`microsoft-edge`) [alias: `edge`]
 
 Microsoft Edge is Microsoft's Chromium-based web browser. The module supports Stable, Beta, Dev, and Canary channels.
 Canary is the daily experimental channel; there is no separate Nightly channel.
@@ -354,7 +354,7 @@ https://www.microsoft.com/edge/download
 
 ---
 
-## Mu Commander (`mu-commander`)
+## Mu Commander (`mu-commander`) [alias: `mu-cmd`]
 
 Mu Commander is a lightweight, cross-platform dual-pane file manager. It provides a Commander-style interface for file management with support for common file operations, keyboard-driven workflows, archive handling, and multiple storage locations.
 

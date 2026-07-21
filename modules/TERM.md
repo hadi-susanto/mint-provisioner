@@ -7,8 +7,8 @@ Terminal emulators, shells, prompts, themes, and tools that enhance the terminal
 - [Alacritty](#alacritty-alacritty)
 - [Ghostty](#ghostty-ghostty)
 - [Kitty](#kitty-kitty)
-- [Oh My Posh](#oh-my-posh-oh-my-posh)
-- [Powerlevel10k](#powerlevel10k-power-level-10k)
+- [Oh My Posh](#oh-my-posh-oh-my-posh-alias-omp)
+- [Powerlevel10k](#powerlevel10k-power-level-10k-alias-plvl10k)
 - [Starship](#starship-starship)
 - [Terminator](#terminator-terminator)
 - [Zsh](#zsh-zsh)
@@ -188,7 +188,7 @@ https://sw.kovidgoyal.net/kitty/
 
 ---
 
-## Oh My Posh (`oh-my-posh`)
+## Oh My Posh (`oh-my-posh`) [alias: `omp`]
 
 Oh My Posh is a highly customizable prompt theme engine for shells. It provides rich, contextual prompts with support
 for Git status, runtime information, icons, and many other prompt segments.
@@ -246,7 +246,7 @@ https://ohmyposh.dev/
 
 ---
 
-## Powerlevel10k (`power-level-10k`)
+## Powerlevel10k (`power-level-10k`) [alias: `plvl10k`]
 
 Powerlevel10k is a high-performance Zsh theme with a powerful configuration wizard. It provides a fast and highly
 customizable prompt for interactive Zsh usage.

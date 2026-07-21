@@ -11,7 +11,7 @@ applications such as **bat**, **eza**, **delta**, **git**, and **adb**.
 - [Delta](#delta-delta)
 - [Eza](#eza-eza)
 - [Git](#git-git)
-- [MKVToolNix](#mkvtoolnix-mkvtoolnix)
+- [MKVToolNix](#mkvtoolnix-mkvtoolnix-alias-mkvmerge)
 - [Procs](#procs-procs)
 - [TLP](#tlp-tlp)
 
@@ -270,7 +270,7 @@ https://git-scm.com/
 
 ---
 
-## MKVToolNix (`mkvtoolnix`)
+## MKVToolNix (`mkvtoolnix`) [alias: `mkvmerge`]
 
 MKVToolNix is a collection of command-line and graphical tools for creating, inspecting, modifying, splitting, and
 merging Matroska media files. It provides utilities such as `mkvmerge`, `mkvinfo`, `mkvextract`, and `mkvpropedit`,

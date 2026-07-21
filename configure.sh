@@ -35,11 +35,12 @@ Options:
   -a, --all     Configure all installed modules that provide post_install.sh.
 
 Arguments:
-  MODULE    Module to configure: <category>/<module> or <module>.
+  MODULE    Module to configure: <category>/<module>, <module>, or an alias.
 
 Examples:
   ./configure.sh git
   ./configure.sh cli/git
+  ./configure.sh dbeaver
   ./configure.sh gui/flameshot term/kitty
   ./configure.sh --all
 

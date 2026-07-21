@@ -2,6 +2,7 @@
 set -euo pipefail
 
 source "${LIB_DIR}/installer_apt.sh"
+source "${LIB_DIR}/messages.sh"
 source "${LIB_DIR}/state.sh"
 
 if ! load_states "$CANONICAL_ID"; then
@@ -18,4 +19,10 @@ if [[ -z "$package" ]]; then
     exit 3
 fi
 
-apt_install "$package"
+if ! apt_install "$package"; then
+    add_message "$CANONICAL_ID" "warn" "Installation failed: $package"
+
+    exit 1
+fi
+
+add_message "$CANONICAL_ID" "info" "Installation success: $package"

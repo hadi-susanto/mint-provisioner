@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
 #
-# Now we need metadata since configuring phase will read some metadata
+# Now we need module resolution and metadata for the configuration workflow.
 #
+source "$LIB_DIR/module_resolver.sh"
 source "$LIB_DIR/metadata_parser.sh"
 
 __print_module_row() {
@@ -12,6 +13,7 @@ __print_module_row() {
     local have_post_install="$4"
     local canonical_id="$category_id/$module_id"
     local post_install_icon
+    local module_alias
 
     if ! get_module_status "$canonical_id"; then
         # Not installed or other error
@@ -30,6 +32,7 @@ __print_module_row() {
         post_install_icon="${COLOR_RED}✗${COLOR_RESET}"
     fi
 
+    local -a aliases=()
     local -a tags=()
     if [[ -n "${metadata[$canonical_id.SOURCE]:-}" ]]; then
         tags+=("src: ${metadata[$canonical_id.SOURCE]}")
@@ -39,11 +42,19 @@ __print_module_row() {
         return 1
     fi
 
+    if ! get_module_aliases "$canonical_id" aliases; then
+        return 1
+    fi
+
     printf "%3d. [%s] %s %s[id: %s]%s" \
         "$index" \
         "$post_install_icon" \
         "${metadata[$canonical_id.NAME]:-N/A}" \
         "${COLOR_YELLOW}" "$canonical_id" "${COLOR_RESET}"
+
+    for module_alias in "${aliases[@]}"; do
+        printf " %s[alias: %s]%s" "${COLOR_YELLOW}" "$module_alias" "${COLOR_RESET}"
+    done
 
     for tag in "${tags[@]}"; do
         printf " %s[%s]%s" "${COLOR_CYAN}" "$tag" "${COLOR_RESET}"
@@ -108,9 +119,6 @@ list_installed_modules() {
     return 0
 }
 
-#
-# __print_header <name> <source> <description>
-#
 __print_header() {
     local canonical_id="$1"
     local name="$2"
@@ -126,9 +134,6 @@ __print_header() {
     printf "%s\n" "----------------------------------------------------------------------"
 }
 
-#
-# __print_footer <canonical_id> <name> <status> <duration_seconds>
-#
 __print_footer() {
     local canonical_id="$1"
     local name="$2"
@@ -157,17 +162,15 @@ __print_footer() {
         "${duration}"
 }
 
-#
-# post_install_module <module>
-#
-# Determines if a module is installed and executes its post_install phase.
+##
+# Runs post-install configuration for an installed module when available.
 #
 # Parameters:
-#   module   Name of the module located under MODULES_DIR.
+#   canonical_id    Module ID in <category>/<module> format.
 #
 # Returns:
-#   0   Module configured successfully or not installed (skipped).
-#   1   Failure in configuration.
+#   1 when the post-install phase runs and fails. Missing installations or
+#   post-install phases are skipped successfully.
 #
 post_install_module() {
     local canonical_id="$1"
@@ -200,15 +203,14 @@ post_install_module() {
     return 0
 }
 
+##
+# Configures modules, prints their results, and processes stored messages.
 #
-# run_post_install <module...>
+# Parameters:
+#   modules    Canonical module IDs to configure.
 #
-# Executes post_install phase for each module and collects
-# per-module metadata (status, execution time) into an associative array.
-#
-# After execution, prints a summary table and post-install messages.
-# All modules are processed even if one fails. The function returns non-zero
-# after the summary when any module failed.
+# Returns:
+#   1 when any module configuration or final message cleanup fails.
 #
 run_post_install() {
     local canonical_id

@@ -5,17 +5,17 @@ up and maintain a productive development environment, including tools such as **
 
 ## Contents
 
-- [Apache Maven](#apache-maven-apache-maven)
-- [DBeaver Community](#dbeaver-community-dbeaver-community)
-- [DbGate Community](#dbgate-community-dbgate-community)
+- [Apache Maven](#apache-maven-apache-maven-alias-maven-alias-mvn)
+- [DBeaver Community](#dbeaver-community-dbeaver-community-alias-dbeaver)
+- [DbGate Community](#dbgate-community-dbgate-community-alias-dbgate)
 - [Docker](#docker-docker)
-- [MongoDB Compass](#mongodb-compass-mongodb-compass)
-- [pgAdmin 4](#pgadmin-4-pg-admin)
+- [MongoDB Compass](#mongodb-compass-mongodb-compass-alias-compass)
+- [pgAdmin 4](#pgadmin-4-pg-admin-alias-pgadmin)
 - [SDKMAN!](#sdkman-sdkman)
 
 ---
 
-## Apache Maven (`apache-maven`)
+## Apache Maven (`apache-maven`) [alias: `maven`] [alias: `mvn`]
 
 Apache Maven is one of the most widely used Java build automation tools. It manages project dependencies, builds,
 testing, packaging, and plugin execution using the standard Maven project structure.
@@ -38,7 +38,7 @@ https://maven.apache.org/
 
 ---
 
-## DBeaver Community (`dbeaver-community`)
+## DBeaver Community (`dbeaver-community`) [alias: `dbeaver`]
 
 DBeaver Community is a free and open-source database management tool. It supports many database engines, including
 PostgreSQL, MySQL, MariaDB, SQLite, SQL Server, and Oracle.
@@ -64,7 +64,7 @@ https://dbeaver.io/
 
 ---
 
-## DbGate Community (`dbgate-community`)
+## DbGate Community (`dbgate-community`) [alias: `dbgate`]
 
 DbGate Community is a cross-platform database management application supporting relational databases, NoSQL databases,
 and Redis. It provides database browsing, data editing, SQL development, import and export, and database administration
@@ -155,7 +155,7 @@ https://docs.docker.com/engine/
 
 ---
 
-## MongoDB Compass (`mongodb-compass`)
+## MongoDB Compass (`mongodb-compass`) [alias: `compass`]
 
 MongoDB Compass is the official graphical database management and development application for MongoDB. It provides
 document exploration and editing, schema analysis, query construction, aggregation pipeline development, index
@@ -190,7 +190,7 @@ https://github.com/mongodb-js/compass
 
 ---
 
-## pgAdmin 4 (`pg-admin`)
+## pgAdmin 4 (`pg-admin`) [alias: `pgadmin`]
 
 pgAdmin 4 is an open-source graphical administration and development platform for PostgreSQL. It provides tools for
 managing database servers, executing SQL queries, inspecting database objects, monitoring activity, performing
