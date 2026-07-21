@@ -1,0 +1,101 @@
+lib/installer_common.sh
+  6566e0a4d0cd78b0 91-92,94-99,101-102
+configure.sh
+  6ae5dd0476b788fa 38,43
+lib/metadata_parser.sh
+  6ae5dd0476b788fa 29
+  6566e0a4d0cd78b0 12-13,16-18,21,149-150,153,156-157
+lib/module_resolver.sh
+  6566e0a4d0cd78b0 46-48
+  6ae5dd0476b788fa 1-45,49-172
+lib/installer_external.sh
+  6566e0a4d0cd78b0 5-6,9-12,15,17-19,81-82,85-87,90
+lib/module_configurer.sh
+  6566e0a4d0cd78b0 155-156,159,162-163,196-197,199-200,202-203
+  6ae5dd0476b788fa 4,6
+lib/common.sh
+  12eec534be0ff610 197
+  6566e0a4d0cd78b0 62-63,66,69,80-81,84,90-91,96-98,131-134,137-138,202,205,208
+lib/module_installer.sh
+  6566e0a4d0cd78b0 338,340-341,344-345
+  6ae5dd0476b788fa 3,5,74,114,117-118,120-121,124-132,134,139-140,143-151,155,157-158,175,180-194,197,200,203-205
+lib/module_aliases.sh
+  6ae5dd0476b788fa 1-12,18,34-42,44-59,62-80
+  6566e0a4d0cd78b0 43,60-61
+lib/installer_apt.sh
+  6566e0a4d0cd78b0 5-6,9-10,13,70-72,188-189,191-192,195
+install.sh
+  6ae5dd0476b788fa 28-29,36-37,45-46,53-55,79,96,137,140,147-148,151,159,349
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "33af98bd8f250eba90c3d8f5b9d63ce3b81deb6d",
+  "prompts": {
+    "12eec534be0ff610": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f82dc-362f-7dd2-aff2-730f661e0a26",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null,
+      "messages": [],
+      "total_additions": 1402,
+      "total_deletions": 1756,
+      "accepted_lines": 1342,
+      "overriden_lines": 0
+    },
+    "3d3fef154e2580bd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7d80-dfd9-7392-8225-fed27f0327a7",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null,
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 7,
+      "overriden_lines": 0
+    },
+    "6566e0a4d0cd78b0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7e8a-0190-73b3-b519-9e80302b2cd2",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null,
+      "messages": [],
+      "total_additions": 218,
+      "total_deletions": 68,
+      "accepted_lines": 222,
+      "overriden_lines": 0
+    },
+    "6ae5dd0476b788fa": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f82b5-bee8-7061-885a-7ff969f5da8e",
+        "model": "unknown"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 1931,
+      "total_deletions": 1762,
+      "accepted_lines": 302,
+      "overriden_lines": 0
+    },
+    "a6eeea83c049667c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7eaf-cbb5-7df3-908f-514ee3559461",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 13517,
+      "total_deletions": 12676,
+      "accepted_lines": 189,
+      "overriden_lines": 0
+    }
+  }
+}
