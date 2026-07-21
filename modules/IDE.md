@@ -23,6 +23,29 @@ Visual Studio Code, Geany, and CudaText alongside the JetBrains products current
 
 ---
 
+## CudaText (`cudatext`)
+
+CudaText is a cross-platform text and code editor with a Python plugin system.
+
+### Installation Method
+
+**Latest SourceForge `.deb` release** for the selected GTK or Qt toolkit.
+
+### Supported ENV
+
+- `CUDATEXT_UI_TOOLKIT`
+    - Selects the CudaText package variant.
+    - Supported values: `auto`, `gtk2`, `gtk3`, `qt5`, and `qt6`.
+- `CUDATEXT_NON_INTERACTIVE`
+    - Disables the toolkit selection prompt and uses automatic detection when `CUDATEXT_UI_TOOLKIT` is unset.
+    - Falls back to `${NON_INTERACTIVE}`.
+
+### Official Website
+
+https://cudatext.github.io/
+
+---
+
 ## Shared JetBrains module behavior
 
 The JetBrains modules in this category query the official JetBrains release metadata service for the latest stable

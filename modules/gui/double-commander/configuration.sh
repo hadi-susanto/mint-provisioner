@@ -3,13 +3,13 @@ set -euo pipefail
 
 source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/state.sh"
-source "${MODULES_DIR}/${CANONICAL_ID}/helper.sh"
+source "${LIB_DIR}/ui-toolkit.sh"
 
 ##
 # Resolves a Double Commander UI toolkit to its package name.
 #
 # Arguments:
-#   $1 - Toolkit: auto, gtk, qt, qt5, or qt6. Defaults to auto.
+#   $1 - Toolkit: auto, gtk2, gtk3, gtk4, qt5, or qt6. Defaults to auto.
 #
 # State:
 #   Stores the selected package as DOUBLE_COMMANDER_PACKAGE.
@@ -23,15 +23,15 @@ __resolve_double_commander_package() {
     local package
 
     if [[ "$toolkit" == "auto" ]]; then
-        toolkit="$(auto_detect_ui_toolkit)" || return $?
+        toolkit="$(detect_ui_toolkit)" || return $?
     fi
 
     case "$toolkit" in
-        gtk)
+        gtk4|gtk3|gtk2)
             package="doublecmd-gtk"
             ;;
 
-        qt|qt5)
+        qt5)
             package="doublecmd-qt"
             ;;
 
@@ -41,7 +41,7 @@ __resolve_double_commander_package() {
 
         *)
             log_error \
-                "[$CANONICAL_ID] Invalid UI toolkit: $toolkit. Expected auto, gtk, qt, qt5, or qt6."
+                "[$CANONICAL_ID] Invalid UI toolkit: $toolkit. Expected auto, gtk2, gtk3, gtk4, qt5, or qt6."
 
             return 1
             ;;
