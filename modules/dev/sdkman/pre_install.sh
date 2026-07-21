@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 #
 # Pre-install phase for SDKMAN!
 #
 
-source "$LIB_DIR/installer_external.sh"
-source "$LIB_DIR/state.sh"
+source "${LIB_DIR}/installer_external.sh"
+source "${LIB_DIR}/state.sh"
 
 SDKMAN_GET_URL="https://get.sdkman.io"
 
@@ -17,7 +18,7 @@ if ! get_script="$(mktemp --suffix=.sh)"; then
     exit 1
 fi
 
-if ! curl -fL -o "$get_script" "$SDKMAN_GET_URL"; then
+if ! download_file "$CANONICAL_ID" "$SDKMAN_GET_URL" "$get_script"; then
     log_error "[$CANONICAL_ID] Failed to download $SDKMAN_GET_URL"
     rm -f "$get_script"
 
@@ -25,9 +26,9 @@ if ! curl -fL -o "$get_script" "$SDKMAN_GET_URL"; then
 fi
 
 # Extract variables from the script
-SDKMAN_SERVICE=$(grep 'export SDKMAN_SERVICE=' "$get_script" | cut -d'"' -f2)
-SDKMAN_VERSION=$(grep 'export SDKMAN_VERSION=' "$get_script" | cut -d'"' -f2)
-SDKMAN_NATIVE_VERSION=$(grep 'export SDKMAN_NATIVE_VERSION=' "$get_script" | cut -d'"' -f2)
+SDKMAN_SERVICE="$(awk -F'"' '/^export SDKMAN_SERVICE=/{ print $2; exit }' "$get_script")"
+SDKMAN_VERSION="$(awk -F'"' '/^export SDKMAN_VERSION=/{ print $2; exit }' "$get_script")"
+SDKMAN_NATIVE_VERSION="$(awk -F'"' '/^export SDKMAN_NATIVE_VERSION=/{ print $2; exit }' "$get_script")"
 
 rm -f "$get_script"
 
@@ -46,7 +47,12 @@ SDKMAN_PLATFORM="linuxx64"
 
 # Download standard SDKMAN
 STANDARD_URL="${SDKMAN_SERVICE}/broker/download/sdkman/install/${SDKMAN_VERSION}/${SDKMAN_PLATFORM}"
-STANDARD_FILE="$(mktemp --suffix=.zip)"
+
+if ! STANDARD_FILE="$(mktemp --suffix=.zip)"; then
+    log_error "[$CANONICAL_ID] Failed to create temporary standard archive"
+
+    exit 4
+fi
 
 if ! download_file "$CANONICAL_ID" "$STANDARD_URL" "$STANDARD_FILE"; then
     log_error "[$CANONICAL_ID] Failed to download standard SDKMAN!"
@@ -57,7 +63,13 @@ fi
 
 # Download native SDKMAN
 NATIVE_URL="${SDKMAN_SERVICE}/broker/download/native/install/${SDKMAN_NATIVE_VERSION}/${SDKMAN_PLATFORM}"
-NATIVE_FILE="$(mktemp --suffix=.zip)"
+
+if ! NATIVE_FILE="$(mktemp --suffix=.zip)"; then
+    log_error "[$CANONICAL_ID] Failed to create temporary native archive"
+    rm -f "$STANDARD_FILE"
+
+    exit 5
+fi
 
 if ! download_file "$CANONICAL_ID" "$NATIVE_URL" "$NATIVE_FILE"; then
     log_error "[$CANONICAL_ID] Failed to download native SDKMAN!"
@@ -69,7 +81,13 @@ fi
 
 # Download candidates list
 CANDIDATES_URL="${SDKMAN_SERVICE}/candidates/all"
-CANDIDATES_FILE="$(mktemp --suffix=.txt)"
+
+if ! CANDIDATES_FILE="$(mktemp --suffix=.txt)"; then
+    log_error "[$CANONICAL_ID] Failed to create temporary candidates file"
+    rm -f "$STANDARD_FILE" "$NATIVE_FILE"
+
+    exit 6
+fi
 
 log_info "[$CANONICAL_ID] Downloading candidates list from $CANDIDATES_URL"
 if ! download_file "$CANONICAL_ID" "$CANDIDATES_URL" "$CANDIDATES_FILE"; then
@@ -86,6 +104,12 @@ set_state "SDKMAN_VERSION" "$SDKMAN_VERSION"
 set_state "NATIVE_FILE" "$NATIVE_FILE"
 set_state "SDKMAN_NATIVE_VERSION" "$SDKMAN_NATIVE_VERSION"
 set_state "CANDIDATES_FILE" "$CANDIDATES_FILE"
-save_states "$CANONICAL_ID" || exit 7
+
+if ! save_states "$CANONICAL_ID"; then
+    log_error "[$CANONICAL_ID] Failed to save installation state"
+    rm -f "$STANDARD_FILE" "$NATIVE_FILE" "$CANDIDATES_FILE"
+
+    exit 7
+fi
 
 log_info "[$CANONICAL_ID] Pre-install phase completed successfully"

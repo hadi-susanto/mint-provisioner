@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 source "${LIB_DIR}/common.sh"
 
@@ -9,7 +10,7 @@ PAYLOAD_DIR="$SCRIPT_DIR/payload"
 if [[ "${KITTY_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
     log_warn "[$CANONICAL_ID] KITTY_SKIP_CONFIGURATION is set to true, skipping configuration"
 
-    return 0
+    exit 0
 fi
 
 if [[ -z "${KITTY_FORCE_CONFIGURATION:-}" ]]; then

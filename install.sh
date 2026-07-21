@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
 
 #
@@ -20,9 +19,6 @@ source "${LIB_DIR}/module_installer.sh"
 #
 # Displays the complete help text, including supported options,
 # arguments, examples, and links to the project documentation.
-#
-# Returns:
-#   0
 #
 installer_usage() {
     cat <<'EOF'

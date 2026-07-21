@@ -32,24 +32,24 @@ source "${LIB_DIR}/common.sh"
 #   5 - JSON parsing error (jq failure)
 #
 github_find_release() {
-    local module="$1"
-    local owner="$2"
-    local repo="$3"
-    local pattern="$4"
+    local module="${1:-}"
+    local owner="${2:-}"
+    local repo="${3:-}"
+    local pattern="${4:-}"
 
     local api_url="https://api.github.com/repos/${owner}/${repo}/releases/latest"
 
     log_info "[github_find_release] [$module] Finding latest release from: $api_url"
     log_info "[github_find_release] [$module] Regex pattern: $pattern"
 
-    if [[ -z "$owner" ]] || [[ -z "$repo" ]] || [[ -z "$pattern" ]]; then
+    if [[ -z "$module" || -z "$owner" || -z "$repo" || -z "$pattern" ]]; then
         log_error "[github_find_release] [$module] Missing required arguments"
 
         return 1
     fi
 
     local body
-    body=$(curl -fsSL "$api_url") || {
+    body="$(curl -fsSL "$api_url")" || {
         log_error "[github_find_release] [$module] Failed to fetch GitHub API"
 
         return 2
@@ -58,20 +58,20 @@ github_find_release() {
     local urls
 
     if command -v jq >/dev/null 2>&1; then
-        urls=$(printf '%s\n' "$body" | jq -r '.assets[].browser_download_url') || {
+        urls="$(printf '%s\n' "$body" | jq -r '.assets[].browser_download_url')" || {
             log_error "[github_find_release] [$module] Failed to parse JSON"
 
             return 5
         }
     else
-        urls=$(printf '%s\n' "$body" | grep -o 'https://[^"]*')
+        urls="$(printf '%s\n' "$body" | grep -o 'https://[^"]*' || true)"
     fi
 
     local matches
-    matches=$(printf '%s\n' "$urls" | grep -E "$pattern" || true)
+    matches="$(printf '%s\n' "$urls" | grep -E "$pattern" || true)"
 
     local count
-    count=$(printf '%s\n' "$matches" | sed '/^$/d' | wc -l)
+    count="$(printf '%s\n' "$matches" | sed '/^$/d' | wc -l)"
 
     if [[ "$count" -eq 0 ]]; then
         log_error "[github_find_release] [$module] No matching asset found"
@@ -108,14 +108,14 @@ github_find_release() {
 #
 # Example:
 #   download_file \
-#       flameshot \
+#       gui/flameshot \
 #       "https://github.com/.../flameshot.deb" \
 #       "/tmp/flameshot.deb"
 #
 download_file() {
-    local module="$1"
-    local download_url="$2"
-    local output_file="$3"
+    local module="${1:-}"
+    local download_url="${2:-}"
+    local output_file="${3:-}"
 
     if [[ -z "$module" ]] || \
        [[ -z "$download_url" ]] || \

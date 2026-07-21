@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 source "${LIB_DIR}/installer_common.sh"
 source "${LIB_DIR}/messages.sh"
@@ -39,7 +40,7 @@ if command -v java >/dev/null 2>&1; then
   exit 0
 fi
 
-msg="Java was not found on your system. You can install it using the sdkman module from mint-provisioner: './install.sh sdkman'"
+msg="Java was not found on your system. You can install it using the SDKMAN! module: './install.sh dev/sdkman'"
 
 log_warn "[$CANONICAL_ID] $msg"
 add_message "$CANONICAL_ID" "warn" "$msg"

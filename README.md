@@ -10,7 +10,7 @@ Although designed primarily for Linux Mint, many modules may also work on Ubuntu
 
 ## ⚡ TL;DR
 
-Install modules using either a unique module name or its canonical `<category>/<module>` ID:
+Install modules using their canonical `<category>/<module>` or short module `<module>` IDs:
 
 ```bash
 ./install.sh <module> [<module>...]
@@ -22,6 +22,9 @@ Both formats can be combined:
 ```bash
 ./install.sh git gui/flameshot term/kitty
 ```
+
+Note:
+- In case `<module>` resolved to 2 or more canonical id, the process is aborted
 
 Reapply post-install configuration to installed modules:
 
@@ -452,7 +455,7 @@ New modules should follow these conventions:
 
 - Use Bash unless another interpreter provides a clear benefit.
 - Use `#!/usr/bin/env bash` for Bash scripts.
-- Remain compatible with `set -euo pipefail`.
+- Enable `set -euo pipefail` immediately after the shebang in entrypoints and module phase scripts.
 - Quote variable expansions unless word splitting is intentional.
 - Use `CANONICAL_ID` when interacting with shared state or message helpers.
 - Use shared logging helpers instead of printing errors directly.

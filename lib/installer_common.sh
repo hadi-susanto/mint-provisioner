@@ -7,31 +7,46 @@
 source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/messages.sh"
 
+##
+# Prints the Mint Provisioner configuration directory for the target user.
 #
-# Get the configuration directory for the current user
+# Returns:
+#   Non-zero when the target user's home directory cannot be resolved.
 #
 get_config_dir() {
     local user_home
-    user_home=$(get_user_home)
+    user_home="$(get_user_home)" || return $?
 
-    echo "${user_home}/.config/mint-provisioner"
+    printf '%s/.config/mint-provisioner\n' "$user_home"
 }
 
+##
+# Copies a payload file into the target user's configuration directory.
 #
-# Copy a file to the configuration directory
-# Arguments:
-#   1. module: Module name
-#   2. source: Source file path
-#   3. force_var: Name of the environment variable for force configuration (e.g., GIT_FORCE_CONFIGURATION)
+# Parameters:
+#   module       Canonical module ID used for logging.
+#   source       Source file path.
+#   force_var    Name of the module's force-configuration variable.
+#
+# Returns:
+#   Non-zero when arguments are invalid or the directory/file operation fails.
 #
 copy_to_config_dir() {
-    local module="$1"
-    local source="$2"
-    local force_var="$3"
+    local module="${1:-}"
+    local source="${2:-}"
+    local force_var="${3:-}"
     local config_dir
     local filename
     local target
-    local force_val="${!force_var}"
+    local force_val
+
+    if [[ -z "$module" || -z "$source" || -z "$force_var" ]]; then
+        log_error "[copy_config] Missing required arguments"
+
+        return 1
+    fi
+
+    force_val="${!force_var:-false}"
 
     if [[ ! -f "$source" ]]; then
         log_error "[copy_config] [$module] Source file $source does not exist"
@@ -39,17 +54,25 @@ copy_to_config_dir() {
         return 1
     fi
 
-    config_dir="$(get_config_dir)"
+    config_dir="$(get_config_dir)" || return $?
     filename="${source##*/}"
     target="${config_dir}/${filename}"
 
     if [[ ! -d "$config_dir" ]]; then
-        mkdir -p "$config_dir"
+        if ! mkdir -p "$config_dir"; then
+            log_error "[copy_config] [$module] Failed to create directory: $config_dir"
+
+            return 1
+        fi
     fi
 
     if [[ ! -f "$target" ]]; then
         log_info "[copy_config] [$module] copying $source to $target"
-        cp "$source" "$target"
+        if ! cp "$source" "$target"; then
+            log_error "[copy_config] [$module] Failed to copy $source to $target"
+
+            return 1
+        fi
 
         return 0
     fi
@@ -57,7 +80,11 @@ copy_to_config_dir() {
     if [[ "$force_val" == "true" ]]; then
         log_warn "[copy_config] [$module] $target already exists, overwrite file because $force_var is true"
         log_info "[copy_config] [$module] copying $source to $target"
-        cp "$source" "$target"
+        if ! cp "$source" "$target"; then
+            log_error "[copy_config] [$module] Failed to copy $source to $target"
+
+            return 1
+        fi
 
         return 0
     fi
@@ -72,11 +99,17 @@ copy_to_config_dir() {
 # This function is considered private and should not be called directly.
 #
 __add_shell_source() {
-    local module=$1
-    local shell_name=$2
-    local rc_file=$3
-    local source_file=$4
-    local caller_func=$5
+    local module="${1:-}"
+    local shell_name="${2:-}"
+    local rc_file="${3:-}"
+    local source_file="${4:-}"
+    local caller_func="${5:-__add_shell_source}"
+
+    if [[ -z "$module" || -z "$shell_name" || -z "$rc_file" || -z "$source_file" ]]; then
+        log_error "[$caller_func] Missing required arguments"
+
+        return 1
+    fi
 
     if ! command -v "$shell_name" >/dev/null 2>&1; then
         log_warn "[$caller_func] [$module] $shell_name is not available, skipping configuration"
@@ -95,7 +128,12 @@ __add_shell_source() {
 
     if [[ ! -f "$rc_file" ]]; then
         log_info "[$caller_func] [$module] Creating $rc_file"
-        touch "$rc_file"
+
+        if ! touch "$rc_file"; then
+            log_error "[$caller_func] [$module] Failed to create $rc_file"
+
+            return 1
+        fi
     fi
 
     local source_line="[[ -f \"$source_file\" ]] && source \"$source_file\""
@@ -107,51 +145,80 @@ __add_shell_source() {
     fi
 
     log_info "[$caller_func] [$module] Adding $source_file source to $rc_file"
-    echo "$source_line" >> "$rc_file"
+
+    if ! printf '%s\n' "$source_line" >> "$rc_file"; then
+        log_error "[$caller_func] [$module] Failed to update $rc_file"
+
+        return 1
+    fi
 }
 
+##
+# Registers a shell-integration file in the target user's Bash RC file.
 #
-# add_bash_source <module> <source_file>
+# Parameters:
+#   module         Canonical module ID used for logging.
+#   source_file    Existing integration file to source.
+#
+# Returns:
+#   Non-zero when the target home or RC file cannot be configured.
 #
 add_bash_source() {
-    local module=$1
-    local source_file=$2
+    local module="${1:-}"
+    local source_file="${2:-}"
     local user_home
-    user_home=$(get_user_home)
+    user_home="$(get_user_home)" || return $?
 
     __add_shell_source "$module" "bash" "${user_home}/.bashrc" "$source_file" "add_bash_source"
 }
 
+##
+# Registers a shell-integration file in the target user's Zsh RC file.
 #
-# add_zsh_source <module> <source_file>
+# Parameters:
+#   module         Canonical module ID used for logging.
+#   source_file    Existing integration file to source.
+#
+# Returns:
+#   Non-zero when the target home or RC file cannot be configured.
 #
 add_zsh_source() {
-    local module=$1
-    local source_file=$2
+    local module="${1:-}"
+    local source_file="${2:-}"
     local user_home
-    user_home=$(get_user_home)
+    user_home="$(get_user_home)" || return $?
 
     __add_shell_source "$module" "zsh" "${user_home}/.zshrc" "$source_file" "add_zsh_source"
 }
 
-#
-# Get the location where symbolic links for binaries are created
+##
+# Prints the directory used for installed command symbolic links.
 #
 symlink_location() {
-    echo "/usr/local/bin"
+    printf '%s\n' "/usr/local/bin"
 }
 
+##
+# Creates a symbolic link for an executable in the shared command directory.
 #
-# Create a symbolic link for a binary in /usr/local/bin
-# Arguments:
-#   1. module: Module name
-#   2. source_binary: Path to the source binary
+# Parameters:
+#   module           Canonical module ID used for logging.
+#   source_binary    Executable file to link.
+#
+# Returns:
+#   Non-zero when arguments or the source are invalid, or linking fails.
 #
 symlink_binary() {
-    local module="$1"
-    local source_binary="$2"
+    local module="${1:-}"
+    local source_binary="${2:-}"
     local dest_dir
-    dest_dir=$(symlink_location)
+    if [[ -z "$module" || -z "$source_binary" ]]; then
+        log_error "[symlink_binary] Missing required arguments"
+
+        return 1
+    fi
+
+    dest_dir="$(symlink_location)"
 
     if [[ ! -f "$source_binary" ]]; then
         log_error "[symlink_binary] [$module] Source file $source_binary does not exist"
@@ -166,18 +233,33 @@ symlink_binary() {
     fi
 
     log_info "[symlink_binary] [$module] Creating symbolic link for $source_binary in $dest_dir"
-    sudo ln -sf "$source_binary" "${dest_dir}/"
+
+    if ! sudo ln -sf "$source_binary" "${dest_dir}/"; then
+        log_error "[symlink_binary] [$module] Failed to create symbolic link"
+
+        return 1
+    fi
 }
 
+##
+# Registers a non-empty executable directory in the system-wide PATH.
 #
-# Add a directory to the PATH environment variable
-# Arguments:
-#   1. module: Module name
-#   2. source_path: Path to the directory to add to PATH
+# Parameters:
+#   module         Canonical module ID used for logging.
+#   source_path    Directory to register.
+#
+# Returns:
+#   Non-zero when the source is invalid or the PATH script cannot be written.
 #
 add_to_path() {
-    local module="$1"
-    local source_path="$2"
+    local module="${1:-}"
+    local source_path="${2:-}"
+
+    if [[ -z "$module" || -z "$source_path" ]]; then
+        log_error "[add_to_path] Missing required arguments"
+
+        return 1
+    fi
 
     if [[ ! -d "$source_path" ]]; then
         log_error "[add_to_path] [$module] Source path $source_path is not a directory"
@@ -197,16 +279,23 @@ add_to_path() {
     log_info "[add_to_path] [$module] Registering $source_path to $profile_script"
 
     local content
-    content=$(cat <<EOF
+    content="$(cat <<EOF
 case ":\$PATH:" in
   *":${source_path}:"*) ;;
   *) export PATH="${source_path}:\$PATH" ;;
 esac
 EOF
-)
+)"
 
-    echo "$content" | sudo tee "$profile_script" > /dev/null
+    if ! printf '%s\n' "$content" | sudo tee "$profile_script" >/dev/null; then
+        log_error "[add_to_path] [$module] Failed to write $profile_script"
+
+        return 1
+    fi
 
     log_warn "[$module] PATH has been updated. You may need to log out and log back in for the changes to take effect."
-    add_message "$module" "info" "New directory added to PATH: $source_path. Please relogin to apply changes."
+
+    if ! add_message "$module" "info" "New directory added to PATH: $source_path. Please relogin to apply changes."; then
+        log_warn "[add_to_path] [$module] Failed to record the PATH update message"
+    fi
 }

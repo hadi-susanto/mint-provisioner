@@ -2,6 +2,22 @@
 
 Graphical applications for productivity, file management, security, and everyday desktop workflows. This category includes desktop software such as **Double Commander**, **Flameshot**, **KeePassXC**, **Cryptomator**, **Sunflower**, and **muCommander**.
 
+## Contents
+
+- [Brave Browser](#brave-browser-brave-browser)
+- [Brave Origin](#brave-origin-brave-origin)
+- [Cryptomator](#cryptomator-cryptomator)
+- [DeaDBeeF](#deadbeef-deadbeef)
+- [Double Commander](#double-commander-double-commander)
+- [Flameshot](#flameshot-flameshot)
+- [fman](#fman-fman)
+- [Insync](#insync-insync)
+- [KeePassXC](#keepassxc-keepass-xc)
+- [Microsoft Edge](#microsoft-edge-microsoft-edge)
+- [Mu Commander](#mu-commander-mu-commander)
+- [Sunflower](#sunflower-sunflower)
+- [TLP UI](#tlp-ui-tlp-ui)
+
 ---
 
 ## Brave Browser (`brave-browser`)
@@ -317,6 +333,10 @@ For interactive could use:
 - `MICROSOFT_EDGE_NON_INTERACTIVE`
     - Disables the channel selection prompt.
     - Default: `${NON_INTERACTIVE}`
+
+- `MICROSOFT_EDGE_SKIP_CONFIGURATION`
+    - Skip post-install configuration, including disabling Edge's repository updater.
+    - Default: `${SKIP_CONFIGURATION}`
 
 ### Post-install Configuration
 

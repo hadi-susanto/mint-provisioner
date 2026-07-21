@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 #
 # Starship post-installation tasks
@@ -7,14 +8,14 @@
 source "${LIB_DIR}/installer_common.sh"
 source "${LIB_DIR}/messages.sh"
 
-USER_HOME=$(get_user_home)
+USER_HOME="$(get_user_home)" || exit $?
 SCRIPT_DIR="${MODULES_DIR}/${CANONICAL_ID}"
 PAYLOAD_DIR="$SCRIPT_DIR/payload"
 
 if [[ "${STARSHIP_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
     log_warn "[$CANONICAL_ID] STARSHIP_SKIP_CONFIGURATION is set to true, skipping configuration"
 
-    return 0
+    exit 0
 fi
 
 if [[ -z "${STARSHIP_FORCE_CONFIGURATION:-}" ]]; then

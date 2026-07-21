@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/state.sh"
 
 __resolve_microsoft_edge_channel() {
-    case "${1,,}" in
+    local channel="${1:-}"
+
+    case "${channel,,}" in
         stable)
             set_state "MICROSOFT_EDGE_CHANNEL" "stable"
             set_state "MICROSOFT_EDGE_PACKAGE" "microsoft-edge-stable"
@@ -22,8 +25,8 @@ __resolve_microsoft_edge_channel() {
             set_state "MICROSOFT_EDGE_PACKAGE" "microsoft-edge-canary"
             ;;
         *)
-            log_error "Invalid MICROSOFT_EDGE_CHANNEL value: $1"
-            log_error "Supported values: stable, beta, dev, canary"
+            log_error \
+                "[$CANONICAL_ID] Invalid MICROSOFT_EDGE_CHANNEL value: $channel. Expected stable, beta, dev, or canary."
 
             return 1
             ;;
@@ -56,10 +59,24 @@ __ask_microsoft_edge_channel() {
     )" || return $?
 
     case "$selected_index" in
-        0) __resolve_microsoft_edge_channel "stable" ;;
-        1) __resolve_microsoft_edge_channel "beta" ;;
-        2) __resolve_microsoft_edge_channel "dev" ;;
-        3) __resolve_microsoft_edge_channel "canary" ;;
+        0)
+            __resolve_microsoft_edge_channel "stable"
+            ;;
+        1)
+            __resolve_microsoft_edge_channel "beta"
+            ;;
+        2)
+            __resolve_microsoft_edge_channel "dev"
+            ;;
+        3)
+            __resolve_microsoft_edge_channel "canary"
+            ;;
+        *)
+            log_error \
+                "[$CANONICAL_ID] Unexpected Microsoft Edge channel index: $selected_index"
+
+            return 1
+            ;;
     esac
 }
 

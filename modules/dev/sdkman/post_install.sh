@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 #
 # Post-install phase for SDKMAN!
@@ -44,7 +45,7 @@ fi
 
 # SDKMAN typically requires sourcing the init script.
 # We'll create a small script in config dir to handle this and add it to shell sources.
-CONFIG_DIR=$(get_config_dir)
+CONFIG_DIR="$(get_config_dir)" || exit $?
 SDKMAN_INIT_SH="${CONFIG_DIR}/sdkman-init.sh"
 
 if [[ -f "$SDKMAN_INIT_SH" ]] && [[ "$SDKMAN_FORCE_CONFIGURATION" != "true" ]]; then

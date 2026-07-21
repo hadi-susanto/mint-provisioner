@@ -71,6 +71,7 @@ __mkvmerge_process_execute() {
         else
             if [[ -z "$current_option" ]]; then
                 printf 'Error: value "%s" has no preceding option.\n' "$arg" >&2
+
                 return 1
             fi
 
@@ -97,6 +98,7 @@ __mkvmerge_process_execute() {
             printf '%s ' "$c"
         done
         printf '\n'
+
         return 0
     fi
 
@@ -239,6 +241,7 @@ __mkvmerge_process_confirm() {
             ;;
         *)
             printf 'Operation cancelled.\n'
+
             return 1
             ;;
     esac
@@ -441,6 +444,7 @@ mkvmerge-process() {
             -i|--input)
                 [[ $# -ge 2 ]] || {
                     printf 'Missing value for %s\n' "$1" >&2
+
                     return 1
                 }
 
@@ -451,6 +455,7 @@ mkvmerge-process() {
             -o|--output)
                 [[ $# -ge 2 ]] || {
                     printf 'Missing value for %s\n' "$1" >&2
+
                     return 1
                 }
 
@@ -461,6 +466,7 @@ mkvmerge-process() {
             -e|--extension)
                 [[ $# -ge 2 ]] || {
                     printf 'Missing value for %s\n' "$1" >&2
+
                     return 1
                 }
 
@@ -475,6 +481,7 @@ mkvmerge-process() {
 
             -h|--help)
                 __mkvmerge_process_usage
+
                 return 0
                 ;;
 

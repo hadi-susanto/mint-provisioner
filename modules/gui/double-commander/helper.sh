@@ -1,15 +1,24 @@
 #!/usr/bin/env bash
 
+##
+# Returns success when a GTK 3 or GTK 4 shared library is available.
+#
 has_gtk() {
     ldconfig -p 2>/dev/null |
         grep -qE 'libgtk-(3|4)\.so'
 }
 
+##
+# Returns success when the Qt 5 Core shared library is available.
+#
 has_qt5() {
     ldconfig -p 2>/dev/null |
         grep -q 'libQt5Core\.so'
 }
 
+##
+# Returns success when the Qt 6 Core shared library is available.
+#
 has_qt6() {
     ldconfig -p 2>/dev/null |
         grep -q 'libQt6Core\.so'

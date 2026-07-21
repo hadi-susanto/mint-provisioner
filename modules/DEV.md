@@ -3,6 +3,16 @@
 Software development tools, SDK managers, build systems, and programming environments. Modules in this category help set
 up and maintain a productive development environment, including tools such as **Apache Maven** and **SDKMAN!**.
 
+## Contents
+
+- [Apache Maven](#apache-maven-apache-maven)
+- [DBeaver Community](#dbeaver-community-dbeaver-community)
+- [DbGate Community](#dbgate-community-dbgate-community)
+- [Docker](#docker-docker)
+- [MongoDB Compass](#mongodb-compass-mongodb-compass)
+- [pgAdmin 4](#pgadmin-4-pg-admin)
+- [SDKMAN!](#sdkman-sdkman)
+
 ---
 
 ## Apache Maven (`apache-maven`)

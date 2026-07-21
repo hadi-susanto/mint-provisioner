@@ -230,6 +230,7 @@ mkvmerge-extract-info() {
             -i|--input)
                 [[ $# -ge 2 ]] || {
                     printf 'Missing value for %s\n' "$1" >&2
+
                     return 1
                 }
 
@@ -240,6 +241,7 @@ mkvmerge-extract-info() {
             -e|--extension)
                 [[ $# -ge 2 ]] || {
                     printf 'Missing value for %s\n' "$1" >&2
+
                     return 1
                 }
 
@@ -249,6 +251,7 @@ mkvmerge-extract-info() {
 
             -h|--help)
                 __mkvmerge_extract_info_usage
+
                 return 0
                 ;;
 

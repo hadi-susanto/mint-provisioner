@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
 
 #
@@ -24,9 +23,6 @@ source "${LIB_DIR}/module_configurer.sh"
 #
 # Displays supported options, module selector syntax, examples, and notes about
 # how standalone configuration maps to module post_install phases.
-#
-# Returns:
-#   0
 #
 configure_usage() {
     cat <<'EOF'

@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/state.sh"
 
 __resolve_mkvtoolnix_gui_enabled() {
-    case "${1,,}" in
+    local gui_enabled="${1:-}"
+
+    case "${gui_enabled,,}" in
         true)
             set_state "MKVTOOLNIX_GUI_ENABLED" "true"
             set_state "MKVTOOLNIX_PACKAGE" "mkvtoolnix-gui"
@@ -14,8 +17,8 @@ __resolve_mkvtoolnix_gui_enabled() {
             set_state "MKVTOOLNIX_PACKAGE" "mkvtoolnix"
             ;;
         *)
-            log_error "Invalid MKVTOOLNIX_GUI_ENABLED value: $1"
-            log_error "Supported values: true, false"
+            log_error \
+                "[$CANONICAL_ID] Invalid MKVTOOLNIX_GUI_ENABLED value: $gui_enabled. Expected true or false."
 
             return 1
             ;;
@@ -45,13 +48,20 @@ __ask_mkvtoolnix_gui_enabled() {
             "No, install CLI tools only"
     )" || return $?
 
-    if ((selected_index == 0)); then
-        __resolve_mkvtoolnix_gui_enabled "true"
+    case "$selected_index" in
+        0)
+            __resolve_mkvtoolnix_gui_enabled "true"
+            ;;
+        1)
+            __resolve_mkvtoolnix_gui_enabled "false"
+            ;;
+        *)
+            log_error \
+                "[$CANONICAL_ID] Unexpected MKVToolNix selection index: $selected_index"
 
-        return $?
-    fi
-
-    __resolve_mkvtoolnix_gui_enabled "false"
+            return 1
+            ;;
+    esac
 }
 
 if [[ -n "${MKVTOOLNIX_GUI_ENABLED:-}" ]]; then

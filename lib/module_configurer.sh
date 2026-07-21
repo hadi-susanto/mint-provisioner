@@ -54,6 +54,13 @@ __print_module_row() {
     return 0
 }
 
+##
+# Lists installed modules and optionally collects configurable module IDs.
+#
+# Parameters:
+#   result_name    Optional name of an array that receives module IDs having a
+#                  post-install phase.
+#
 list_installed_modules() {
     local category_dir
     local has_output_array=$(( $# == 1 ))

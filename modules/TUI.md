@@ -4,6 +4,15 @@ Interactive terminal applications that provide rich text-based user interfaces. 
 efficiency of the terminal with a visual interface, including tools such as **lazygit**, **gitui**, **bottom**, **duf**,
 **du-analyzer**, and **du-rust**.
 
+## Contents
+
+- [Bottom](#bottom-bottom)
+- [Du Analyzer](#du-analyzer-du-analyzer)
+- [Du Rust](#du-rust-du-rust)
+- [Duf](#duf-duf)
+- [GitUI](#gitui-git-ui)
+- [Lazygit](#lazygit-lazy-git)
+
 ---
 
 ## Bottom (`bottom`)

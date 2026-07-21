@@ -2,6 +2,17 @@
 
 Terminal emulators, shells, prompts, themes, and tools that enhance the terminal experience. This category includes software such as **Kitty**, **Ghostty**, **Alacritty**, **Terminator**, **Zsh**, **Starship**, **Oh My Posh**, and **Powerlevel10k**.
 
+## Contents
+
+- [Alacritty](#alacritty-alacritty)
+- [Ghostty](#ghostty-ghostty)
+- [Kitty](#kitty-kitty)
+- [Oh My Posh](#oh-my-posh-oh-my-posh)
+- [Powerlevel10k](#powerlevel10k-power-level-10k)
+- [Starship](#starship-starship)
+- [Terminator](#terminator-terminator)
+- [Zsh](#zsh-zsh)
+
 ---
 
 ## Alacritty (`alacritty`)
@@ -347,38 +358,15 @@ It provides split panes, tabbed terminals, broadcast input, and extensive layout
 
 ### Installation Method
 
-**APT package (Linux Mint / Ubuntu repository)**
+**Launchpad PPA**
 
-Installs Terminator directly from the distribution package repository.
+Configures the `ppa:mattrose/terminator` Launchpad PPA and installs the `terminator` package.
 
 ### Supported ENV
 
-- `TERMINATOR_SKIP_CONFIGURATION`
-    - Skip post-install configuration.
-    - Default:
-      `${SKIP_CONFIGURATION}`
-
-- `TERMINATOR_FORCE_CONFIGURATION`
-    - Overwrite existing configuration files.
-    - Default:
-      `${FORCE_CONFIGURATION}`
-
-### Post-install Configuration
-
-#### Installed Configuration
-
-- Creates `~/.config/terminator` if it does not already exist.
-- Copies `config` into the Terminator configuration directory.
-- Preserves the existing configuration unless `TERMINATOR_FORCE_CONFIGURATION=true`.
-
-The bundled configuration includes:
-
-- GitHub Dark color scheme.
-- Hidden scrollbar.
-- Unlimited scrollback.
-- Smart copy behavior.
-- Split-friendly layout defaults.
-- Window maximized on startup.
+- `TERMINATOR_USE_APT_ADD_REPOSITORY`
+    - Use `add-apt-repository` instead of explicit key and source-file configuration.
+    - Default: `${USE_APT_ADD_REPOSITORY}`
 
 #### Keyboard Shortcuts
 

@@ -29,9 +29,6 @@ fi
 # Arguments:
 #   $1 - Optional. Number of lines to move upward. Defaults to 1.
 #
-# Returns:
-#   0
-#
 cursor_up() {
     local lines="${1:-1}"
 
@@ -40,9 +37,6 @@ cursor_up() {
 
 ##
 # Clears the current terminal line and moves the cursor to the beginning.
-#
-# Returns:
-#   0
 #
 clear_line() {
     printf '\033[2K\r' >/dev/tty
@@ -55,9 +49,6 @@ clear_line() {
 #
 # Arguments:
 #   $1 - Optional. Number of previous lines to clear. Defaults to 1.
-#
-# Returns:
-#   0
 #
 clear_previous_lines() {
     local line_count="${1:-1}"
@@ -75,9 +66,6 @@ clear_previous_lines() {
 # Arguments:
 #   $@ - Error message to print.
 #
-# Returns:
-#   0
-#
 print_input_error() {
     printf '\033[0;31m%s\033[0m\n' "$*" >/dev/tty
 }
@@ -91,9 +79,6 @@ print_input_error() {
 # Arguments:
 #   $1 - Error message.
 #   $2 - Optional. Number of seconds to display the error. Defaults to 1.
-#
-# Returns:
-#   0
 #
 show_temporary_input_error() {
     local message="$1"
@@ -112,9 +97,6 @@ show_temporary_input_error() {
 #   $1 - Question to display.
 #   $@ - Remaining arguments are the available options.
 #
-# Returns:
-#   0
-#
 __write_choose_option_questions() {
     local question="$1"
     shift
@@ -129,7 +111,7 @@ __write_choose_option_questions() {
             "$index" \
             "$option" >/dev/tty
 
-        ((index++))
+        ((++index))
     done
 }
 
@@ -159,6 +141,7 @@ __loop_choose_option_answer() {
 
         if ! IFS= read -r selected </dev/tty; then
             printf '\nUnable to read user input.\n' >&2
+
             return 1
         fi
 
@@ -169,6 +152,7 @@ __loop_choose_option_answer() {
 
             if ((selected_number >= 1 && selected_number <= option_count)); then
                 printf '%d\n' "$selected_number"
+
                 return 0
             fi
         fi
@@ -201,6 +185,7 @@ __loop_user_confirmation() {
 
         if ! IFS= read -r confirmation </dev/tty; then
             printf '\nUnable to read user input.\n' >&2
+
             return 2
         fi
 
@@ -319,9 +304,6 @@ choose_option() {
 #   Enter retry count [1-10] [default: 3]:
 #   Enter minimum size [min: 10]:
 #   Enter maximum size [max: 100]:
-#
-# Returns:
-#   0
 #
 __write_simple_question() {
     local question="$1"

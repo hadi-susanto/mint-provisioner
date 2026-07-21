@@ -16,6 +16,12 @@ readonly PHASES=(
     cleanup
 )
 
+##
+# Prints every available module category and its metadata.
+#
+# Returns:
+#   1 when category metadata cannot be parsed.
+#
 list_available_categories() {
     local category_dir
     local category_id
@@ -104,6 +110,12 @@ __print_module_row() {
     return 0
 }
 
+##
+# Prints available modules, optionally filtered by category IDs.
+#
+# Parameters:
+#   categories    Optional category IDs to include.
+#
 list_available_modules() {
     local -a categories=("$@")
     local contain_module
@@ -203,6 +215,15 @@ __print_footer() {
         "${duration}"
 }
 
+##
+# Runs a module's installation-choice configuration when required.
+#
+# Parameters:
+#   canonical_id    Module ID in <category>/<module> format.
+#
+# Returns:
+#   1 when the module is missing, detection fails, or configuration fails.
+#
 configure_module() {
     local canonical_id="$1"
     local module_dir="$MODULES_DIR/$canonical_id"
@@ -245,6 +266,12 @@ configure_module() {
     return 0
 }
 
+##
+# Runs installation-choice configuration for each supplied canonical module ID.
+#
+# Returns:
+#   1 when any module configuration fails.
+#
 run_configuration() {
     local canonical_id
     local index=0

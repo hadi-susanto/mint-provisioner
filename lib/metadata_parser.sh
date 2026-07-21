@@ -69,6 +69,7 @@ parse_module_config() {
 
     if [[ ! -f "$config_file" ]]; then
         log_error "[parse_module_config] Config not found: $config_file"
+
         return 1
     fi
 
@@ -112,11 +113,22 @@ parse_module_config() {
     for k in "${required_keys[@]}"; do
         if [[ -z "${result[$canonical_module_id.$k]:-}" ]]; then
             log_error "[parse_module_config] Missing required key: $k in $config_file"
+
             return 1
         fi
     done
 }
 
+##
+# Parses category metadata into a caller-provided associative array.
+#
+# Parameters:
+#   category_name    Category ID.
+#   result_name      Name of the destination associative array.
+#
+# Returns:
+#   1 when the category, metadata file, or a required key is missing.
+#
 parse_category_config() {
     local category_name="$1"
     local result_name="$2"
@@ -197,6 +209,12 @@ get_module_status() {
     return "$status"
 }
 
+##
+# Prints the colored status icon corresponding to a module status code.
+#
+# Parameters:
+#   status    Status returned by get_module_status.
+#
 get_module_status_icon() {
   local status="$1"
 
@@ -213,6 +231,13 @@ get_module_status_icon() {
   esac
 }
 
+##
+# Appends lifecycle capability tags for a module to a caller-provided array.
+#
+# Parameters:
+#   canonical_id    Module ID in <category>/<module> format.
+#   tags_name       Name of the destination array.
+#
 get_module_tags() {
     local canonical_id="$1"
     local -n tags_ref="$2"
@@ -232,26 +257,54 @@ get_module_tags() {
     return 0
 }
 
+##
+# Prints sorted category directory paths, one per line.
+#
 list_categories() {
   find "$MODULES_DIR" -mindepth 1 -maxdepth 1 -type d | sort
 }
 
+##
+# Prints sorted module directory paths for a category.
+#
+# Parameters:
+#   category_name    Category ID.
+#
 list_modules_by_category() {
   local category_name="$1"
 
   find "$MODULES_DIR/$category_name" -mindepth 1 -maxdepth 1 -type d | sort
 }
 
+##
+# Prints all sorted module directory paths, one per line.
+#
 list_all_modules() {
     find "$MODULES_DIR" -mindepth 2 -maxdepth 2 -type d | sort
 }
 
+##
+# Returns success when a selector uses <category>/<module> form.
+#
+# Parameters:
+#   module_id    Module selector to validate.
+#
 is_canonical_module_id() {
     local module_id="$1"
 
     [[ "$module_id" == */* ]]
 }
 
+##
+# Resolves one canonical or unique short module selector.
+#
+# Parameters:
+#   selector       Module selector.
+#   result_name    Name of the destination array.
+#
+# Returns:
+#   1 when no module matches; 2 when a short selector is ambiguous.
+#
 resolve_module_selector() {
     local selector="$1"
     local result_name="$2"
@@ -303,6 +356,16 @@ resolve_module_selector() {
     return 0
 }
 
+##
+# Resolves multiple module selectors into a caller-provided array.
+#
+# Parameters:
+#   result_name    Name of the destination array.
+#   selectors      Remaining arguments are module selectors.
+#
+# Returns:
+#   1 when any selector cannot be resolved.
+#
 resolve_module_selectors() {
     local result_name="$1"
     shift

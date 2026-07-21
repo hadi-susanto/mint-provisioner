@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/state.sh"
@@ -10,8 +11,8 @@ source "${MODULES_DIR}/${CANONICAL_ID}/helper.sh"
 # Arguments:
 #   $1 - Toolkit: auto, gtk, qt, qt5, or qt6. Defaults to auto.
 #
-# Output:
-#   doublecmd-gtk, doublecmd-qt, or doublecmd-qt6.
+# State:
+#   Stores the selected package as DOUBLE_COMMANDER_PACKAGE.
 #
 # Returns:
 #   0 - Package resolved successfully.
@@ -19,6 +20,7 @@ source "${MODULES_DIR}/${CANONICAL_ID}/helper.sh"
 #
 __resolve_double_commander_package() {
     local toolkit="${1:-auto}"
+    local package
 
     if [[ "$toolkit" == "auto" ]]; then
         toolkit="$(auto_detect_ui_toolkit)" || return $?
@@ -26,15 +28,15 @@ __resolve_double_commander_package() {
 
     case "$toolkit" in
         gtk)
-            printf '%s\n' "doublecmd-gtk"
+            package="doublecmd-gtk"
             ;;
 
         qt|qt5)
-            printf '%s\n' "doublecmd-qt"
+            package="doublecmd-qt"
             ;;
 
         qt6)
-            printf '%s\n' "doublecmd-qt6"
+            package="doublecmd-qt6"
             ;;
 
         *)
@@ -45,21 +47,20 @@ __resolve_double_commander_package() {
             ;;
     esac
 
-    return 0
+    set_state "DOUBLE_COMMANDER_PACKAGE" "$package"
+    log_info "[$CANONICAL_ID] Selected package: $package"
 }
 
 if [[ "${DOUBLE_COMMANDER_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]; then
-    package="$(
-        __resolve_double_commander_package \
-            "${DOUBLE_COMMANDER_UI_TOOLKIT:-auto}"
-    )" || {
+    if ! __resolve_double_commander_package \
+        "${DOUBLE_COMMANDER_UI_TOOLKIT:-auto}"
+    then
         log_error \
             "[$CANONICAL_ID] Failed to resolve the Double Commander package. Specify DOUBLE_COMMANDER_UI_TOOLKIT manually."
 
         exit 1
-    }
+    fi
 
-    set_state "DOUBLE_COMMANDER_PACKAGE" "$package"
     save_states "$CANONICAL_ID" || exit $?
 
     exit 0
@@ -79,8 +80,8 @@ source "${LIB_DIR}/prompt.sh"
 __ask_double_commander_ui_toolkit() {
     local detected_toolkit
     local message
-    local package
     local selected_index
+    local toolkit
 
     if detected_toolkit="$(auto_detect_ui_toolkit)"; then
         message="Detected the '$detected_toolkit' UI toolkit on your system.
@@ -104,13 +105,13 @@ Please choose the UI toolkit you want to use for Double Commander."
 
     case "$selected_index" in
         0)
-            package="doublecmd-gtk"
+            toolkit="gtk"
             ;;
         1)
-            package="doublecmd-qt"
+            toolkit="qt5"
             ;;
         2)
-            package="doublecmd-qt6"
+            toolkit="qt6"
             ;;
         *)
             log_error \
@@ -120,16 +121,12 @@ Please choose the UI toolkit you want to use for Double Commander."
             ;;
     esac
 
-    set_state "DOUBLE_COMMANDER_PACKAGE" "$package"
+    __resolve_double_commander_package "$toolkit"
 }
 
 if [[ -n "${DOUBLE_COMMANDER_UI_TOOLKIT:-}" ]]; then
-    package="$(
-        __resolve_double_commander_package \
-            "$DOUBLE_COMMANDER_UI_TOOLKIT"
-    )" || exit $?
-
-    set_state "DOUBLE_COMMANDER_PACKAGE" "$package"
+    __resolve_double_commander_package \
+        "$DOUBLE_COMMANDER_UI_TOOLKIT" || exit $?
 else
     __ask_double_commander_ui_toolkit || exit $?
 fi

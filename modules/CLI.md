@@ -4,6 +4,17 @@ Command-line utilities that improve everyday productivity, simplify common tasks
 category includes modern replacements for classic Unix tools, version control utilities, and other command-line
 applications such as **bat**, **eza**, **delta**, **git**, and **adb**.
 
+## Contents
+
+- [Android Debug Bridge](#android-debug-bridge-adb)
+- [Bat](#bat-bat)
+- [Delta](#delta-delta)
+- [Eza](#eza-eza)
+- [Git](#git-git)
+- [MKVToolNix](#mkvtoolnix-mkvtoolnix)
+- [Procs](#procs-procs)
+- [TLP](#tlp-tlp)
+
 ---
 
 ## Android Debug Bridge (`adb`)

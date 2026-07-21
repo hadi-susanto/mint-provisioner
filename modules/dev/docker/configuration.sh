@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/state.sh"
 
-__set_docker_lib_install_dir() {
+__resolve_docker_lib_install_dir() {
     local install_dir="${1:-}"
     local docker_source_dir="/var/lib/docker"
 
@@ -62,7 +63,7 @@ __set_docker_lib_install_dir() {
 default_install_dir="${DOCKER_LIB_INSTALL_DIR:-${INSTALL_DIR}/docker-lib}"
 
 if [[ "${DOCKER_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]; then
-    __set_docker_lib_install_dir "$default_install_dir" || exit $?
+    __resolve_docker_lib_install_dir "$default_install_dir" || exit $?
 
     save_states "$CANONICAL_ID" || exit $?
 
@@ -81,7 +82,7 @@ else
     )" || exit $?
 fi
 
-__set_docker_lib_install_dir "$selected_install_dir" || exit $?
+__resolve_docker_lib_install_dir "$selected_install_dir" || exit $?
 
 save_states "$CANONICAL_ID" || exit $?
 

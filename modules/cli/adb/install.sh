@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 #
 # Installs ADB from a previously downloaded .zip archive.
@@ -35,19 +36,24 @@ fi
 
 # Extract.
 # Google's zip contains a 'platform-tools' directory.
-TEMP_EXTRACT_DIR=$(mktemp -d)
+if ! TEMP_EXTRACT_DIR="$(mktemp -d)"; then
+    log_error "[$CANONICAL_ID] Failed to create temporary extraction directory"
+
+    exit 4
+fi
+
 if ! unzip -q "$ARCHIVE_FILE" -d "$TEMP_EXTRACT_DIR"; then
     log_error "[$CANONICAL_ID] Extraction failed"
     rm -rf "$TEMP_EXTRACT_DIR"
 
-    exit 4
+    exit 5
 fi
 
 if ! $SUDO_CMD cp -r "${TEMP_EXTRACT_DIR}/platform-tools/." "$ADB_INSTALL_DIR/"; then
     log_error "[$CANONICAL_ID] Failed to copy extracted files"
     rm -rf "$TEMP_EXTRACT_DIR"
 
-    exit 5
+    exit 6
 fi
 
 rm -rf "$TEMP_EXTRACT_DIR"

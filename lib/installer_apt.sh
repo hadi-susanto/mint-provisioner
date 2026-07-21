@@ -24,8 +24,8 @@ source "${LIB_DIR}/common.sh"
 #   - log_error()
 #
 add_ppa() {
-    local canonical_id="$1"
-    local repository="$2"
+    local canonical_id="${1:-}"
+    local repository="${2:-}"
 
     if [[ -z "$canonical_id" ]]; then
         log_error "[add_ppa] Missing canonical_id parameter"
@@ -79,11 +79,11 @@ add_ppa() {
 #   /etc/apt/sources.list.d/<filename>.sources
 #
 install_asc_key() {
-    local canonical_id="$1"
-    local asc_url="$2"
-    local uri="$3"
-    local suite="$4"
-    local components="$5"
+    local canonical_id="${1:-}"
+    local asc_url="${2:-}"
+    local uri="${3:-}"
+    local suite="${4:-}"
+    local components="${5:-}"
     local filename="${6:-$canonical_id}"
 
     if [[ -z "$canonical_id" ]]; then

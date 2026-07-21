@@ -39,18 +39,32 @@ else
     readonly COLOR_RESET=""
 fi
 
+##
+# Writes an informational message to stderr.
 #
-# Logging to stderr to prevent stdout cluttering
-# stdout output will be stdin for other process
+# Parameters:
+#   message    Message text supplied as one or more arguments.
 #
 log_info() {
     printf "[INFO]  %s\n" "$*" >&2
 }
 
+##
+# Writes a warning message to stderr.
+#
+# Parameters:
+#   message    Message text supplied as one or more arguments.
+#
 log_warn() {
     printf "%s[WARN]  %s%s\n" "${COLOR_YELLOW}" "$*" "${COLOR_RESET}" >&2
 }
 
+##
+# Writes an error message to stderr.
+#
+# Parameters:
+#   message    Message text supplied as one or more arguments.
+#
 log_error() {
     printf "%s[ERROR] %s%s\n" "${COLOR_RED}" "$*" "${COLOR_RESET}" >&2
 }
@@ -68,9 +82,6 @@ log_error() {
 #
 # Output:
 #   Prints the trimmed string to stdout.
-#
-# Returns:
-#   0         Always succeeds.
 #
 # Examples:
 #   trim "  hello world  "
@@ -120,10 +131,31 @@ is_admin() {
 #
 get_user_home() {
     if [[ -n "${SUDO_USER:-}" ]]; then
-        eval echo "~$SUDO_USER"
-    else
-        echo "$HOME"
+        local passwd_entry
+        local sudo_home
+
+        if ! passwd_entry="$(getent passwd "$SUDO_USER")"; then
+            log_error "[get_user_home] Unable to resolve home directory for $SUDO_USER"
+
+            return 1
+        fi
+
+        IFS=: read -r _ _ _ _ _ sudo_home _ <<< "$passwd_entry"
+
+        if [[ -n "$sudo_home" ]]; then
+            printf '%s\n' "$sudo_home"
+
+            return 0
+        fi
     fi
+
+    if [[ -z "${HOME:-}" ]]; then
+        log_error "[get_user_home] Unable to determine the current user's home directory"
+
+        return 1
+    fi
+
+    printf '%s\n' "$HOME"
 }
 
 ##
@@ -156,7 +188,7 @@ get_user_home() {
 #
 #   run_script "./install.sh" \
 #       FORCE_INSTALL true \
-#       NONINTERACTIVE false
+#       NON_INTERACTIVE false
 #
 #   run_script "./install.sh" EMPTY_VALUE
 #
@@ -283,17 +315,18 @@ can_write() {
     # Existing file.
     if [[ -e "$target" ]]; then
         [[ -w "$target" ]]
+
         return
     fi
 
     # use dirname to prevent edge case: target == file.txt
     # Start from the file's parent directory.
-    dir=$(dirname -- "$target")
+    dir="$(dirname -- "$target")"
 
     # Walk upward until an existing directory is found.
     while [[ ! -d "$dir" ]]; do
         local parent
-        parent=$(dirname -- "$dir")
+        parent="$(dirname -- "$dir")"
 
         [[ "$parent" == "$dir" ]] && return 1
 
