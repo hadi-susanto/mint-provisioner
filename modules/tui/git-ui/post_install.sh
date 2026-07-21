@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 source "${LIB_DIR}/installer_common.sh"
 

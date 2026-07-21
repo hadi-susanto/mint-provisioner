@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 #
 # Installs Flameshot from a previously downloaded .deb package.
@@ -43,7 +44,7 @@ log_info "[$CANONICAL_ID] Installing package"
 #
 if [[ -f "$DEB_FILE" ]]; then
     # Extract version from .deb file using dpkg-deb
-    version=$(dpkg-deb -f "$DEB_FILE" Version | grep -oP '^\d+' || true)
+    version="$(dpkg-deb -f "$DEB_FILE" Version | grep -oP '^\d+' || true)"
     
     if [[ -n "$version" ]] && [[ "$version" -ge 14 ]]; then
         msg="Flameshot >= 14 is introduce new breaking changes in their engine (X11 maybe affected)"

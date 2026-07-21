@@ -9,45 +9,16 @@ fi
 
 readonly __METADATA_PARSER_LIB_LOADED=1
 
-#
-# parse_module_config <canonical_module_id> <result_array_name>
-#
-# Parses a module metadata.conf file and stores the configuration
-# values into the specified associative array.
-#
-# The resulting keys are prefixed with the canonical module id
-# to avoid collisions when parsing multiple modules into the same
-# result array.
-#
-# Example:
-#
-#   modules/desktop/flameshot/metadata.conf
-#
-#       NAME="Flameshot"
-#       DESCRIPTION="Screenshot tool"
-#       SOURCE="github"
-#
-#   declare -A metadata
-#   parse_module_config "desktop/flameshot" metadata
-#
-#   echo "${metadata[desktop/flameshot.NAME]}"
-#   echo "${metadata[desktop/flameshot.DESCRIPTION]}"
-#   echo "${metadata[desktop/flameshot.SOURCE]}"
+##
+# Parses module metadata into a caller-provided associative array.
 #
 # Parameters:
-#   canonical_module_id - Canonical module identifier: <category>/<module>
-#   result_array_name - Name of associative array variable to populate
+#   canonical_module_id    Module ID in <category>/<module> format.
+#   result_name            Name of the destination associative array. Values
+#                          are stored as <canonical-id>.<metadata-key>.
 #
 # Returns:
-#   0 -> Configuration parsed successfully
-#   1 -> Invalid configuration:
-#          - metadata.conf not found
-#          - required key missing
-#
-# Required metadata keys:
-#   NAME
-#   DESCRIPTION
-#   SOURCE
+#   1 when the ID, module, metadata file, or required metadata is invalid.
 #
 parse_module_config() {
     local canonical_module_id="$1"
@@ -55,7 +26,7 @@ parse_module_config() {
     local module_dir="$MODULES_DIR/$canonical_module_id"
     local config_file="${module_dir}/metadata.conf"
 
-    if ! is_canonical_module_id "$canonical_module_id"; then
+    if [[ "$canonical_module_id" != ?*/?* ]]; then
         log_error "[parse_module_config] Invalid module id (must be category/module): $canonical_module_id"
 
         return 1
@@ -69,6 +40,7 @@ parse_module_config() {
 
     if [[ ! -f "$config_file" ]]; then
         log_error "[parse_module_config] Config not found: $config_file"
+
         return 1
     fi
 
@@ -112,11 +84,22 @@ parse_module_config() {
     for k in "${required_keys[@]}"; do
         if [[ -z "${result[$canonical_module_id.$k]:-}" ]]; then
             log_error "[parse_module_config] Missing required key: $k in $config_file"
+
             return 1
         fi
     done
 }
 
+##
+# Parses category metadata into a caller-provided associative array.
+#
+# Parameters:
+#   category_name    Category ID.
+#   result_name      Name of the destination associative array.
+#
+# Returns:
+#   1 when the category, metadata file, or a required key is missing.
+#
 parse_category_config() {
     local category_name="$1"
     local result_name="$2"
@@ -163,18 +146,19 @@ parse_category_config() {
     done
 }
 
-#
-# get_module_status <module>
-#
-# Determines the installation status of a module by executing the
-# module's is_installed.sh script.
+##
+# Returns the installation status reported by a module's detection script.
 #
 # Parameters:
-#   module - Module name (directory name under $MODULES_DIR)
+#   canonical_id    Module ID in <category>/<module> format.
+#
+# Returns:
+#   0 when installed; 1 when not installed; 2 when the module or detection
+#   script is missing; otherwise the status returned by the detection script.
 #
 get_module_status() {
-    local module="$1"
-    local module_dir="$MODULES_DIR/$module"
+    local canonical_id="$1"
+    local module_dir="$MODULES_DIR/$canonical_id"
 
     if [[ ! -d "$module_dir" ]]; then
         return 2
@@ -185,13 +169,18 @@ get_module_status() {
         return 2
     fi
 
-    if run_script "$script" >/dev/null 2>&1; then
-        return 0
-    else
-        return 1
-    fi
+    local status=0
+    run_script "$script" >/dev/null 2>&1 || status=$?
+
+    return "$status"
 }
 
+##
+# Prints the colored status icon corresponding to a module status code.
+#
+# Parameters:
+#   status    Status returned by get_module_status.
+#
 get_module_status_icon() {
   local status="$1"
 
@@ -208,6 +197,13 @@ get_module_status_icon() {
   esac
 }
 
+##
+# Appends lifecycle capability tags for a module to a caller-provided array.
+#
+# Parameters:
+#   canonical_id    Module ID in <category>/<module> format.
+#   tags_name       Name of the destination array.
+#
 get_module_tags() {
     local canonical_id="$1"
     local -n tags_ref="$2"
@@ -217,109 +213,11 @@ get_module_tags() {
     # Don't reset the tags_ref
 
     if [[ -f "$module_dir/configuration.sh" ]]; then
-        tags_ref+=("configurable")
+        tags_ref+=("interactive")
     fi
 
     if [[ -f "$module_dir/post_install.sh" ]]; then
         tags_ref+=("post-install")
-    fi
-
-    return 0
-}
-
-list_categories() {
-  find "$MODULES_DIR" -mindepth 1 -maxdepth 1 -type d | sort
-}
-
-list_modules_by_category() {
-  local category_name="$1"
-
-  find "$MODULES_DIR/$category_name" -mindepth 1 -maxdepth 1 -type d | sort
-}
-
-list_all_modules() {
-    find "$MODULES_DIR" -mindepth 2 -maxdepth 2 -type d | sort
-}
-
-is_canonical_module_id() {
-    local module_id="$1"
-
-    [[ "$module_id" == */* ]]
-}
-
-resolve_module_selector() {
-    local selector="$1"
-    local result_name="$2"
-
-    declare -n result_ref="$result_name"
-    result_ref=()
-
-    if is_canonical_module_id "$selector"; then
-        if [[ -d "$MODULES_DIR/$selector" ]]; then
-            result_ref+=("$selector")
-
-            return 0
-        fi
-
-        log_error "[resolver] Module not found: $selector"
-
-        return 1
-    fi
-
-    local matches=()
-    local module_dir
-    while IFS= read -r module_dir; do
-        local module_name
-        module_name="${module_dir##*/}"
-
-        if [[ "$module_name" == "$selector" ]]; then
-            local parent_dir category_name
-            parent_dir=${module_dir%/*}
-            category_name=${parent_dir##*/}
-            matches+=("$category_name/$module_name")
-        fi
-    done < <(list_all_modules)
-
-    if [[ "${#matches[@]}" -eq 0 ]]; then
-        log_error "[resolver] Module not found: $selector"
-
-        return 1
-    fi
-
-    if [[ "${#matches[@]}" -gt 1 ]]; then
-        log_error "[resolver] Ambiguous module selector '$selector'. Candidates: ${matches[*]}"
-
-        return 2
-    fi
-
-    result_ref+=("${matches[0]}")
-    log_info "[resolver] Module selector resolved $selector -> ${matches[0]}"
-
-    return 0
-}
-
-resolve_module_selectors() {
-    local result_name="$1"
-    shift
-
-    declare -n result_ref="$result_name"
-    result_ref=()
-
-    local selector
-    local resolved
-    local failed=false
-    for selector in "$@"; do
-        resolved=()
-
-        if resolve_module_selector "$selector" resolved; then
-            result_ref+=("${resolved[0]}")
-        else
-            failed=true
-        fi
-    done
-
-    if [[ "$failed" == "true" ]]; then
-        return 1
     fi
 
     return 0

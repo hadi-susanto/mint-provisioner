@@ -10,7 +10,7 @@ Although designed primarily for Linux Mint, many modules may also work on Ubuntu
 
 ## ⚡ TL;DR
 
-Install modules using either a unique module name or its canonical `<category>/<module>` ID:
+Install modules using their canonical `<category>/<module>` or short module `<module>` IDs:
 
 ```bash
 ./install.sh <module> [<module>...]
@@ -22,6 +22,9 @@ Both formats can be combined:
 ```bash
 ./install.sh git gui/flameshot term/kitty
 ```
+
+Note:
+- In case `<module>` resolved to 2 or more canonical id, the process is aborted
 
 Reapply post-install configuration to installed modules:
 
@@ -255,6 +258,10 @@ Remove framework-managed messages
 Collecting all required configuration first prevents the installer from stopping halfway through system changes to
 request additional user input.
 
+Once installation begins, a failed module does not prevent later selected modules from running. The framework records
+each result, prints the complete summary, and exits non-zero after the summary if any module failed. Standalone
+configuration follows the same rule when applying selected modules' `post_install.sh` phases.
+
 ## ⚙️ Framework Controls
 
 The following environment variables affect framework behavior:
@@ -267,6 +274,10 @@ The following environment variables affect framework behavior:
 | `FORCE_CONFIGURATION=true` | Forces supported configuration to be reapplied or overwritten                      |
 
 When both `SKIP_CONFIGURATION` and `FORCE_CONFIGURATION` are enabled, skipping configuration takes precedence.
+
+The `--non-interactive` and `--unattended` installer options never read from standard input while acquiring sudo
+privileges. Sudo credentials must already be cached, or passwordless sudo must be available; otherwise the installer
+fails before module installation begins.
 
 Modules may define additional environment variables for their own behavior. These variables should be documented in the
 relevant module documentation.
@@ -444,7 +455,7 @@ New modules should follow these conventions:
 
 - Use Bash unless another interpreter provides a clear benefit.
 - Use `#!/usr/bin/env bash` for Bash scripts.
-- Remain compatible with `set -euo pipefail`.
+- Enable `set -euo pipefail` immediately after the shebang in entrypoints and module phase scripts.
 - Quote variable expansions unless word splitting is intentional.
 - Use `CANONICAL_ID` when interacting with shared state or message helpers.
 - Use shared logging helpers instead of printing errors directly.

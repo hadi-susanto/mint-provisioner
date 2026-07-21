@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 source "${LIB_DIR}/common.sh"
 
@@ -26,9 +27,12 @@ if command -v zsh >/dev/null 2>&1; then
         log_warn "[$CANONICAL_ID] Zsh autocompletion for apt-fast already exists. Use APT_FAST_FORCE_CONFIGURATION=true to overwrite."
     else
         log_info "[$CANONICAL_ID] Installing zsh autocompletion for apt-fast"
-        sudo mkdir -p "$ZSH_TARGET_DIR"
-        sudo cp "$ZSH_SOURCE_FILE" "$ZSH_TARGET_FILE"
-        sudo chown root:root "$ZSH_TARGET_FILE"
+
+        if ! sudo install -Dm0644 "$ZSH_SOURCE_FILE" "$ZSH_TARGET_FILE"; then
+            log_error "[$CANONICAL_ID] Failed to install Zsh autocompletion"
+
+            exit 1
+        fi
     fi
 else
     log_info "[$CANONICAL_ID] Zsh is not installed, skipping zsh autocompletion for apt-fast"
@@ -44,9 +48,12 @@ if command -v bash >/dev/null 2>&1; then
         log_warn "[$CANONICAL_ID] Bash autocompletion for apt-fast already exists. Use APT_FAST_FORCE_CONFIGURATION=true to overwrite."
     else
         log_info "[$CANONICAL_ID] Installing bash autocompletion for apt-fast"
-        sudo mkdir -p "$BASH_TARGET_DIR"
-        sudo cp "$BASH_SOURCE_FILE" "$BASH_TARGET_FILE"
-        sudo chown root:root "$BASH_TARGET_FILE"
+
+        if ! sudo install -Dm0644 "$BASH_SOURCE_FILE" "$BASH_TARGET_FILE"; then
+            log_error "[$CANONICAL_ID] Failed to install Bash autocompletion"
+
+            exit 2
+        fi
     fi
 else
     log_info "[$CANONICAL_ID] Bash is not installed, skipping bash autocompletion for apt-fast"

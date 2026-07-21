@@ -4,9 +4,18 @@ Interactive terminal applications that provide rich text-based user interfaces. 
 efficiency of the terminal with a visual interface, including tools such as **lazygit**, **gitui**, **bottom**, **duf**,
 **du-analyzer**, and **du-rust**.
 
+## Contents
+
+- [Bottom](#bottom-bottom-alias-btm)
+- [Du Analyzer](#du-analyzer-du-analyzer-alias-dua)
+- [Du Rust](#du-rust-du-rust-alias-dust)
+- [Duf](#duf-duf)
+- [GitUI](#gitui-git-ui)
+- [Lazygit](#lazygit-lazy-git)
+
 ---
 
-## Bottom (`bottom`)
+## Bottom (`bottom`) [alias: `btm`]
 
 Bottom is a modern terminal-based system monitor that provides real-time visualization of CPU, memory, disk, network,
 and process information through a highly customizable user interface.
@@ -32,7 +41,7 @@ https://github.com/ClementTsang/bottom
 
 ---
 
-## Du Analyzer (`du-analyzer`)
+## Du Analyzer (`du-analyzer`) [alias: `dua`]
 
 Du Analyzer (dua-cli) is a fast disk usage analyzer designed for exploring directory sizes interactively. It helps
 quickly identify files and directories consuming the most storage.
@@ -62,7 +71,7 @@ https://github.com/Byron/dua-cli
 
 ---
 
-## Du Rust (`du-rust`)
+## Du Rust (`du-rust`) [alias: `dust`]
 
 Du Rust (Dust) is a modern replacement for the traditional `du` command. It presents directory sizes using an intuitive
 tree view with proportional bars, making it easier to identify storage hotspots.

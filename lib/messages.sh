@@ -294,7 +294,7 @@ delete_messages() {
 
     local message_file
 
-   if ! message_file="$(__resolve_message_file "$canonical_id" "$level")"; then
+    if ! message_file="$(__resolve_message_file "$canonical_id" "info")"; then
         return 1
     fi
 

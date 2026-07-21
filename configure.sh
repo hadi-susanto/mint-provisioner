@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
 
 #
@@ -25,9 +24,6 @@ source "${LIB_DIR}/module_configurer.sh"
 # Displays supported options, module selector syntax, examples, and notes about
 # how standalone configuration maps to module post_install phases.
 #
-# Returns:
-#   0
-#
 configure_usage() {
     cat <<'EOF'
 Usage:
@@ -39,11 +35,12 @@ Options:
   -a, --all     Configure all installed modules that provide post_install.sh.
 
 Arguments:
-  MODULE    Module to configure: <category>/<module> or <module>.
+  MODULE    Module to configure: <category>/<module>, <module>, or an alias.
 
 Examples:
   ./configure.sh git
   ./configure.sh cli/git
+  ./configure.sh dbeaver
   ./configure.sh gui/flameshot term/kitty
   ./configure.sh --all
 

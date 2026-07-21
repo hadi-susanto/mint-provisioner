@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/state.sh"
 
 __set_brave_origin_channel() {
-    case "${1,,}" in
+    local channel="${1:-}"
+
+    case "${channel,,}" in
         release | stable)
             set_state "BRAVE_ORIGIN_CHANNEL" "release"
             set_state "BRAVE_ORIGIN_PACKAGE" "brave-origin"
@@ -18,8 +21,9 @@ __set_brave_origin_channel() {
             set_state "BRAVE_ORIGIN_PACKAGE" "brave-origin-nightly"
             ;;
         *)
-            echo "Invalid BRAVE_ORIGIN_CHANNEL value: $1" >&2
-            echo "Supported values: release, stable, beta, nightly" >&2
+            log_error \
+                "[$CANONICAL_ID] Invalid BRAVE_ORIGIN_CHANNEL value: $channel. Expected release, stable, beta, or nightly."
+
             return 1
             ;;
     esac
@@ -50,9 +54,21 @@ __ask_brave_origin_channel() {
     )" || return $?
 
     case "$selected_index" in
-        0) __set_brave_origin_channel "release" ;;
-        1) __set_brave_origin_channel "beta" ;;
-        2) __set_brave_origin_channel "nightly" ;;
+        0)
+            __set_brave_origin_channel "release"
+            ;;
+        1)
+            __set_brave_origin_channel "beta"
+            ;;
+        2)
+            __set_brave_origin_channel "nightly"
+            ;;
+        *)
+            log_error \
+                "[$CANONICAL_ID] Unexpected Brave Origin channel index: $selected_index"
+
+            return 1
+            ;;
     esac
 }
 

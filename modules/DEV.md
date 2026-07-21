@@ -3,9 +3,19 @@
 Software development tools, SDK managers, build systems, and programming environments. Modules in this category help set
 up and maintain a productive development environment, including tools such as **Apache Maven** and **SDKMAN!**.
 
+## Contents
+
+- [Apache Maven](#apache-maven-apache-maven-alias-maven-alias-mvn)
+- [DBeaver Community](#dbeaver-community-dbeaver-community-alias-dbeaver)
+- [DbGate Community](#dbgate-community-dbgate-community-alias-dbgate)
+- [Docker](#docker-docker)
+- [MongoDB Compass](#mongodb-compass-mongodb-compass-alias-compass)
+- [pgAdmin 4](#pgadmin-4-pg-admin-alias-pgadmin)
+- [SDKMAN!](#sdkman-sdkman)
+
 ---
 
-## Apache Maven (`apache-maven`)
+## Apache Maven (`apache-maven`) [alias: `maven`] [alias: `mvn`]
 
 Apache Maven is one of the most widely used Java build automation tools. It manages project dependencies, builds,
 testing, packaging, and plugin execution using the standard Maven project structure.
@@ -28,7 +38,7 @@ https://maven.apache.org/
 
 ---
 
-## DBeaver Community (`dbeaver-community`)
+## DBeaver Community (`dbeaver-community`) [alias: `dbeaver`]
 
 DBeaver Community is a free and open-source database management tool. It supports many database engines, including
 PostgreSQL, MySQL, MariaDB, SQLite, SQL Server, and Oracle.
@@ -54,7 +64,7 @@ https://dbeaver.io/
 
 ---
 
-## DbGate Community (`dbgate-community`)
+## DbGate Community (`dbgate-community`) [alias: `dbgate`]
 
 DbGate Community is a cross-platform database management application supporting relational databases, NoSQL databases,
 and Redis. It provides database browsing, data editing, SQL development, import and export, and database administration
@@ -145,7 +155,7 @@ https://docs.docker.com/engine/
 
 ---
 
-## MongoDB Compass (`mongodb-compass`)
+## MongoDB Compass (`mongodb-compass`) [alias: `compass`]
 
 MongoDB Compass is the official graphical database management and development application for MongoDB. It provides
 document exploration and editing, schema analysis, query construction, aggregation pipeline development, index
@@ -180,7 +190,7 @@ https://github.com/mongodb-js/compass
 
 ---
 
-## pgAdmin 4 (`pg-admin`)
+## pgAdmin 4 (`pg-admin`) [alias: `pgadmin`]
 
 pgAdmin 4 is an open-source graphical administration and development platform for PostgreSQL. It provides tools for
 managing database servers, executing SQL queries, inspecting database objects, monitoring activity, performing
@@ -266,7 +276,9 @@ between multiple versions of Java, Maven, Gradle, Kotlin, Scala, Groovy, Spring 
 
 **Official installation script**
 
-Downloads and installs SDKMAN! using its official bootstrap script in a non-interactive manner.
+Reads the official SDKMAN! bootstrap script to discover the current component versions, then downloads and installs the
+standard and native Linux x86_64 (`linuxx64`) archives in a non-interactive manner. Other SDKMAN! platforms are not
+currently supported by this module.
 
 ### Supported ENV
 
@@ -288,6 +300,7 @@ Downloads and installs SDKMAN! using its official bootstrap script in a non-inte
 
 - Copies the bundled SDKMAN! configuration into `${SDKMAN_INSTALL_DIR}/etc/config`.
 - Generates `sdkman-init.sh` inside the provisioner's configuration directory.
+- Fails the post-install phase if a required configuration file or shell integration cannot be installed.
 
 #### Shell Integration
 

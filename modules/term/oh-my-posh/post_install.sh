@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 #
 # Oh-my-posh post-installation tasks
@@ -12,7 +13,7 @@ PAYLOAD_DIR="$SCRIPT_DIR/payload"
 if [[ "${OH_MY_POSH_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
     log_warn "[$CANONICAL_ID] OH_MY_POSH_SKIP_CONFIGURATION is set to true, skipping configuration"
 
-    return 0
+    exit 0
 fi
 
 if [[ -z "${OH_MY_POSH_FORCE_CONFIGURATION:-}" ]]; then

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 #
 # Installs starship from a previously downloaded .tar.gz archive.

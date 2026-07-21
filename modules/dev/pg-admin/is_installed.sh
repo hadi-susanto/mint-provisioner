@@ -1,37 +1,32 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 source "${LIB_DIR}/common.sh"
 
-__is_pgadmin_package_installed() {
-    local package="$1"
+packages=(
+    "pgadmin4-desktop"
+    "pgadmin4-web"
+    "pgadmin"
+)
 
-    dpkg-query \
-        --show \
-        --showformat='${db:Status-Abbrev}' \
-        "$package" 2>/dev/null |
-        grep -q '^ii '
-}
+for package in "${packages[@]}"; do
+    if status="$(
+        dpkg-query \
+            --show \
+            --showformat='${Status}' \
+            "$package" 2>/dev/null
+    )"; then
+        if [[ "$status" == "install ok installed" ]]; then
+            exit 0
+        fi
+    else
+        rc=$?
+        if ((rc != 1)); then
+            log_error "[$CANONICAL_ID] Failed to query package status for $package"
 
-case "${PGADMIN_UI:-desktop}" in
-    desktop)
-        __is_pgadmin_package_installed "pgadmin4-desktop"
-        ;;
+            exit 2
+        fi
+    fi
+done
 
-    web)
-        __is_pgadmin_package_installed "pgadmin4-web"
-        ;;
-
-    both)
-        __is_pgadmin_package_installed "pgadmin4" || {
-            __is_pgadmin_package_installed "pgadmin4-desktop" &&
-                __is_pgadmin_package_installed "pgadmin4-web"
-        }
-        ;;
-
-    *)
-        log_error \
-            "[$CANONICAL_ID] Invalid PGADMIN_UI value: $PGADMIN_UI. Expected desktop, web, or both."
-
-        exit 2
-        ;;
-esac
+exit 1

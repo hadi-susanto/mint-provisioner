@@ -9,16 +9,6 @@ fi
 
 readonly __COMMON_LIB_LOADED="true"
 
-# ANSI color constants.
-#
-# Colors are enabled only when stdout is connected to a terminal.
-#
-# Environment variables:
-#   NO_COLOR
-#     Disable colors regardless of output destination.
-#
-#   FORCE_COLOR
-#     Force-enable colors even when stdout is redirected.
 if [[ -n "${NO_COLOR:-}" ]]; then
     readonly COLOR_GREEN=""
     readonly COLOR_RED=""
@@ -39,52 +29,44 @@ else
     readonly COLOR_RESET=""
 fi
 
+##
+# Writes an informational message to stderr.
 #
-# Logging to stderr to prevent stdout cluttering
-# stdout output will be stdin for other process
+# Parameters:
+#   message    Message text supplied as one or more arguments.
 #
 log_info() {
     printf "[INFO]  %s\n" "$*" >&2
 }
 
+##
+# Writes a warning message to stderr.
+#
+# Parameters:
+#   message    Message text supplied as one or more arguments.
+#
 log_warn() {
     printf "%s[WARN]  %s%s\n" "${COLOR_YELLOW}" "$*" "${COLOR_RESET}" >&2
 }
 
+##
+# Writes an error message to stderr.
+#
+# Parameters:
+#   message    Message text supplied as one or more arguments.
+#
 log_error() {
     printf "%s[ERROR] %s%s\n" "${COLOR_RED}" "$*" "${COLOR_RESET}" >&2
 }
 
-#
-# trim <string>
-#
-# Removes leading and trailing whitespace characters from a string.
-#
-# Whitespace characters include spaces, tabs, and other characters
-# matched by the POSIX character class [:space:].
+##
+# Removes leading and trailing whitespace from the supplied text.
 #
 # Parameters:
-#   string    Input string to trim.
+#   text    Text supplied as one or more arguments.
 #
 # Output:
-#   Prints the trimmed string to stdout.
-#
-# Returns:
-#   0         Always succeeds.
-#
-# Examples:
-#   trim "  hello world  "
-#   # Output: hello world
-#
-#   result=$(trim $'\t  value \n')
-#   echo "$result"
-#   # Output: value
-#
-# Notes:
-#   - Internal whitespace is preserved.
-#   - The function does not modify the original variable.
-#   - Uses Bash parameter expansion only; no external commands
-#     such as sed, awk, or xargs are required.
+#   Prints the trimmed text without a trailing newline.
 #
 trim() {
     local value="$*"
@@ -95,83 +77,65 @@ trim() {
     printf '%s' "$value"
 }
 
-#
-# is_admin
-#
-# Checks whether the current process is running with administrative privileges (root).
+##
+# Checks whether the current process has administrative privileges.
 #
 # Returns:
-#   0       Running as root/admin.
-#   1       Not running as root/admin.
+#   0 when running as root; 1 otherwise.
 #
 is_admin() {
     [[ "$EUID" -eq 0 ]]
 }
 
-#
-# get_user_home
-#
-# Returns the home directory of the current user.
-# If running with sudo/administrative privileges, it attempts to return
-# the home directory of the original user instead of /root.
+##
+# Resolves the target user's home directory, including sudo sessions.
 #
 # Output:
 #   Prints the path to the home directory to stdout.
 #
+# Returns:
+#   1 when the sudo user cannot be resolved or HOME is unavailable.
+#
 get_user_home() {
     if [[ -n "${SUDO_USER:-}" ]]; then
-        eval echo "~$SUDO_USER"
-    else
-        echo "$HOME"
+        local passwd_entry
+        local sudo_home
+
+        if ! passwd_entry="$(getent passwd "$SUDO_USER")"; then
+            log_error "[get_user_home] Unable to resolve home directory for $SUDO_USER"
+
+            return 1
+        fi
+
+        IFS=: read -r _ _ _ _ _ sudo_home _ <<< "$passwd_entry"
+
+        if [[ -n "$sudo_home" ]]; then
+            printf '%s\n' "$sudo_home"
+
+            return 0
+        fi
     fi
+
+    if [[ -z "${HOME:-}" ]]; then
+        log_error "[get_user_home] Unable to determine the current user's home directory"
+
+        return 1
+    fi
+
+    printf '%s\n' "$HOME"
 }
 
 ##
 # Executes a script with optional temporary environment variables.
 #
-# The first argument specifies the script file to execute. Remaining arguments
-# are interpreted as environment-variable key/value pairs:
-#
-#     run_script FILE [KEY [VALUE]]...
-#
-# Each environment variable is available only while the target script is
-# running and does not modify the current shell environment.
-#
-# When a key is provided without a corresponding value, its value defaults to
-# an empty string.
-#
-# Environment variable keys must be valid shell variable names. A valid key:
-#
-# - Begins with a letter or underscore.
-# - Contains only letters, numbers, and underscores.
-#
-# If the target file is executable, it is executed directly. Otherwise, it is
-# executed using Bash with errexit, nounset, and pipefail enabled.
-#
-# Examples:
-#
-#   run_script "./install.sh"
-#
-#   run_script "./install.sh" FORCE_INSTALL true
-#
-#   run_script "./install.sh" \
-#       FORCE_INSTALL true \
-#       NONINTERACTIVE false
-#
-#   run_script "./install.sh" EMPTY_VALUE
-#
-# Arguments:
-#   $1 - Script file to execute.
-#   $2... - Optional environment-variable key/value pairs.
+# Parameters:
+#   file           Script file to execute directly or through Bash.
+#   environment    Remaining arguments are variable-name/value pairs. A name
+#                  without a value is assigned an empty string.
 #
 # Returns:
-#   0   - The script completed successfully.
-#   1   - The script path is empty, the target is not a regular file, or an
-#         environment-variable key is invalid.
-#   Other - The exit code returned by the executed script.
-#
-# Dependencies:
-#   log_error
+#   1 when the file or an environment-variable name is invalid; otherwise the
+#   status returned by the executed script.
 #
 run_script() {
     local file="${1:-}"
@@ -230,46 +194,18 @@ run_script() {
     if [[ -x "$file" ]]; then
         env "${environment[@]}" "$file"
     else
-        env "${environment[@]}" bash -euo pipefail "$file"
+        env "${environment[@]}" bash "$file"
     fi
 }
 
 ##
-# Determine whether the current user can write to a path.
-#
-# Behavior:
-#   - If the path exists, checks whether the path is writable.
-#     This works for both files and directories.
-#   - If the path does not exist, assumes the path represents a file
-#     that may be created in the future. The function searches upward
-#     through parent directories until an existing directory is found,
-#     then checks whether that directory is writable.
-#   - If no writable parent directory can be found, returns failure.
+# Checks whether an existing path is writable or a new path can be created.
 #
 # Parameters:
-#   $1 - Path to check.
+#   target    Existing path or prospective file path to inspect.
 #
 # Returns:
-#   0 - The path is writable, or a new file could be created at the
-#       specified location.
-#   1 - The path is not writable, or a new file could not be created
-#       at the specified location.
-#
-# Notes:
-#   - Existing directories are treated as writable targets and may
-#     return success if the current user has write permission.
-#   - For nonexistent paths, the function assumes the path is intended
-#     to be a file and checks whether creation would be possible.
-#   - A successful return value only indicates that permissions appear
-#     to allow writing at the time of the check. The actual write
-#     operation may still fail due to filesystem changes, ACL updates,
-#     read-only mounts, disk-full conditions, and similar issues.
-#
-# Examples:
-#   can_write ~/.bashrc
-#   can_write ~/.config/myapp/config.yml
-#   can_write /usr/share/applications/custom.desktop
-#   can_write /tmp
+#   1 when the target is blank or no writable existing path or parent exists.
 #
 can_write() {
     local target="${1:-}"
@@ -283,17 +219,18 @@ can_write() {
     # Existing file.
     if [[ -e "$target" ]]; then
         [[ -w "$target" ]]
+
         return
     fi
 
     # use dirname to prevent edge case: target == file.txt
     # Start from the file's parent directory.
-    dir=$(dirname -- "$target")
+    dir="$(dirname -- "$target")"
 
     # Walk upward until an existing directory is found.
     while [[ ! -d "$dir" ]]; do
         local parent
-        parent=$(dirname -- "$dir")
+        parent="$(dirname -- "$dir")"
 
         [[ "$parent" == "$dir" ]] && return 1
 

@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
 
 #
@@ -21,20 +20,18 @@ source "${LIB_DIR}/module_installer.sh"
 # Displays the complete help text, including supported options,
 # arguments, examples, and links to the project documentation.
 #
-# Returns:
-#   0
-#
 installer_usage() {
     cat <<'EOF'
 Usage:
   ./install.sh [OPTIONS] [MODULE...]
   ./install.sh --list [CATEGORY...]
-  ./install.sh --category
 
 Options:
   -h,  --help                 Show this help message and exit.
   -c,  --category             List available categories and exit.
   -l,  --list                 List available modules and exit.
+  -li, --list-installed       List installed modules and exit.
+  -ln, --list-not-installed   List modules that are not installed and exit.
   -ni, --non-interactive      Use defaults and auto-detection where possible.
        --unattended           Alias for --non-interactive.
   -s,  --skip-configuration   Skip supported post-install configuration.
@@ -42,20 +39,20 @@ Options:
   -f,  --force-install        Install modules even if already installed.
 
 Arguments:
-  MODULE      Module to install: <category>/<module> or <module>.
-  CATEGORY    Category to filter when using -l or --list.
+  MODULE      Module to install: <category>/<module>, <module>, or an alias.
+  CATEGORY    Category to filter with any module-list option.
 
 Examples:
   ./install.sh git
-  ./install.sh cli/git eza
-  ./install.sh -ni -f gui/flameshot term/kitty
-  ./install.sh --list
-  ./install.sh --list cli gui
+  ./install.sh cli/git eza --force-install
   ./install.sh --category
+  ./install.sh --list gui
 
 Notes:
   * Use <category>/<module> to resolve conflicting module names.
   * --skip-configuration takes precedence over --force-configuration.
+  * Non-interactive modes never prompt for sudo. Credentials must already be
+    cached, or passwordless sudo must be available.
 
   More details:
   https://github.com/hadi-susanto/mint-provisioner/tree/main/modules
@@ -72,6 +69,7 @@ EOF
 #
 # Parsed options:
 #   CMD                   install, help, list, or category
+#   LIST_FILTER           all, installed, or not_installed
 #   NON_INTERACTIVE       1 (true) or 0 (false)
 #   SKIP_CONFIGURATION    1 (true) or 0 (false)
 #   FORCE_CONFIGURATION   1 (true) or 0 (false)
@@ -88,6 +86,7 @@ parse_installer_arguments() {
 
     options_ref=(
         [CMD]=""
+        [LIST_FILTER]="all"
         [NON_INTERACTIVE]=0
         [SKIP_CONFIGURATION]=0
         [FORCE_CONFIGURATION]=0
@@ -128,6 +127,29 @@ parse_installer_arguments() {
                 fi
 
                 cmd="list"
+                options_ref[LIST_FILTER]="all"
+                ;;
+
+            -li|--list-installed)
+                if [[ -n "$cmd" ]]; then
+                    log_error "Cannot combine '$1' with another command, current command: $cmd"
+
+                    return 1
+                fi
+
+                cmd="list"
+                options_ref[LIST_FILTER]="installed"
+                ;;
+
+            -ln|--list-not-installed)
+                if [[ -n "$cmd" ]]; then
+                    log_error "Cannot combine '$1' with another command, current command: $cmd"
+
+                    return 1
+                fi
+
+                cmd="list"
+                options_ref[LIST_FILTER]="not_installed"
                 ;;
 
             -ni|--non-interactive|--unattended)
@@ -198,6 +220,18 @@ try_acquire_sudo_privileges() {
     local response
 
     log_info "The script can obtain and cache sudo privileges now, so you won't need to enter your password again later."
+
+    if [[ "${NON_INTERACTIVE:-false}" == "true" ]]; then
+        log_info "Non-interactive mode: validating cached or passwordless sudo privileges..."
+
+        if ! sudo -n -v; then
+            log_error "Non-interactive mode could not acquire sudo privileges without prompting."
+
+            return 1
+        fi
+
+        return 0
+    fi
 
     read -r -p "Do you want to elevate privileges now? (Y/n): " response
     response="${response:-y}"
@@ -305,7 +339,7 @@ main() {
             ;;
 
         list)
-            list_available_modules "${args[@]}"
+            list_available_modules "${options[LIST_FILTER]}" "${args[@]}"
             ;;
 
         install)

@@ -2,9 +2,14 @@
 
 Modules that do not fit into any specific category. This section is reserved for utilities with unique purposes or tools that do not naturally belong elsewhere.
 
+## Contents
+
+- [AnyDesk](#anydesk-any-desk-alias-anydesk)
+- [VirtualBox](#virtualbox-virtual-box-alias-vbox)
+
 ---
 
-## AnyDesk (`any-desk`)
+## AnyDesk (`any-desk`) [alias: `anydesk`]
 
 AnyDesk is a remote desktop application for remotely accessing and controlling computers. It provides an alternative to
 applications such as TeamViewer.
@@ -23,7 +28,7 @@ https://anydesk.com/
 
 ---
 
-## VirtualBox (`virtual-box`)
+## VirtualBox (`virtual-box`) [alias: `vbox`]
 
 Oracle VirtualBox is a cross-platform virtualization application that allows multiple operating systems to run as virtual
 machines on a single computer.

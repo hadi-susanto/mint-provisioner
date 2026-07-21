@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 #
 # Installs SDKMAN! from downloaded archives.
@@ -31,20 +32,46 @@ if ! $SUDO_CMD mkdir -p "$SDKMAN_INSTALL_DIR"; then
     exit 2
 fi
 
-# SDKMAN requires some basic structure if not present
-$SUDO_CMD mkdir -p "$SDKMAN_INSTALL_DIR/tmp"
-$SUDO_CMD mkdir -p "$SDKMAN_INSTALL_DIR/ext"
-$SUDO_CMD mkdir -p "$SDKMAN_INSTALL_DIR/etc"
-$SUDO_CMD mkdir -p "$SDKMAN_INSTALL_DIR/var"
-$SUDO_CMD mkdir -p "$SDKMAN_INSTALL_DIR/candidates"
+# SDKMAN requires these directories to be present.
+if ! $SUDO_CMD mkdir -p \
+    "$SDKMAN_INSTALL_DIR/tmp" \
+    "$SDKMAN_INSTALL_DIR/ext" \
+    "$SDKMAN_INSTALL_DIR/etc" \
+    "$SDKMAN_INSTALL_DIR/var" \
+    "$SDKMAN_INSTALL_DIR/candidates"
+then
+    log_error "[$CANONICAL_ID] Failed to create the SDKMAN! directory structure"
 
-# Function to extract zip and strip root folder
-# Eg: assume zip path is a/b/c then copy content of folder a to install dir
-extract_strip_root() {
-    local archive="$1"
-    local dest="$2"
+    exit 2
+fi
+
+##
+# Extracts a ZIP archive and copies the contents below its root directory.
+#
+# Parameters:
+#   archive    ZIP archive to extract.
+#   dest       Destination directory.
+#
+# Returns:
+#   Non-zero when temporary directory creation, extraction, root-directory
+#   discovery, or copying fails.
+#
+__extract_strip_root() {
+    local archive="${1:-}"
+    local dest="${2:-}"
     local temp_dir
-    temp_dir=$(mktemp -d)
+
+    if [[ -z "$archive" || -z "$dest" ]]; then
+        log_error "[$CANONICAL_ID] Missing extraction arguments"
+
+        return 1
+    fi
+
+    if ! temp_dir="$(mktemp -d)"; then
+        log_error "[$CANONICAL_ID] Failed to create a temporary extraction directory"
+
+        return 1
+    fi
 
     if ! unzip -q "$archive" -d "$temp_dir"; then
         log_error "[$CANONICAL_ID] Failed to unzip $archive"
@@ -55,7 +82,7 @@ extract_strip_root() {
 
     # Find the root folder in the temp dir
     local root_folder
-    root_folder=$(find "$temp_dir" -mindepth 1 -maxdepth 1 -type d | head -n 1)
+    root_folder="$(find "$temp_dir" -mindepth 1 -maxdepth 1 -type d -print -quit)"
 
     if [[ -z "$root_folder" ]]; then
         log_error "[$CANONICAL_ID] No root folder found in $archive"
@@ -77,20 +104,46 @@ extract_strip_root() {
 }
 
 log_info "[$CANONICAL_ID] Extracting standard SDKMAN!"
-if ! extract_strip_root "$STANDARD_ARCHIVE" "$SDKMAN_INSTALL_DIR"; then
+if ! __extract_strip_root "$STANDARD_ARCHIVE" "$SDKMAN_INSTALL_DIR"; then
     exit 3
 fi
 
 log_info "[$CANONICAL_ID] Extracting native SDKMAN!"
-if ! extract_strip_root "$NATIVE_ARCHIVE" "$SDKMAN_INSTALL_DIR"; then
+if ! __extract_strip_root "$NATIVE_ARCHIVE" "$SDKMAN_INSTALL_DIR"; then
     exit 4
 fi
 
 # Write SDKMAN! required data such as versions, platform, and candidates
 log_info "[$CANONICAL_ID] Writing versions, platform, and candidates"
-echo "$SDKMAN_VERSION" | $SUDO_CMD tee "$SDKMAN_INSTALL_DIR/var/version" > /dev/null
-echo "$SDKMAN_NATIVE_VERSION" | $SUDO_CMD tee "$SDKMAN_INSTALL_DIR/var/version_native" > /dev/null
-echo "linuxx64" | $SUDO_CMD tee "$SDKMAN_INSTALL_DIR/var/platform" > /dev/null
-$SUDO_CMD cp "$CANDIDATES_FILE" "$SDKMAN_INSTALL_DIR/var/candidates"
+
+if ! printf '%s\n' "$SDKMAN_VERSION" | \
+    $SUDO_CMD tee "$SDKMAN_INSTALL_DIR/var/version" >/dev/null
+then
+    log_error "[$CANONICAL_ID] Failed to write the SDKMAN! version"
+
+    exit 5
+fi
+
+if ! printf '%s\n' "$SDKMAN_NATIVE_VERSION" | \
+    $SUDO_CMD tee "$SDKMAN_INSTALL_DIR/var/version_native" >/dev/null
+then
+    log_error "[$CANONICAL_ID] Failed to write the SDKMAN! native version"
+
+    exit 6
+fi
+
+if ! printf '%s\n' "linuxx64" | \
+    $SUDO_CMD tee "$SDKMAN_INSTALL_DIR/var/platform" >/dev/null
+then
+    log_error "[$CANONICAL_ID] Failed to write the SDKMAN! platform"
+
+    exit 7
+fi
+
+if ! $SUDO_CMD cp "$CANDIDATES_FILE" "$SDKMAN_INSTALL_DIR/var/candidates"; then
+    log_error "[$CANONICAL_ID] Failed to install the SDKMAN! candidates list"
+
+    exit 8
+fi
 
 log_info "[$CANONICAL_ID] Installation completed successfully"

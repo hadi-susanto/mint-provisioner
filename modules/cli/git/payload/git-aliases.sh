@@ -13,8 +13,15 @@ alias gswc="git switch --create"
 alias gf="git fetch"
 alias gfo="git fetch origin"
 
-# Push current branch to origin and set upstream
+##
+# Pushes the current Git branch to origin and configures its upstream branch.
+#
+# Returns:
+#   Non-zero when the branch cannot be resolved or the push fails.
+#
 gpsup() {
-    local branch=$(git rev-parse --abbrev-ref HEAD)
+    local branch
+
+    branch="$(git rev-parse --abbrev-ref HEAD)" || return $?
     git push --set-upstream origin "$branch"
 }

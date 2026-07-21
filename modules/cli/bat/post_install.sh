@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 #
 # bat post-installation tasks
@@ -13,7 +14,7 @@ PAYLOAD_DIR="${SCRIPT_DIR}/payload"
 if [[ "${BAT_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
     log_warn "[$CANONICAL_ID] BAT_SKIP_CONFIGURATION is set to true, skipping configuration"
 
-    return 0
+    exit 0
 fi
 
 if [[ -z "${BAT_FORCE_CONFIGURATION:-}" ]]; then

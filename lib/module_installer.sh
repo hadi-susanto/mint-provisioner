@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
-# Now we need metadata since installing phase will read some metadata
+# Now we need module resolution and metadata for the installation workflow.
 #
+source "$LIB_DIR/module_resolver.sh"
 source "$LIB_DIR/metadata_parser.sh"
 
 readonly MANDATORY_PHASES=(
@@ -16,6 +17,12 @@ readonly PHASES=(
     cleanup
 )
 
+##
+# Prints every available module category and its metadata.
+#
+# Returns:
+#   1 when category metadata cannot be parsed.
+#
 list_available_categories() {
     local category_dir
     local category_id
@@ -64,15 +71,16 @@ __print_module_row() {
     local index="$1"
     local category_id="$2"
     local module_id="$3"
+    local status="$4"
     local canonical_id="$category_id/$module_id"
 
-    local status=0
     local status_icon
+    local module_alias
     local tag
 
+    local -a aliases=()
     local -a tags=()
 
-    get_module_status "$canonical_id" || status="$?"
     status_icon="$(get_module_status_icon "$status")"
 
     declare -A metadata=()
@@ -88,11 +96,19 @@ __print_module_row() {
         return 1
     fi
 
+    if ! get_module_aliases "$canonical_id" aliases; then
+        return 1
+    fi
+
     printf "%3d. [%s] %s %s[id: %s]%s" \
         "$index" \
         "$status_icon" \
         "${metadata[$canonical_id.NAME]:-N/A}" \
         "${COLOR_YELLOW}" "$canonical_id" "${COLOR_RESET}"
+
+    for module_alias in "${aliases[@]}"; do
+        printf " %s[alias: %s]%s" "${COLOR_YELLOW}" "$module_alias" "${COLOR_RESET}"
+    done
 
     for tag in "${tags[@]}"; do
         printf " %s[%s]%s" "${COLOR_CYAN}" "$tag" "${COLOR_RESET}"
@@ -104,20 +120,52 @@ __print_module_row() {
     return 0
 }
 
+##
+# Prints available modules, filtered by installation status and category IDs.
+#
+# Parameters:
+#   filter        all, installed, or not_installed.
+#   categories    Remaining arguments are optional category IDs to include.
+#
+# Returns:
+#   1 when the filter is unsupported.
+#
 list_available_modules() {
+    if (( $# == 0 )); then
+        log_error "A module list filter is required"
+
+        return 1
+    fi
+
+    local filter="$1"
+    shift
+
     local -a categories=("$@")
-    local contain_module
+    local contains_module
     local category
     local category_id
     local module_dir
     local module_id
+    local canonical_id
+    local status
     local index
+
+    case "$filter" in
+        all | installed | not_installed)
+            ;;
+        *)
+            log_error "Unsupported module list filter: $filter"
+
+            return 1
+            ;;
+    esac
 
     if (( ${#categories[@]} == 0 )); then
         mapfile -t categories < <(list_categories)
-        printf "List all modules from all available categories\n"
+        printf "List %s modules from all available categories\n" "${filter//_/ }"
     else
-        printf 'List available modules filtered by categories: %s\n' \
+        printf 'List %s modules filtered by categories: %s\n' \
+            "${filter//_/ }" \
             "$(IFS=','; printf '%s' "${categories[*]}")"
     fi
     printf "%s" "======================================================================"
@@ -134,29 +182,43 @@ list_available_modules() {
 
         __print_category_header "$category_id"
 
-        contain_module=0
+        contains_module=0
         index=0
 
         while IFS= read -r module_dir; do
             module_id="${module_dir##*/}"
-            contain_module=1
+            canonical_id="$category_id/$module_id"
+            contains_module=1
+
+            status=0
+            get_module_status "$canonical_id" || status="$?"
+
+            case "$filter" in
+                installed)
+                    (( status == 0 )) || continue
+                    ;;
+                not_installed)
+                    (( status == 1 )) || continue
+                    ;;
+            esac
+
             ((++index))
 
-            __print_module_row "$index" "$category_id" "$module_id"
+            __print_module_row "$index" "$category_id" "$module_id" "$status"
         done < <(list_modules_by_category "$category_id")
 
-        if (( contain_module == 0 )); then
+        if (( contains_module == 0 )); then
             printf 'There are no modules under the %s category. This is simply an empty category.\n' \
                 "$category_id"
+        elif (( index == 0 )); then
+            printf "No modules under the %s category match the '%s' filter.\n" \
+                "$category_id" "$filter"
         fi
     done
 
     return 0
 }
 
-#
-# __print_header <canonical_id> <name> <source> <description>
-#
 __print_header() {
     local canonical_id="$1"
     local name="$2"
@@ -172,22 +234,43 @@ __print_header() {
     printf "%s\n" "----------------------------------------------------------------------"
 }
 
-#
-# __print_footer <name> <duration_seconds>
-#
 __print_footer() {
     local canonical_id="$1"
     local name="$2"
-    local duration="$3"
+    local status="$3"
+    local duration="$4"
+    local icon
+    local status_color
+    local result
+
+    if [[ "$status" == "SUCCESS" ]]; then
+        icon="✔"
+        status_color="$COLOR_GREEN"
+        result="completed"
+    else
+        icon="✗"
+        status_color="$COLOR_RED"
+        result="failed"
+    fi
 
     printf "%s\n" "----------------------------------------------------------------------"
-    printf " %s✔%s %s %s[id: %s]%s installation completed in %s sec(s)\n" \
-        "${COLOR_GREEN}" "${COLOR_RESET}" \
+    printf " %s%s%s %s %s[id: %s]%s installation %s in %s sec(s)\n" \
+        "$status_color" "$icon" "${COLOR_RESET}" \
         "$name" \
         "${COLOR_YELLOW}" "$canonical_id" "${COLOR_RESET}" \
+        "$result" \
         "${duration}"
 }
 
+##
+# Runs a module's installation-choice configuration when required.
+#
+# Parameters:
+#   canonical_id    Module ID in <category>/<module> format.
+#
+# Returns:
+#   1 when the module is missing, detection fails, or configuration fails.
+#
 configure_module() {
     local canonical_id="$1"
     local module_dir="$MODULES_DIR/$canonical_id"
@@ -230,6 +313,12 @@ configure_module() {
     return 0
 }
 
+##
+# Runs installation-choice configuration for each supplied canonical module ID.
+#
+# Returns:
+#   1 when any module configuration fails.
+#
 run_configuration() {
     local canonical_id
     local index=0
@@ -256,41 +345,14 @@ run_configuration() {
 }
 
 ##
-# Installs a module by executing its lifecycle phase scripts.
+# Installs a module by running its validated lifecycle phase scripts.
 #
-# The module's is_installed.sh script is executed before the lifecycle phases:
-#
-# - Exit code 0:
-#     The module is already installed. Installation is skipped unless
-#     FORCE_INSTALL=true.
-#
-# - Exit code 1:
-#     The module is not installed, and installation continues.
-#
-# - Any other exit code:
-#     The installed-state check is treated as an error.
-#
-# Lifecycle phases are executed in the exact order defined by PHASES. A phase
-# is skipped when its corresponding script does not exist. Mandatory phase
-# scripts are guaranteed to exist because they were validated beforehand.
-#
-# Installation stops immediately when any lifecycle phase fails.
-#
-# Arguments:
-#   $1 - Module canonical ID in the format:
-#
-#            <category>/<module>
+# Parameters:
+#   canonical_id    Module ID in <category>/<module> format.
 #
 # Returns:
-#   0 - The module was installed successfully or was already installed.
-#   1 - The canonical ID is empty, the module does not exist, a mandatory
-#       phase is missing, the installed-state check fails, or a lifecycle
-#       phase fails.
-#
-# Environment:
-#   FORCE_INSTALL
-#       When set to "true", installation continues even when the module
-#       reports that it is already installed.
+#   1 when validation, detection, or a lifecycle phase fails. An already
+#   installed module is skipped successfully unless FORCE_INSTALL is true.
 #
 install_module() {
     local canonical_id="${1:-}"
@@ -390,6 +452,8 @@ install_module() {
 # into a single associative array.
 #
 # After execution, prints a summary table.
+# All modules are processed even if one fails. The function returns non-zero
+# after the summary when any module failed.
 #
 # Metadata keys:
 #   <module>.NAME
@@ -402,6 +466,7 @@ run_installation() {
     local canonical_id
     local start_time_ms end_time_ms duration_ms
     local total_start_time_ms total_end_time_ms total_duration_ms
+    local exit_status=0
 
     local duration
     local total_duration
@@ -441,6 +506,7 @@ run_installation() {
             metadata["$canonical_id.status"]="SUCCESS"
         else
             metadata["$canonical_id.status"]="FAILED"
+            exit_status=1
         fi
 
         end_time_ms="$(date +%s%3N)"
@@ -452,7 +518,11 @@ run_installation() {
 
         metadata["$canonical_id.time"]="$duration"
 
-        __print_footer "$canonical_id" "${metadata[$canonical_id.NAME]:-$canonical_id}" "$duration"
+        __print_footer \
+            "$canonical_id" \
+            "${metadata[$canonical_id.NAME]:-$canonical_id}" \
+            "${metadata[$canonical_id.status]}" \
+            "$duration"
 
         printf '\n'
     done
@@ -502,5 +572,9 @@ run_installation() {
         fi
     done
 
-    delete_all_messages
+    if ! delete_all_messages; then
+        exit_status=1
+    fi
+
+    return "$exit_status"
 }

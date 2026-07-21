@@ -124,7 +124,8 @@ cleanup.sh
 
 Missing optional phases are skipped automatically.
 
-The lifecycle stops immediately when a phase fails.
+A module's lifecycle stops immediately when one of its phases fails. The framework records that module as failed,
+continues with the remaining selected modules, prints the complete summary, and then exits non-zero.
 
 ### Phase responsibilities
 
@@ -160,6 +161,7 @@ Example:
 
 ```bash
 #!/usr/bin/env bash
+set -euo pipefail
 
 source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/state.sh"
@@ -172,7 +174,7 @@ else
 fi
 
 set_state "EXAMPLE_PACKAGE" "$package"
-save_states "$CANONICAL_ID"
+save_states "$CANONICAL_ID" || exit $?
 ```
 
 ### `is_installed.sh`
@@ -187,13 +189,15 @@ Its exit status is part of the framework contract:
 |             `1` | The module is not installed   |
 | Any other value | The installation check failed |
 
-The check should verify every component promised by the module.
+Framework status helpers preserve these exit codes so callers can distinguish a missing installation from a failed
+status check. The check should verify every component promised by the module.
 
 For example, a module that installs several commands should verify all required commands instead of checking only the
 primary executable.
 
 ```bash
 #!/usr/bin/env bash
+set -euo pipefail
 
 command -v example >/dev/null 2>&1 &&
     command -v example-helper >/dev/null 2>&1
@@ -257,6 +261,7 @@ Example:
 
 ```bash
 #!/usr/bin/env bash
+set -euo pipefail
 
 source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/state.sh"
@@ -273,7 +278,7 @@ if [[ -n "$artifact" && -f "$artifact" ]]; then
     rm -f "$artifact"
 fi
 
-delete_states "$CANONICAL_ID"
+delete_states "$CANONICAL_ID" || exit $?
 ```
 
 Messages intended for the final installation summary must remain available until the summary is printed.
@@ -289,15 +294,18 @@ Every module must provide a `metadata.conf` file containing:
 ```ini
 NAME="Application Name"
 DESCRIPTION="A short description of what the module installs."
-SOURCE="Installation source"
+SOURCE="github"
 ```
+
+`SOURCE` must be one of the lowercase values `native`, `ppa`, `apt`, `github`, or `external`. User-facing module
+documentation uses the corresponding names Native, PPA, APT, GitHub, and External.
 
 Example:
 
 ```ini
 NAME="MyTool"
 DESCRIPTION="A command-line utility for processing example files."
-SOURCE="GitHub"
+SOURCE="github"
 ```
 
 Metadata is used when:
@@ -475,7 +483,7 @@ manually through APT source files.
 Default:
 
 ```text
-true
+false
 ```
 
 ### `SKIP_CONFIGURATION`
@@ -532,7 +540,7 @@ Overrides `USE_APT_ADD_REPOSITORY` for an individual module.
 Example:
 
 ```bash
-JAVA_USE_APT_ADD_REPOSITORY=true
+TERMINATOR_USE_APT_ADD_REPOSITORY=true
 ```
 
 ### `*_REGEX`

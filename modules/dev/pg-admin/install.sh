@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/installer_apt.sh"
+source "${LIB_DIR}/messages.sh"
 source "${LIB_DIR}/state.sh"
 
 load_states "$CANONICAL_ID" ||
@@ -15,8 +17,10 @@ log_info "[$CANONICAL_ID] Installing using $PGADMIN_PACKAGE package"
 
 if ! apt_install "$PGADMIN_PACKAGE"; then
     log_error "[$CANONICAL_ID] Package installation failed"
+    add_message "$CANONICAL_ID" "warn" "Installation failed: $PGADMIN_PACKAGE"
 
     exit 1
 fi
 
 log_info "[$CANONICAL_ID] Package installed successfully"
+add_message "$CANONICAL_ID" "info" "Installation success: $PGADMIN_PACKAGE"

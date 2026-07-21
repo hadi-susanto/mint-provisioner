@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-source "$LIB_DIR/installer_external.sh"
-source "$LIB_DIR/distro.sh"
-source "$LIB_DIR/state.sh"
+source "${LIB_DIR}/installer_external.sh"
+source "${LIB_DIR}/distro.sh"
+source "${LIB_DIR}/state.sh"
 
 log_info "[$CANONICAL_ID] Creating temporary download file"
 
 if ! download_temp_file="$(mktemp)"; then
     log_error "[$CANONICAL_ID] Failed to create temporary file"
+
     exit 1
 fi
 
@@ -50,29 +52,50 @@ fi
 if [[ "$url" == *.zip ]]; then
     log_info "[$CANONICAL_ID] Payload is a ZIP file, extracting to find .deb"
     
-    extract_dir="$(mktemp -d)"
+    if ! extract_dir="$(mktemp -d)"; then
+        log_error "[$CANONICAL_ID] Failed to create temporary extraction directory"
+        rm -f "$download_temp_file"
+
+        exit 4
+    fi
+
     if ! unzip -q "$download_temp_file" -d "$extract_dir"; then
         log_error "[$CANONICAL_ID] Failed to extract ZIP file"
         rm -rf "$extract_dir"
         rm -f "$download_temp_file"
+
         exit 4
     fi
 
     # Find the .deb file in the extracted directory
-    deb_file=$(find "$extract_dir" -name "*.deb" -print -quit)
+    deb_file="$(find "$extract_dir" -name "*.deb" -print -quit)"
     
     if [[ -z "$deb_file" ]]; then
         log_error "[$CANONICAL_ID] No .deb file found in extracted ZIP"
         rm -rf "$extract_dir"
         rm -f "$download_temp_file"
+
         exit 5
     fi
 
     log_info "[$CANONICAL_ID] Found .deb in ZIP: $deb_file"
     
     # Move the .deb to a permanent temporary location
-    final_deb_file="$(mktemp --suffix=.deb)"
-    mv "$deb_file" "$final_deb_file"
+    if ! final_deb_file="$(mktemp --suffix=.deb)"; then
+        log_error "[$CANONICAL_ID] Failed to create final temporary package file"
+        rm -rf "$extract_dir"
+        rm -f "$download_temp_file"
+
+        exit 6
+    fi
+
+    if ! mv "$deb_file" "$final_deb_file"; then
+        log_error "[$CANONICAL_ID] Failed to move the extracted package"
+        rm -rf "$extract_dir"
+        rm -f "$download_temp_file" "$final_deb_file"
+
+        exit 7
+    fi
     
     # Cleanup
     rm -rf "$extract_dir"
@@ -81,12 +104,30 @@ if [[ "$url" == *.zip ]]; then
     download_file="$final_deb_file"
 else
     # It was already a .deb, just rename the temp file to have .deb suffix for clarity
-    final_deb_file="$(mktemp --suffix=.deb)"
-    mv "$download_temp_file" "$final_deb_file"
+    if ! final_deb_file="$(mktemp --suffix=.deb)"; then
+        log_error "[$CANONICAL_ID] Failed to create final temporary package file"
+        rm -f "$download_temp_file"
+
+        exit 6
+    fi
+
+    if ! mv "$download_temp_file" "$final_deb_file"; then
+        log_error "[$CANONICAL_ID] Failed to move the downloaded package"
+        rm -f "$download_temp_file" "$final_deb_file"
+
+        exit 7
+    fi
+
     download_file="$final_deb_file"
 fi
 
 set_state "DEB_FILE" "$download_file"
-save_states "$CANONICAL_ID" || exit 6
+
+if ! save_states "$CANONICAL_ID"; then
+    log_error "[$CANONICAL_ID] Failed to save installation state"
+    rm -f "$download_file"
+
+    exit 8
+fi
 
 log_info "[$CANONICAL_ID] Download completed successfully"

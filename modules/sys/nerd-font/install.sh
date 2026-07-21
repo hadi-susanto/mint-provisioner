@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 #
 # Installs Nerd Font from a previously downloaded zip package.

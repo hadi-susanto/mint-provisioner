@@ -9,8 +9,11 @@ fi
 
 readonly __DISTRO_LIB_LOADED=1
 
-#
+##
 # Load distribution and upstream distribution information.
+#
+# Returns:
+#   1 when /etc/os-release cannot be loaded.
 #
 load_release_info() {
     if [[ -n "${__RELEASE_INFO_LOADED:-}" ]]; then
@@ -74,34 +77,46 @@ load_release_info() {
     __RELEASE_INFO_LOADED=1
 }
 
+##
+# Prints the Linux Mint version, such as 22.3.
 #
-# Returns Linux Mint version (e.g. 22.3)
+# Returns:
+#   Non-zero when distribution information cannot be loaded.
 #
 get_mint_version() {
-    load_release_info
-    echo "$VERSION_ID"
+    load_release_info || return $?
+    printf '%s\n' "$VERSION_ID"
 }
 
+##
+# Prints the Linux Mint codename, such as zara.
 #
-# Returns Linux Mint codename (e.g. zara)
+# Returns:
+#   Non-zero when distribution information cannot be loaded.
 #
 get_mint_codename() {
-    load_release_info
-    echo "$VERSION_CODENAME"
+    load_release_info || return $?
+    printf '%s\n' "$VERSION_CODENAME"
 }
 
+##
+# Prints the upstream Ubuntu version, such as 24.04.
 #
-# Returns Ubuntu version (e.g. 24.04)
+# Returns:
+#   Non-zero when distribution information cannot be loaded.
 #
 get_ubuntu_version() {
-    load_release_info
-    echo "$DISTRIB_RELEASE"
+    load_release_info || return $?
+    printf '%s\n' "$DISTRIB_RELEASE"
 }
 
+##
+# Prints the upstream Ubuntu codename, such as noble.
 #
-# Returns Ubuntu codename (e.g. noble)
+# Returns:
+#   Non-zero when distribution information cannot be loaded.
 #
 get_ubuntu_codename() {
-    load_release_info
-    echo "$DISTRIB_CODENAME"
+    load_release_info || return $?
+    printf '%s\n' "$DISTRIB_CODENAME"
 }

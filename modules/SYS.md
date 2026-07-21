@@ -2,6 +2,14 @@
 
 System utilities, machine setup, performance tools, fonts, and operating system configuration. Modules in this category help configure, maintain, and optimize the operating system, including tools such as **apt-fast**, **Nerd Fonts**, and your opinionated **OOBE** configuration.
 
+## Contents
+
+- [Apt Fast](#apt-fast-apt-fast)
+- [Dconf Editor](#dconf-editor-dconf-editor)
+- [DNSCrypt Proxy](#dnscrypt-proxy-dnscrypt-proxy-alias-dnscrypt)
+- [Nerd Fonts](#nerd-fonts-nerd-font)
+- [Out of the Box Experience](#out-of-the-box-experience-oobe)
+
 ---
 
 ## Apt Fast (`apt-fast`)
@@ -92,7 +100,7 @@ https://apps.gnome.org/DconfEditor/
 
 ---
 
-## DNSCrypt Proxy (`dnscrypt-proxy`)
+## DNSCrypt Proxy (`dnscrypt-proxy`) [alias: `dnscrypt`]
 
 DNSCrypt Proxy is a local DNS proxy supporting encrypted DNS protocols, including DNSCrypt and DNS-over-HTTPS. It can
 protect DNS queries from interception and use DNS providers that offer filtering or system-wide domain blocking.
@@ -102,6 +110,12 @@ protect DNS queries from interception and use DNS providers that offer filtering
 **Native distribution package**
 
 Installs the `dnscrypt-proxy` package from the Linux Mint or Ubuntu distribution repository using APT.
+
+### Supported ENV
+
+- `DNSCRYPT_PROXY_SKIP_CONFIGURATION`
+    - Skip post-install service adjustments and summary guidance.
+    - Default: `${SKIP_CONFIGURATION}`
 
 ### Post-install Configuration
 
@@ -135,7 +149,7 @@ Nerd Fonts provides patched developer fonts containing thousands of additional g
 
 ### Installation Method
 
-**Official website (precompiled archive)**
+**GitHub latest release (precompiled archive)**
 
 The installer downloads selected font archives from the official Nerd Fonts project, extracts the fonts into the system font directory (`/usr/local/share/fonts`), and refreshes the font cache.
 The installer will create folder for each font family, eg: `/usr/local/share/fonts/nerd-font/Inconsolata`, the folder name is the font family name.
@@ -150,7 +164,7 @@ The installer will create folder for each font family, eg: `/usr/local/share/fon
 
 #### Installed Configuration
 
-- Installs the selected fonts into the user's local font directory.
+- Installs the selected fonts into `/usr/local/share/fonts/nerd-font/<family>`.
 - Refreshes the font cache automatically using `fc-cache`.
 
 ### Official Website
@@ -173,7 +187,9 @@ This module is part of the provisioner itself and does not download or install s
 
 ### Supported ENV
 
-None.
+- `OOBE_SKIP_CONFIGURATION`
+    - Skip all OOBE post-install configuration payloads.
+    - Default: `${SKIP_CONFIGURATION}`
 
 ### Post-install Configuration
 

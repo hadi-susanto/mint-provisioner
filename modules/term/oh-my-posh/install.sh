@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 #
 # Installs oh-my-posh from previously downloaded artifacts.
 #
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/messages.sh"
+source "${LIB_DIR}/installer_common.sh"
 source "${LIB_DIR}/state.sh"
+source "${LIB_DIR}/messages.sh"
 
 load_states "$CANONICAL_ID" || exit 1
 BINARY_FILE="$(get_state "BINARY_FILE")" || exit 1
@@ -76,8 +77,18 @@ if ! $SUDO_CMD unzip -o "$THEMES_FILE" -d "$OH_MY_POSH_THEMES_INSTALL_DIR"; then
     exit 7
 fi
 
-log_info "[$CANONICAL_ID] Creating symbolic links"
-sudo ln -sf "$OH_MY_POSH_INSTALL_DIR/oh-my-posh" /usr/local/bin/
+log_info "[$CANONICAL_ID] Creating symbolic link"
+
+if [[ "$OH_MY_POSH_INSTALL_DIR" != "$(symlink_location)" ]]; then
+    if ! symlink_binary "$CANONICAL_ID" "$OH_MY_POSH_INSTALL_DIR/oh-my-posh"; then
+        log_error "[$CANONICAL_ID] Failed to create the Oh My Posh symbolic link"
+
+        exit 8
+    fi
+else
+    log_info \
+        "[$CANONICAL_ID] Install directory matches symlink location, skipping symbolic link"
+fi
 
 log_info "[$CANONICAL_ID] Installation completed successfully"
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 #
 # Installs power-level-10k by cloning the git repository.
@@ -44,8 +45,8 @@ if command -v zsh >/dev/null 2>&1; then
 fi
 
 # Zsh not found, tell the user
-msg="Zsh non installed on your system. You can install it using mint-provisioner: './install.sh zsh'
-Once installed please run ./configure.sh power-level-10k to integrate existing installation"
+msg="Zsh is not installed. You can install it using Mint Provisioner: './install.sh term/zsh'
+Once installed, run './configure.sh term/power-level-10k' to integrate the existing installation."
 
 log_warn "[$CANONICAL_ID] Zsh not found. Power Level 10k is Zsh theme, you will need Zsh for this to work."
 add_message "$CANONICAL_ID" "warn" "$msg"

@@ -2,30 +2,19 @@
 
 source "${LIB_DIR}/common.sh"
 
-#
-# add_ppa <canonical_id> <repository>
-#
-# Adds a PPA repository and refreshes the local APT package index.
-# Existing configuration is left to add-apt-repository (overwrite behavior).
+##
+# Adds a Launchpad PPA and refreshes the local APT package index.
 #
 # Parameters:
-#   canonical_id   Logical module or component name used for logging.
-#   repository     PPA repository identifier (e.g. "ppa:git-core/ppa").
+#   canonical_id    Canonical module ID used for logging.
+#   repository      PPA identifier, such as ppa:git-core/ppa.
 #
 # Returns:
-#   0            Repository added and package list updated successfully.
-#   Non-zero     An error occurred.
-#
-# Requirements:
-#   - add-apt-repository
-#   - apt-get
-#   - sudo privileges
-#   - log_info()
-#   - log_error()
+#   1 when arguments are missing or repository/index operations fail.
 #
 add_ppa() {
-    local canonical_id="$1"
-    local repository="$2"
+    local canonical_id="${1:-}"
+    local repository="${2:-}"
 
     if [[ -z "$canonical_id" ]]; then
         log_error "[add_ppa] Missing canonical_id parameter"
@@ -78,12 +67,15 @@ add_ppa() {
 #   /etc/apt/keyrings/<filename>.gpg
 #   /etc/apt/sources.list.d/<filename>.sources
 #
+# Returns:
+#   Non-zero when validation, repository setup, or index refresh fails.
+#
 install_asc_key() {
-    local canonical_id="$1"
-    local asc_url="$2"
-    local uri="$3"
-    local suite="$4"
-    local components="$5"
+    local canonical_id="${1:-}"
+    local asc_url="${2:-}"
+    local uri="${3:-}"
+    local suite="${4:-}"
+    local components="${5:-}"
     local filename="${6:-$canonical_id}"
 
     if [[ -z "$canonical_id" ]]; then
@@ -193,21 +185,14 @@ EOF
     return 0
 }
 
+##
+# Installs one or more packages with apt-fast or apt-get and up to three tries.
 #
-# apt_install <package...>
-#
-# Installs one or more APT packages using apt-fast (if available)
-# or apt-get as fallback, with retry support.
-#
-# Behavior:
-#   - Uses apt-fast if available, otherwise apt-get.
-#   - Retries installation up to 3 times on failure.
-#   - Fails immediately after final unsuccessful attempt.
-#   - Requires at least one package argument.
+# Parameters:
+#   packages    One or more APT package names.
 #
 # Returns:
-#   0            Success
-#   1            Failure (after retries or invalid input)
+#   1 when no package is supplied or every installation attempt fails.
 #
 apt_install() {
     local apt_command
