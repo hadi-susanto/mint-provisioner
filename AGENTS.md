@@ -55,6 +55,50 @@ resolve_package() {
 }
 ```
 
+## Variable Scope and Function Parameters
+
+* Prefer passing values to functions as parameters instead of relying on global variables.
+* Keep global variable usage to a minimum. Use globals only when the value genuinely represents shared script or framework state.
+* When a global variable is intended for internal use only, prefix its name with `__` to indicate that it is private.
+* Do not use a global variable merely to avoid passing a parameter.
+* Prefer `local` variables inside functions unless the variable intentionally needs to affect a broader scope.
+
+Prefer:
+
+```bash
+process_package() {
+    local package="$1"
+
+    install_package "$package"
+}
+```
+
+Instead of:
+
+```bash
+PACKAGE="example"
+
+process_package() {
+    install_package "$PACKAGE"
+}
+```
+
+When internal shared state is unavoidable:
+
+```bash
+__cached_package=""
+
+resolve_package() {
+    if [[ -n "$__cached_package" ]]; then
+        printf '%s\n' "$__cached_package"
+
+        return 0
+    fi
+
+    ...
+}
+```
+
 ## Return and Exit Statements
 
 Place a blank line before standalone `return` and `exit` statements when they follow another statement in the same block.
@@ -86,7 +130,9 @@ load_states "$CANONICAL_ID" || exit $?
 
 ## Guard Clauses
 
-Prefer guard clauses to reduce nesting in functions, conditionals, and loops.
+Prefer guard clauses to reduce nesting and keep the main execution path easy to follow.
+
+Use an early `return`, `exit`, or `continue` when handling an exceptional, invalid, or skip condition before continuing with the main logic.
 
 Example:
 
@@ -100,15 +146,65 @@ fi
 # Continue with the main logic.
 ```
 
-Inside loops, use `continue` when it makes the main processing path clearer:
+Inside loops, prefer `continue` when it keeps the main processing path flat and clear:
 
 ```bash
 for file in "${files[@]}"; do
-    [[ -f "$file" ]] || continue
+    if [[ ! -f "$file" ]]; then
+        continue
+    fi
+
+    process_file "$file"
+    notify "Success processing $file"
+    remove_file "$file"
+done
+```
+
+Do not introduce a guard clause when the conditional body contains only a single simple operation and the positive condition is easier to read directly.
+
+Prefer:
+
+```bash
+for file in "${files[@]}"; do
+    if [[ -f "$file" ]]; then
+        process_file "$file"
+    fi
+done
+```
+
+Instead of:
+
+```bash
+for file in "${files[@]}"; do
+    if [[ ! -f "$file" ]]; then
+        continue
+    fi
 
     process_file "$file"
 done
 ```
+
+The same principle applies outside loops. Do not use an early `return` solely to avoid nesting a single simple statement.
+
+Prefer:
+
+```bash
+if [[ "$enabled" == "true" ]]; then
+    enable_feature
+fi
+```
+
+Instead of:
+
+```bash
+if [[ "$enabled" != "true" ]]; then
+    return 0
+fi
+
+enable_feature
+```
+
+Use judgment based on readability rather than applying guard clauses mechanically.
 
 ## Error Handling
 

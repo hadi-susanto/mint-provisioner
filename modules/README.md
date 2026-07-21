@@ -9,7 +9,7 @@ For an overview of the complete framework, see the [main project README](../READ
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **49 modules** across **7 categories**.
+Mint Provisioner currently provides **59 modules** across **8 categories**.
 
 Categories organize the module catalog, provide metadata for module listings, and form part of each module's canonical
 ID:
@@ -41,6 +41,7 @@ Each category document contains detailed information about its modules, includin
 | [Command Line](CLI.md)          | `cli`  | `adb`, `bat`, `delta`, `eza`, `git`, `mkvtoolnix`, `procs`, `tlp`                                                                                                                    |
 | [Development](DEV.md)           | `dev`  | `apache-maven`, `dbeaver-community`, `dbgate-community`, `docker`, `mongodb-compass`, `pg-admin`, `sdkman`                                                                           |
 | [Desktop Applications](GUI.md)  | `gui`  | `brave-browser`, `brave-origin`, `cryptomator`, `deadbeef`, `double-commander`, `flameshot`, `fman`, `insync`, `keepass-xc`, `microsoft-edge`, `mu-commander`, `sunflower`, `tlp-ui` |
+| [IDE](IDE.md)                   | `ide`  | `clion`, `cudatext`, `datagrip`, `geany`, `goland`, `idea`, `phpstorm`, `pycharm`, `rider`, `rubymine`, `rustrover`, `vscode`, `vscodium`, `webstorm`                                |
 | [System Administration](SYS.md) | `sys`  | `apt-fast`, `dconf-editor`, `dnscrypt-proxy`, `nerd-font`, `oobe`                                                                                                                    |
 | [Terminal](TERM.md)             | `term` | `alacritty`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `terminator`, `zsh`                                                                                    |
 | [Terminal UI](TUI.md)           | `tui`  | `bottom`, `du-analyzer`, `du-rust`, `duf`, `git-ui`, `lazy-git`                                                                                                                      |
@@ -56,6 +57,7 @@ modules/
 ├── CLI.md
 ├── DEV.md
 ├── GUI.md
+├── IDE.md
 ├── SYS.md
 ├── TERM.md
 ├── TUI.md

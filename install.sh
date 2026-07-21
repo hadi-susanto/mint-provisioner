@@ -226,6 +226,7 @@ try_acquire_sudo_privileges() {
 
         if ! sudo -n -v; then
             log_error "Non-interactive mode could not acquire sudo privileges without prompting."
+            log_info "Please validate sudo privileges first with sudo -v"
 
             return 1
         fi
