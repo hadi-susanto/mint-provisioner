@@ -1,0 +1,27 @@
+modules/ide/jetbrains.sh
+  554355935502312a 13,376-378,396-406,413-416
+lib/sudo_refresher.sh
+  554355935502312a 1-77,79-81,85-126,128-130
+install.sh
+  554355935502312a 229
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "8840bef8b8bebdca03a99b5c180665416a5e5169",
+  "prompts": {
+    "554355935502312a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f8388-be24-7151-b0e5-3ad1b01dda03",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 479,
+      "total_deletions": 331,
+      "accepted_lines": 467,
+      "overriden_lines": 2
+    }
+  }
+}
