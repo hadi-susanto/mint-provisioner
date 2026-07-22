@@ -1,0 +1,25 @@
+modules/README.md
+  5adc293c7ec5aa49 12,44
+modules/IDE.md
+  5adc293c7ec5aa49 10,47,49,53,55-56,60-62,66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "61db8129154dea335d0eccd8044a928ccd625d8e",
+  "prompts": {
+    "5adc293c7ec5aa49": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f8698-0a01-7cb2-8a7b-88420a6b87a0",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 946,
+      "total_deletions": 922,
+      "accepted_lines": 946,
+      "overriden_lines": 0
+    }
+  }
+}
