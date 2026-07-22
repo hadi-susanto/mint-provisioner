@@ -9,7 +9,7 @@ For an overview of the complete framework, see the [main project README](../READ
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **63 modules** across **8 categories**.
+Mint Provisioner currently provides **66 modules** across **8 categories**.
 
 Categories organize the module catalog, provide metadata for module listings, and form part of each module's canonical
 ID:
@@ -39,7 +39,7 @@ Each category document contains detailed information about its modules, includin
 | Category                        | ID     | Modules                                                                                                                                                                              |
 |---------------------------------|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [Command Line](CLI.md)          | `cli`  | `adb`, `bat`, `delta`, `eza`, `git`, `mkvtoolnix`, `procs`, `tlp`                                                                                                                    |
-| [Development](DEV.md)           | `dev`  | `apache-maven`, `dbeaver-community`, `dbgate-community`, `docker`, `mongodb-compass`, `pg-admin`, `sdkman`                                                                           |
+| [Development](DEV.md)           | `dev`  | `apache-maven`, `bruno`, `dbeaver-community`, `dbgate-community`, `docker`, `mongodb-compass`, `pg-admin`, `postman`, `sdkman`, `yaak`                                               |
 | [Desktop Applications](GUI.md)  | `gui`  | `brave-browser`, `brave-origin`, `cryptomator`, `deadbeef`, `double-commander`, `flameshot`, `fman`, `insync`, `keepass-xc`, `microsoft-edge`, `mu-commander`, `sunflower`, `tlp-ui` |
 | [IDE](IDE.md)                   | `ide`  | `clion`, `cudatext`, `datagrip`, `geany`, `goland`, `idea`, `phpstorm`, `pycharm`, `rider`, `rubymine`, `rustrover`, `vscode`, `vscodium`, `webstorm`                                |
 | [System Administration](SYS.md) | `sys`  | `apt-fast`, `dconf-editor`, `dnscrypt-proxy`, `nerd-font`, `oobe`                                                                                                                    |

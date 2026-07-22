@@ -6,12 +6,15 @@ up and maintain a productive development environment, including tools such as **
 ## Contents
 
 - [Apache Maven](#apache-maven-apache-maven-alias-maven-alias-mvn)
+- [Bruno](#bruno-bruno)
 - [DBeaver Community](#dbeaver-community-dbeaver-community-alias-dbeaver)
 - [DbGate Community](#dbgate-community-dbgate-community-alias-dbgate)
 - [Docker](#docker-docker)
 - [MongoDB Compass](#mongodb-compass-mongodb-compass-alias-compass)
 - [pgAdmin 4](#pgadmin-4-pg-admin-alias-pgadmin)
+- [Postman](#postman-postman)
 - [SDKMAN!](#sdkman-sdkman)
+- [Yaak](#yaak-yaak)
 
 ---
 
@@ -35,6 +38,28 @@ Automatically downloads the latest binary TAR.GZ release from the Apache Maven p
 ### Official Website
 
 https://maven.apache.org/
+
+---
+
+## Bruno (`bruno`)
+
+Bruno is an offline-first API client that stores collections as plain-text files, making them easy to share and track
+with version control.
+
+### Installation Method
+
+**Official Bruno APT repository**
+
+Adds Bruno's official repository and signing key using `install_asc_key`, then installs the `bruno` package with APT.
+Updates are delivered through the standard system package upgrade process.
+
+### Official Website
+
+https://www.usebruno.com/
+
+### Documentation
+
+https://docs.usebruno.com/get-started/bruno-basics/download
 
 ---
 
@@ -267,6 +292,40 @@ https://www.pgadmin.org/
 
 ---
 
+## Postman (`postman`)
+
+Postman is a desktop API platform for designing, sending, testing, and documenting API requests.
+
+### Installation Method
+
+**Official Linux archive**
+
+Downloads the latest Linux x64 archive from Postman, extracts it into the configured installation directory, creates
+the global `postman` command, and installs a system-wide desktop entry using the icon included in the archive.
+
+### Supported ENV
+
+- `POSTMAN_INSTALL_DIR`
+    - Installation directory.
+    - Default: `${INSTALL_DIR}/postman`
+
+### Desktop Integration
+
+- Installs `postman.desktop` into `/usr/share/applications`.
+- Links the bundled executable as `/usr/local/bin/postman`.
+- Uses Postman's bundled application icon.
+- Refreshes the desktop application database when the required utility is available.
+
+### Official Website
+
+https://www.postman.com/downloads/
+
+### Documentation
+
+https://learning.postman.com/docs/getting-started/installation/install-app/
+
+---
+
 ## SDKMAN! (`sdkman`)
 
 SDKMAN! is a Software Development Kit manager for the JVM ecosystem. It simplifies installing, updating, and switching
@@ -310,3 +369,34 @@ currently supported by this module.
 ### Official Website
 
 https://sdkman.io/
+
+---
+
+## Yaak (`yaak`)
+
+Yaak is a privacy-first desktop API client for REST, GraphQL, WebSockets, Server-Sent Events, and gRPC.
+
+### Installation Method
+
+**GitHub latest release (`.deb`)**
+
+Locates and downloads the latest stable AMD64 Debian package from the official Yaak GitHub releases, then installs it
+using APT.
+
+### Supported ENV
+
+- `YAAK_REGEX`
+    - Regular expression used to locate the Debian package in the latest GitHub release.
+    - Default:
+
+      ```text
+      yaak_.*_amd64\.deb$
+      ```
+
+### Official Website
+
+https://yaak.app/
+
+### GitHub Repository
+
+https://github.com/mountain-loop/yaak
