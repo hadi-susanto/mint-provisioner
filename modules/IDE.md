@@ -6,112 +6,21 @@ JetBrains IDEs.
 
 ## Contents
 
-- [CudaText](#cudatext-cudatext)
-- [Geany](#geany-geany)
-- [Visual Studio Code](#visual-studio-code-vscode)
-- [VSCodium](#vscodium-vscodium)
-- [IntelliJ IDEA](#intellij-idea-idea)
-- [PyCharm](#pycharm-pycharm)
-- [GoLand](#goland-goland)
-- [PhpStorm](#phpstorm-phpstorm)
-- [WebStorm](#webstorm-webstorm)
+- [JetBrains Modules Behavior](#shared-jetbrains-module-behavior)
 - [CLion](#clion-clion)
+- [CudaText](#cudatext-cudatext)
+- [DataGrip](#datagrip-datagrip)
+- [Geany](#geany-geany)
+- [GoLand](#goland-goland)
+- [IntelliJ IDEA](#intellij-idea-idea)
+- [PhpStorm](#phpstorm-phpstorm)
+- [PyCharm](#pycharm-pycharm)
 - [Rider](#rider-rider)
 - [RubyMine](#rubymine-rubymine)
 - [RustRover](#rustrover-rustrover)
-- [DataGrip](#datagrip-datagrip)
-
----
-
-## CudaText (`cudatext`)
-
-CudaText is a cross-platform text and code editor with a Python plugin system.
-
-### Installation Method
-
-**Latest SourceForge `.deb` release** for the selected GTK or Qt toolkit.
-
-### Supported ENV
-
-- `CUDATEXT_UI_TOOLKIT`
-    - Selects the CudaText package variant.
-    - Supported values: `auto`, `gtk2`, `gtk3`, `qt5`, and `qt6`.
-- `CUDATEXT_NON_INTERACTIVE`
-    - Disables the toolkit selection prompt and uses automatic detection when `CUDATEXT_UI_TOOLKIT` is unset.
-    - Falls back to `${NON_INTERACTIVE}`.
-
-### Official Website
-
-https://cudatext.github.io/
-
----
-
-## Geany (`geany`)
-
-Geany is a fast, lightweight IDE with a small footprint and support for many programming languages.
-
-### Installation Method
-
-**Geany Developers Launchpad PPA** (`ppa:geany-dev/ppa`), using the `geany` package.
-
-By default, Mint Provisioner configures the PPA explicitly with signing-key fingerprint
-`DE52D7C0594C5BDBF940922B361331969CA95183`. It can use `add-apt-repository` instead when requested.
-
-### Supported ENV
-
-- `GEANY_USE_APT_ADD_REPOSITORY`
-    - Controls whether the Launchpad repository is added using `add-apt-repository`.
-    - Falls back to `${USE_APT_ADD_REPOSITORY}`.
-
-### Official Website
-
-https://www.geany.org/
-
----
-
-## Visual Studio Code (`vscode`)
-
-Visual Studio Code is Microsoft's extensible source-code editor for application development and debugging.
-
-### Installation Method
-
-**Official Microsoft APT repository**, using either the stable `code` package or the preview `code-insiders` package.
-
-Interactive installations prompt for the channel. Non-interactive installations default to stable.
-
-### Supported ENV
-
-- `VSCODE_CHANNEL`
-    - Selects the Visual Studio Code channel.
-    - Supported values: `stable`, `insiders`, `code`, and `code-insiders`.
-    - Default in non-interactive mode: `stable`.
-- `VSCODE_NON_INTERACTIVE`
-    - Disables the channel-selection prompt.
-    - Falls back to `${NON_INTERACTIVE}`.
-
-### Official Website
-
-https://code.visualstudio.com/
-
----
-
-## VSCodium (`vscodium`)
-
-VSCodium provides community-built VS Code binaries without Microsoft branding or telemetry.
-
-### Installation Method
-
-**Latest GitHub AMD64 `.deb` release**, installed using APT.
-
-### Supported ENV
-
-- `VSCODIUM_REGEX`
-    - Regular expression used to locate the GitHub release asset.
-    - Default: `codium_.*_amd64\.deb$`
-
-### Official Website
-
-https://vscodium.com/
+- [Visual Studio Code](#visual-studio-code-vscode)
+- [VSCodium](#vscodium-vscodium)
+- [WebStorm](#webstorm-webstorm)
 
 ---
 
@@ -154,48 +63,93 @@ desktop entry and application icon. The JetBrains Runtime bundled with each IDE 
 
 ---
 
-## IntelliJ IDEA (`idea`)
+## CLion (`clion`)
 
-IntelliJ IDEA is JetBrains' unified IDE for JVM and full-stack development. Core functionality is available without a
-subscription, while advanced framework, database, and enterprise features require an appropriate license.
+CLion is JetBrains' IDE for C and C++ development, with code analysis, CMake, debugging, and embedded tooling.
 
 ### Installation Method
 
-**Official JetBrains release archive** using product identifier `IIU`.
+**Official JetBrains release archive** using product identifier `CL`.
 
 ### Supported ENV
 
-- `IDEA_INSTALL_DIR`
+- `CLION_INSTALL_DIR`
     - Installation directory.
-    - Default: `${INSTALL_DIR}/idea`
-- `IDEA_NON_INTERACTIVE`
+    - Default: `${INSTALL_DIR}/clion`
+- `CLION_NON_INTERACTIVE`
     - Product-specific override for JetBrains non-interactive configuration.
 
 ### Official Website
 
-https://www.jetbrains.com/idea/
+https://www.jetbrains.com/clion/
 
 ---
 
-## PyCharm (`pycharm`)
+## CudaText (`cudatext`)
 
-PyCharm is JetBrains' unified IDE for Python development, data science, notebooks, and web applications.
+CudaText is a cross-platform text and code editor with a Python plugin system.
 
 ### Installation Method
 
-**Official JetBrains release archive** using product identifier `PCP`.
+**Latest SourceForge `.deb` release** for the selected GTK or Qt toolkit.
 
 ### Supported ENV
 
-- `PYCHARM_INSTALL_DIR`
+- `CUDATEXT_UI_TOOLKIT`
+    - Selects the CudaText package variant.
+    - Supported values: `auto`, `gtk2`, `gtk3`, `qt5`, and `qt6`.
+- `CUDATEXT_NON_INTERACTIVE`
+    - Disables the toolkit selection prompt and uses automatic detection when `CUDATEXT_UI_TOOLKIT` is unset.
+    - Falls back to `${NON_INTERACTIVE}`.
+
+### Official Website
+
+https://cudatext.github.io/
+
+---
+
+## DataGrip (`datagrip`)
+
+DataGrip is JetBrains' database IDE for querying, developing, and managing multiple database systems.
+
+### Installation Method
+
+**Official JetBrains release archive** using product identifier `DG`.
+
+### Supported ENV
+
+- `DATAGRIP_INSTALL_DIR`
     - Installation directory.
-    - Default: `${INSTALL_DIR}/pycharm`
-- `PYCHARM_NON_INTERACTIVE`
+    - Default: `${INSTALL_DIR}/datagrip`
+- `DATAGRIP_NON_INTERACTIVE`
     - Product-specific override for JetBrains non-interactive configuration.
 
 ### Official Website
 
-https://www.jetbrains.com/pycharm/
+https://www.jetbrains.com/datagrip/
+
+---
+
+## Geany (`geany`)
+
+Geany is a fast, lightweight IDE with a small footprint and support for many programming languages.
+
+### Installation Method
+
+**Geany Developers Launchpad PPA** (`ppa:geany-dev/ppa`), using the `geany` package.
+
+By default, Mint Provisioner configures the PPA explicitly with signing-key fingerprint
+`DE52D7C0594C5BDBF940922B361331969CA95183`. It can use `add-apt-repository` instead when requested.
+
+### Supported ENV
+
+- `GEANY_USE_APT_ADD_REPOSITORY`
+    - Controls whether the Launchpad repository is added using `add-apt-repository`.
+    - Falls back to `${USE_APT_ADD_REPOSITORY}`.
+
+### Official Website
+
+https://www.geany.org/
 
 ---
 
@@ -221,6 +175,29 @@ https://www.jetbrains.com/go/
 
 ---
 
+## IntelliJ IDEA (`idea`)
+
+IntelliJ IDEA is JetBrains' unified IDE for JVM and full-stack development. Core functionality is available without a
+subscription, while advanced framework, database, and enterprise features require an appropriate license.
+
+### Installation Method
+
+**Official JetBrains release archive** using product identifier `IIU`.
+
+### Supported ENV
+
+- `IDEA_INSTALL_DIR`
+    - Installation directory.
+    - Default: `${INSTALL_DIR}/idea`
+- `IDEA_NON_INTERACTIVE`
+    - Product-specific override for JetBrains non-interactive configuration.
+
+### Official Website
+
+https://www.jetbrains.com/idea/
+
+---
+
 ## PhpStorm (`phpstorm`)
 
 PhpStorm is JetBrains' IDE for PHP and web development, with framework support, database tools, and debugging.
@@ -243,47 +220,25 @@ https://www.jetbrains.com/phpstorm/
 
 ---
 
-## WebStorm (`webstorm`)
+## PyCharm (`pycharm`)
 
-WebStorm is JetBrains' IDE for JavaScript, TypeScript, and modern web application development.
+PyCharm is JetBrains' unified IDE for Python development, data science, notebooks, and web applications.
 
 ### Installation Method
 
-**Official JetBrains release archive** using product identifier `WS`.
+**Official JetBrains release archive** using product identifier `PCP`.
 
 ### Supported ENV
 
-- `WEBSTORM_INSTALL_DIR`
+- `PYCHARM_INSTALL_DIR`
     - Installation directory.
-    - Default: `${INSTALL_DIR}/webstorm`
-- `WEBSTORM_NON_INTERACTIVE`
+    - Default: `${INSTALL_DIR}/pycharm`
+- `PYCHARM_NON_INTERACTIVE`
     - Product-specific override for JetBrains non-interactive configuration.
 
 ### Official Website
 
-https://www.jetbrains.com/webstorm/
-
----
-
-## CLion (`clion`)
-
-CLion is JetBrains' IDE for C and C++ development, with code analysis, CMake, debugging, and embedded tooling.
-
-### Installation Method
-
-**Official JetBrains release archive** using product identifier `CL`.
-
-### Supported ENV
-
-- `CLION_INSTALL_DIR`
-    - Installation directory.
-    - Default: `${INSTALL_DIR}/clion`
-- `CLION_NON_INTERACTIVE`
-    - Product-specific override for JetBrains non-interactive configuration.
-
-### Official Website
-
-https://www.jetbrains.com/clion/
+https://www.jetbrains.com/pycharm/
 
 ---
 
@@ -353,22 +308,68 @@ https://www.jetbrains.com/rust/
 
 ---
 
-## DataGrip (`datagrip`)
+## Visual Studio Code (`vscode`)
 
-DataGrip is JetBrains' database IDE for querying, developing, and managing multiple database systems.
+Visual Studio Code is Microsoft's extensible source-code editor for application development and debugging.
 
 ### Installation Method
 
-**Official JetBrains release archive** using product identifier `DG`.
+**Official Microsoft APT repository**, using either the stable `code` package or the preview `code-insiders` package.
+
+Interactive installations prompt for the channel. Non-interactive installations default to stable.
 
 ### Supported ENV
 
-- `DATAGRIP_INSTALL_DIR`
+- `VSCODE_CHANNEL`
+    - Selects the Visual Studio Code channel.
+    - Supported values: `stable`, `insiders`, `code`, and `code-insiders`.
+    - Default in non-interactive mode: `stable`.
+- `VSCODE_NON_INTERACTIVE`
+    - Disables the channel-selection prompt.
+    - Falls back to `${NON_INTERACTIVE}`.
+
+### Official Website
+
+https://code.visualstudio.com/
+
+---
+
+## VSCodium (`vscodium`)
+
+VSCodium provides community-built VS Code binaries without Microsoft branding or telemetry.
+
+### Installation Method
+
+**Latest GitHub AMD64 `.deb` release**, installed using APT.
+
+### Supported ENV
+
+- `VSCODIUM_REGEX`
+    - Regular expression used to locate the GitHub release asset.
+    - Default: `codium_.*_amd64\.deb$`
+
+### Official Website
+
+https://vscodium.com/
+
+---
+
+## WebStorm (`webstorm`)
+
+WebStorm is JetBrains' IDE for JavaScript, TypeScript, and modern web application development.
+
+### Installation Method
+
+**Official JetBrains release archive** using product identifier `WS`.
+
+### Supported ENV
+
+- `WEBSTORM_INSTALL_DIR`
     - Installation directory.
-    - Default: `${INSTALL_DIR}/datagrip`
-- `DATAGRIP_NON_INTERACTIVE`
+    - Default: `${INSTALL_DIR}/webstorm`
+- `WEBSTORM_NON_INTERACTIVE`
     - Product-specific override for JetBrains non-interactive configuration.
 
 ### Official Website
 
-https://www.jetbrains.com/datagrip/
+https://www.jetbrains.com/webstorm/
