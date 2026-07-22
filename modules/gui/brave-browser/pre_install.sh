@@ -35,7 +35,7 @@ case "$channel" in
         ;;
 esac
 
-filename="${CANONICAL_ID}-${channel}"
+filename="brave-${channel}"
 
 install_asc_key \
     "$CANONICAL_ID" \

@@ -272,15 +272,15 @@ package_installed() {
             fi
 
             continue
+        else
+            rc=$?
         fi
-
-        rc=$?
 
         if ((rc == 1)); then
             continue
         fi
 
-        log_error "[$canonical_id] Failed to query package status for $package"
+        log_error "[$canonical_id] Failed to query package status for $package (rc: $rc)"
 
         return 2
     done
