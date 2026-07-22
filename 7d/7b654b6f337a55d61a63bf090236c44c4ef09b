@@ -1,0 +1,53 @@
+modules/dev/postman/is_installed.sh
+  4a0f23f3c26de5a0 1-4
+modules/dev/bruno/is_installed.sh
+  4a0f23f3c26de5a0 1-4
+modules/dev/yaak/metadata.conf
+  4a0f23f3c26de5a0 1-3
+modules/dev/bruno/install.sh
+  4a0f23f3c26de5a0 1-14
+modules/DEV.md
+  4a0f23f3c26de5a0 9,15,50,56,61,63,303-304,308-310,313-328,372-402
+modules/dev/bruno/pre_install.sh
+  4a0f23f3c26de5a0 1-13
+modules/dev/yaak/install.sh
+  4a0f23f3c26de5a0 1-22
+modules/dev/bruno/metadata.conf
+  4a0f23f3c26de5a0 1-3
+modules/README.md
+  4a0f23f3c26de5a0 12,42
+modules/dev/postman/metadata.conf
+  4a0f23f3c26de5a0 1-3
+modules/dev/postman/pre_install.sh
+  4a0f23f3c26de5a0 1-40
+modules/dev/yaak/pre_install.sh
+  4a0f23f3c26de5a0 1-55
+modules/dev/yaak/is_installed.sh
+  4a0f23f3c26de5a0 1-4
+modules/dev/yaak/cleanup.sh
+  4a0f23f3c26de5a0 1-28
+modules/dev/postman/cleanup.sh
+  4a0f23f3c26de5a0 1-28
+modules/dev/postman/install.sh
+  4a0f23f3c26de5a0 1-113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "7d7b654b6f337a55d61a63bf090236c44c4ef09b",
+  "prompts": {
+    "4a0f23f3c26de5a0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f8840-bc0a-7451-a58e-23654be29f13",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 339,
+      "total_deletions": 4,
+      "accepted_lines": 437,
+      "overriden_lines": 0
+    }
+  }
+}
