@@ -10,6 +10,7 @@ up and maintain a productive development environment, including tools such as **
 - [DBeaver Community](#dbeaver-community-dbeaver-community-alias-dbeaver)
 - [DbGate Community](#dbgate-community-dbgate-community-alias-dbgate)
 - [Docker](#docker-docker)
+- [HTTP Toolkit](#http-toolkit-httptoolkit)
 - [MongoDB Compass](#mongodb-compass-mongodb-compass-alias-compass)
 - [pgAdmin 4](#pgadmin-4-pg-admin-alias-pgadmin)
 - [Postman](#postman-postman)
@@ -177,6 +178,42 @@ https://www.docker.com/
 ### Documentation
 
 https://docs.docker.com/engine/
+
+---
+
+## HTTP Toolkit (`httptoolkit`)
+
+HTTP Toolkit is an open-source HTTP debugging client for intercepting, inspecting, testing, and rewriting HTTP and
+HTTPS traffic.
+
+### Installation Method
+
+**GitHub latest release (`.deb`)**
+
+Locates and downloads the latest Linux x64 Debian package from the official HTTP Toolkit Desktop GitHub releases, then
+installs it using APT. The package provides the `httptoolkit` command and desktop integration.
+
+### Supported ENV
+
+- `HTTPTOOLKIT_REGEX`
+    - Regular expression used to locate the Debian package in the latest GitHub release.
+    - Default:
+
+      ```text
+      HttpToolkit-.*-x64\.deb$
+      ```
+
+### Official Website
+
+https://httptoolkit.com/
+
+### Documentation
+
+https://httptoolkit.com/docs/getting-started/installing/
+
+### GitHub Repository
+
+https://github.com/httptoolkit/httptoolkit-desktop
 
 ---
 
