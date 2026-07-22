@@ -1,0 +1,21 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "9d861af7b0fa63d1e58e4825599bc85294102cb8",
+  "prompts": {
+    "4a0f23f3c26de5a0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f8840-bc0a-7451-a58e-23654be29f13",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 972,
+      "total_deletions": 883,
+      "accepted_lines": 933,
+      "overriden_lines": 4
+    }
+  }
+}
