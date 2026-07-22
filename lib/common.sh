@@ -239,3 +239,51 @@ can_write() {
 
     [[ -w "$dir" ]]
 }
+
+##
+# Checks whether any of the specified Debian packages is installed.
+#
+# Parameters:
+#   canonical_id    Canonical module ID used for error logging.
+#   packages        Remaining arguments are Debian package names to check.
+#
+# Returns:
+#   1 when none are installed
+#   2 when querying a package status fails unexpectedly.
+#
+package_installed() {
+    local canonical_id="$1"
+
+    shift
+
+    local package
+    local status
+    local rc
+
+    for package in "$@"; do
+        if status="$(
+            dpkg-query \
+                --show \
+                --showformat='${Status}' \
+                "$package" 2>/dev/null
+        )"; then
+            if [[ "$status" == "install ok installed" ]]; then
+                return 0
+            fi
+
+            continue
+        fi
+
+        rc=$?
+
+        if ((rc == 1)); then
+            continue
+        fi
+
+        log_error "[$canonical_id] Failed to query package status for $package"
+
+        return 2
+    done
+
+    return 1
+}
