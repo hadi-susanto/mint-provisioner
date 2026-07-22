@@ -9,7 +9,7 @@ For an overview of the complete framework, see the [main project README](../READ
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **61 modules** across **8 categories**.
+Mint Provisioner currently provides **63 modules** across **8 categories**.
 
 Categories organize the module catalog, provide metadata for module listings, and form part of each module's canonical
 ID:

@@ -1,8 +1,8 @@
 # IDE (`ide`)
 
 Integrated development environments and source-code editors for software development,
-ranging from lightweight editors to full-featured IDEs. This vendor-neutral category can include products such as
-Visual Studio Code, Geany, and CudaText alongside the JetBrains products currently documented below.
+ranging from lightweight editors such as Geany and CudaText to Visual Studio Code, VSCodium, and full-featured
+JetBrains IDEs.
 
 ## Contents
 
@@ -66,6 +66,52 @@ By default, Mint Provisioner configures the PPA explicitly with signing-key fing
 ### Official Website
 
 https://www.geany.org/
+
+---
+
+## Visual Studio Code (`vscode`)
+
+Visual Studio Code is Microsoft's extensible source-code editor for application development and debugging.
+
+### Installation Method
+
+**Official Microsoft APT repository**, using either the stable `code` package or the preview `code-insiders` package.
+
+Interactive installations prompt for the channel. Non-interactive installations default to stable.
+
+### Supported ENV
+
+- `VSCODE_CHANNEL`
+    - Selects the Visual Studio Code channel.
+    - Supported values: `stable`, `insiders`, `code`, and `code-insiders`.
+    - Default in non-interactive mode: `stable`.
+- `VSCODE_NON_INTERACTIVE`
+    - Disables the channel-selection prompt.
+    - Falls back to `${NON_INTERACTIVE}`.
+
+### Official Website
+
+https://code.visualstudio.com/
+
+---
+
+## VSCodium (`vscodium`)
+
+VSCodium provides community-built VS Code binaries without Microsoft branding or telemetry.
+
+### Installation Method
+
+**Latest GitHub AMD64 `.deb` release**, installed using APT.
+
+### Supported ENV
+
+- `VSCODIUM_REGEX`
+    - Regular expression used to locate the GitHub release asset.
+    - Default: `codium_.*_amd64\.deb$`
+
+### Official Website
+
+https://vscodium.com/
 
 ---
 
