@@ -1,0 +1,25 @@
+modules/IDE.md
+  554355935502312a 13,132-134,157,168,170-171
+modules/ide/jetbrains.sh
+  554355935502312a 109-110,697,699,704,707,711-713,715,717-718,720,728,734,747-749,779-780
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "194366bc5571253ebbf89e9470a4902b9d104bef",
+  "prompts": {
+    "554355935502312a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f8388-be24-7151-b0e5-3ad1b01dda03",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 1333,
+      "total_deletions": 1392,
+      "accepted_lines": 1211,
+      "overriden_lines": 0
+    }
+  }
+}
