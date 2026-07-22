@@ -46,6 +46,29 @@ https://cudatext.github.io/
 
 ---
 
+## Geany (`geany`)
+
+Geany is a fast, lightweight IDE with a small footprint and support for many programming languages.
+
+### Installation Method
+
+**Geany Developers Launchpad PPA** (`ppa:geany-dev/ppa`), using the `geany` package.
+
+By default, Mint Provisioner configures the PPA explicitly with signing-key fingerprint
+`DE52D7C0594C5BDBF940922B361331969CA95183`. It can use `add-apt-repository` instead when requested.
+
+### Supported ENV
+
+- `GEANY_USE_APT_ADD_REPOSITORY`
+    - Controls whether the Launchpad repository is added using `add-apt-repository`.
+    - Falls back to `${USE_APT_ADD_REPOSITORY}`.
+
+### Official Website
+
+https://www.geany.org/
+
+---
+
 ## Shared JetBrains module behavior
 
 The JetBrains modules in this category query the official JetBrains release metadata service for the latest stable
