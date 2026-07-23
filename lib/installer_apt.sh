@@ -185,6 +185,18 @@ EOF
     return 0
 }
 
+__restore_int_trap() {
+    local previous_int_trap="$1"
+
+    if [[ -n "$previous_int_trap" ]]; then
+        eval "$previous_int_trap"
+
+        return 0
+    fi
+
+    trap - INT
+}
+
 ##
 # Installs one or more packages with apt-fast or apt-get and up to three tries.
 #
@@ -197,16 +209,16 @@ EOF
 apt_install() {
     local apt_command
     local attempt
+    local interrupted=false
     local max_attempts=3
+    local previous_int_trap
 
-    # 1) Validate input
     if [[ "$#" -eq 0 ]]; then
         log_error "[apt_install] No package specified"
 
         return 1
     fi
 
-    # Choose backend
     if command -v apt-fast >/dev/null 2>&1; then
         apt_command="apt-fast"
     else
@@ -215,22 +227,39 @@ apt_install() {
 
     log_info "[apt_install] [$apt_command] Installing packages: $*"
 
-    # 4) Retry loop (up to 3 times)
+    previous_int_trap="$(trap -p INT)"
+    trap 'interrupted=true' INT
+
     for ((attempt = 1; attempt <= max_attempts; attempt++)); do
         if sudo "$apt_command" install -y "$@"; then
+            __restore_int_trap "$previous_int_trap"
+
             log_info "[apt_install] [$apt_command] Installation successful"
 
             return 0
         fi
 
-        log_error "[apt_install] [$apt_command] Attempt $attempt failed for packages: $*"
+        if [[ "$interrupted" == "true" ]]; then
+            __restore_int_trap "$previous_int_trap"
+
+            log_warn "[apt_install] [$apt_command] Installation interrupted"
+
+            return 130
+        fi
+
+        log_error \
+            "[apt_install] [$apt_command] Attempt $attempt failed for packages: $*"
 
         if [[ "$attempt" -lt "$max_attempts" ]]; then
-            log_info "[apt_install] [$apt_command] Retrying installation (attempt $((attempt + 1))/$max_attempts)"
+            log_info \
+                "[apt_install] [$apt_command] Retrying installation (attempt $((attempt + 1))/$max_attempts)"
         fi
     done
 
-    log_error "[apt_install] [$apt_command] Installation failed after $max_attempts attempts: $*"
+    __restore_int_trap "$previous_int_trap"
+
+    log_error \
+        "[apt_install] [$apt_command] Installation failed after $max_attempts attempts: $*"
 
     return 1
 }
