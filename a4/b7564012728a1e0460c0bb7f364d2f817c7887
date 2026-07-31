@@ -1,0 +1,23 @@
+README.md
+  98bd8c055b68c03f 7,29,103,106,115,117,196,198,202-203,206-208,310,348,429,462-464,470
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "a4b7564012728a1e0460c0bb7f364d2f817c7887",
+  "prompts": {
+    "98bd8c055b68c03f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb5e8-3263-73f3-be05-ef6d9292e38b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null,
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 430,
+      "overriden_lines": 0
+    }
+  }
+}
