@@ -4,12 +4,6 @@ set -euo pipefail
 source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/messages.sh"
 
-if [[ "${MICROSOFT_EDGE_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
-    log_warn "[$CANONICAL_ID] Skipping configuration as requested"
-
-    exit 0
-fi
-
 updater_scripts=(
     "/opt/microsoft/msedge/cron/microsoft-edge"
     "/opt/microsoft/msedge-beta/cron/microsoft-edge-beta"
