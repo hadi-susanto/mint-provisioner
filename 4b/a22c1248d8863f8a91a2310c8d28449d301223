@@ -1,0 +1,25 @@
+modules/DEV.md
+  98bd8c055b68c03f 377-378,386,388-389,391,393-395,397,399-400,402-407
+modules/dev/sdkman/install.sh
+  98bd8c055b68c03f 9,12-14,153-156,158,160,165,167,171,173-176,178
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "4ba22c1248d8863f8a91a2310c8d28449d301223",
+  "prompts": {
+    "98bd8c055b68c03f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb5e8-3263-73f3-be05-ef6d9292e38b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 592,
+      "total_deletions": 644,
+      "accepted_lines": 575,
+      "overriden_lines": 1
+    }
+  }
+}
