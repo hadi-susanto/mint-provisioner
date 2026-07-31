@@ -6,7 +6,11 @@ set -euo pipefail
 #
 
 source "${LIB_DIR}/installer_common.sh"
+source "${LIB_DIR}/messages.sh"
 source "${LIB_DIR}/state.sh"
+
+SCRIPT_DIR="${MODULES_DIR}/${CANONICAL_ID}"
+PAYLOAD_CONFIG="${SCRIPT_DIR}/payload/config"
 
 load_states "$CANONICAL_ID" || exit 1
 STANDARD_ARCHIVE="$(get_state "STANDARD_FILE")" || exit 1
@@ -146,4 +150,31 @@ if ! $SUDO_CMD cp "$CANDIDATES_FILE" "$SDKMAN_INSTALL_DIR/var/candidates"; then
     exit 8
 fi
 
+log_info "[$CANONICAL_ID] Installing SDKMAN! configuration"
+if ! $SUDO_CMD install -m 0644 -- \
+    "$PAYLOAD_CONFIG" \
+    "$SDKMAN_INSTALL_DIR/etc/config"
+then
+    log_error "[$CANONICAL_ID] Failed to install the SDKMAN! configuration"
+
+    exit 9
+fi
+
 log_info "[$CANONICAL_ID] Installation completed successfully"
+
+printf -v sdkman_dir_literal '%q' "$SDKMAN_INSTALL_DIR"
+
+message="To enable SDKMAN! through System Toolkit, run:
+
+  SDKMAN_DIR=$sdkman_dir_literal syskit-cfg install dev/sdkman
+
+Without System Toolkit, add the following to your shell configuration:
+
+# >>> mint-provisioner enabling SDKMAN! >>>
+export SDKMAN_DIR=$sdkman_dir_literal
+if [[ -s \"\${SDKMAN_DIR}/bin/sdkman-init.sh\" ]]; then
+    source \"\${SDKMAN_DIR}/bin/sdkman-init.sh\"
+fi
+# <<< mint-provisioner enabling SDKMAN! <<<"
+
+add_message "$CANONICAL_ID" "info" "$message"
