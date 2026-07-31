@@ -1,0 +1,70 @@
+modules/cli/delta/install.sh
+  98bd8c055b68c03f 5,52-53
+modules/tui/git-ui/install.sh
+  98bd8c055b68c03f 5,52-53
+modules/SYS.md
+  98bd8c055b68c03f 3-5,54,58,63-64
+modules/cli/git/install.sh
+  98bd8c055b68c03f 5,8-9
+modules/tui/lazy-git/install.sh
+  98bd8c055b68c03f 5,52-53
+modules/cli/mkvtoolnix/install.sh
+  98bd8c055b68c03f 29
+modules/CLI.md
+  98bd8c055b68c03f 62,64,68,116,118,122,152,154,156,160,205,207,209,213,318-320,328-329
+modules/term/ghostty/install.sh
+  98bd8c055b68c03f 5,8-9
+lib/messages.sh
+  98bd8c055b68c03f 158,164-165,167,171,176-177,179
+modules/TERM.md
+  98bd8c055b68c03f 54,56,60-61,120-122,126-127,136,202,204-205,209,287,289-291,295-296
+modules/cli/bat/install.sh
+  98bd8c055b68c03f 5,25-26
+modules/TUI.md
+  98bd8c055b68c03f 154,156,160,199,201,205
+modules/cli/eza/install.sh
+  98bd8c055b68c03f 5,8-9
+modules/README.md
+  98bd8c055b68c03f 12,45,583,593
+modules/term/kitty/install.sh
+  98bd8c055b68c03f 9,146-147
+modules/term/oh-my-posh/install.sh
+  98bd8c055b68c03f 99-103
+modules/term/starship/install.sh
+  98bd8c055b68c03f 64-69
+modules/sys/apt-fast/install.sh
+  98bd8c055b68c03f 5,49,51-52,54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "fc367f20a4b7392e04d23c913f6a6a7c8e4f70ab",
+  "prompts": {
+    "4a0f23f3c26de5a0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f8840-bc0a-7451-a58e-23654be29f13",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 1054,
+      "total_deletions": 1017,
+      "accepted_lines": 1054,
+      "overriden_lines": 0
+    },
+    "98bd8c055b68c03f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb5e8-3263-73f3-be05-ef6d9292e38b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 2886,
+      "total_deletions": 4852,
+      "accepted_lines": 2886,
+      "overriden_lines": 0
+    }
+  }
+}
