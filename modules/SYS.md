@@ -102,12 +102,6 @@ protect DNS queries from interception and use DNS providers that offer filtering
 
 Installs the `dnscrypt-proxy` package from the Linux Mint or Ubuntu distribution repository using APT.
 
-### Supported ENV
-
-- `DNSCRYPT_PROXY_SKIP_CONFIGURATION`
-    - Skip post-install service adjustments and summary guidance.
-    - Default: `${SKIP_CONFIGURATION}`
-
 ### Post-install Configuration
 
 If `dnscrypt-proxy-resolvconf.service` cannot start because `/sbin/resolvconf` is unavailable, the module disables that

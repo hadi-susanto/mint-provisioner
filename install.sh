@@ -34,8 +34,6 @@ Options:
   -ln, --list-not-installed   List modules that are not installed and exit.
   -ni, --non-interactive      Use defaults and auto-detection where possible.
        --unattended           Alias for --non-interactive.
-  -s,  --skip-configuration   Skip supported post-install configuration.
-  -fc, --force-configuration  Force supported post-install configuration.
   -f,  --force-install        Install modules even if already installed.
 
 Arguments:
@@ -50,7 +48,6 @@ Examples:
 
 Notes:
   * Use <category>/<module> to resolve conflicting module names.
-  * --skip-configuration takes precedence over --force-configuration.
   * Non-interactive modes never prompt for sudo. Credentials must already be
     cached, or passwordless sudo must be available.
 
@@ -71,8 +68,6 @@ EOF
 #   CMD                   install, help, list, or category
 #   LIST_FILTER           all, installed, or not_installed
 #   NON_INTERACTIVE       1 (true) or 0 (false)
-#   SKIP_CONFIGURATION    1 (true) or 0 (false)
-#   FORCE_CONFIGURATION   1 (true) or 0 (false)
 #   FORCE_INSTALL         1 (true) or 0 (false)
 #
 # Returns:
@@ -88,8 +83,6 @@ parse_installer_arguments() {
         [CMD]=""
         [LIST_FILTER]="all"
         [NON_INTERACTIVE]=0
-        [SKIP_CONFIGURATION]=0
-        [FORCE_CONFIGURATION]=0
         [FORCE_INSTALL]=0
     )
 
@@ -154,14 +147,6 @@ parse_installer_arguments() {
 
             -ni|--non-interactive|--unattended)
                 options_ref[NON_INTERACTIVE]=1
-                ;;
-
-            -s|--skip-configuration)
-                options_ref[SKIP_CONFIGURATION]=1
-                ;;
-
-            -fc|--force-configuration)
-                options_ref[FORCE_CONFIGURATION]=1
                 ;;
 
             -f|--force-install)
@@ -274,20 +259,6 @@ run_installation_workflow() {
     if (( ${options_ref[NON_INTERACTIVE]:-0} == 1 )); then
         export NON_INTERACTIVE=true
         log_info "Enabling non-interactive installation. Default values or auto-detection will be used."
-    fi
-
-    if (( ${options_ref[SKIP_CONFIGURATION]:-0} == 1 )); then
-        export SKIP_CONFIGURATION=true
-        log_info "Disabling the configuration/post_install phase when supported by the module."
-    fi
-
-    if (( ${options_ref[FORCE_CONFIGURATION]:-0} == 1 )); then
-        export FORCE_CONFIGURATION=true
-        if (( ${options_ref[SKIP_CONFIGURATION]:-0} == 1 )); then
-            log_warn "SKIP_CONFIGURATION is also active. It will take precedence over FORCE_CONFIGURATION."
-        else
-            log_info "Enabling force configuration to reset existing configuration when supported by the module."
-        fi
     fi
 
     if (( ${options_ref[FORCE_INSTALL]:-0} == 1 )); then

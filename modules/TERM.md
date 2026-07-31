@@ -165,22 +165,22 @@ Clones the official Powerlevel10k GitHub repository into the configured installa
     - Default:
       `${INSTALL_DIR}/power-level-10k`
 
-- `POWERLEVEL10K_SKIP_CONFIGURATION`
-    - Skip post-install configuration.
-    - Default:
-      `${SKIP_CONFIGURATION}`
+### System Toolkit Integration
 
-- `POWERLEVEL10K_FORCE_CONFIGURATION`
-    - Overwrite existing configuration files.
-    - Default:
-      `${FORCE_CONFIGURATION}`
+This module has additional features that can be enabled by running SysKit. See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
 
-### Post-install Configuration
+Provide the Powerlevel10k installation directory when running the interactive configuration module:
 
-#### Shell Integration
+```bash
+POWERLEVEL10K_INSTALL_DIR="/path/to/installed/power-level-10k" syskit-cfg install term/power-level-10k
+```
 
-- Registers the installed `powerlevel10k.zsh-theme` file for **Zsh**.
-- Skips configuration when Zsh is not installed.
+Without System Toolkit, source the installed theme from your Zsh configuration:
+
+```zsh
+source "/path/to/installed/power-level-10k/powerlevel10k.zsh-theme"
+```
 
 ### Official Website
 

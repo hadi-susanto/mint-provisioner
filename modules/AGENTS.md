@@ -11,7 +11,7 @@
   ├── is_installed.sh    # Mandatory: Detect whether the software is installed
   ├── pre_install.sh     # Optional: Configure prerequisites, repositories, or keys
   ├── install.sh         # Mandatory: Perform the core installation
-  ├── post_install.sh    # Optional: Apply configuration and customization
+  ├── post_install.sh    # Optional: Apply post-install system adjustments
   └── cleanup.sh         # Optional: Remove installation-only state or artifacts
   ```
 
@@ -236,8 +236,15 @@ install_asc_key \
 
 - Install downloaded binaries and register their commands during `install.sh`.
 - Do not defer required symbolic links or PATH registration to `post_install.sh`.
-- `post_install.sh` is reserved for optional, rerunnable user configuration such
-  as aliases, shell completion, and configuration payloads.
+- Keep configuration required for the installed software to function in `install.sh`.
+- Reserve `post_install.sh` for optional, rerunnable system adjustments that depend on the completed installation,
+  such as resolving a service compatibility issue or disabling vendor maintenance behavior that conflicts with
+  repositories managed by Mint Provisioner.
+- Do not use `post_install.sh` for user preferences, shell integration, aliases, prompts, themes, or application
+  defaults. Implement those features in System Toolkit and provide installation guidance through module messages and
+  documentation.
+- Keep every `post_install.sh` idempotent and independent of temporary installation artifacts because `configure.sh`
+  may execute it again.
 
 ### Single Binary
 
@@ -297,57 +304,6 @@ add_to_path "$CANONICAL_ID" "${APACHE_MAVEN_INSTALL_DIR}/bin"
 
 Do not create a user configuration script or call `add_bash_source` and
 `add_zsh_source` solely to register an installed binary directory.
-
-### Post-Installation Configuration
-
-- When `post_install.sh` exists, source required libraries and declare essential
-  module paths before performing the skip check.
-- Check the module-specific `*_SKIP_CONFIGURATION` variable, falling back to
-  the global `SKIP_CONFIGURATION` variable.
-- Exit successfully when configuration is skipped.
-- Define the module-specific `*_FORCE_CONFIGURATION` value after the skip check
-  when the phase supports overwriting existing configuration.
-- All optional operations in `post_install.sh` must respect the skip setting.
-- Required installation work, including binary symbolic links and PATH
-  registration, must remain in `install.sh` and must not be controlled by
-  `SKIP_CONFIGURATION`.
-- Use `add_bash_source` and `add_zsh_source` only for existing user-shell
-  integration files, such as aliases or completion scripts.
-
-Example:
-
-```bash
-source "${LIB_DIR}/installer_common.sh"
-
-SCRIPT_DIR="${MODULES_DIR}/${CANONICAL_ID}"
-PAYLOAD_DIR="$SCRIPT_DIR/payload"
-
-if [[ "${MODULE_NAME_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
-    log_warn "[$CANONICAL_ID] Skipping configuration as requested"
-
-    exit 0
-fi
-
-if [[ -z "${MODULE_NAME_FORCE_CONFIGURATION:-}" ]]; then
-    MODULE_NAME_FORCE_CONFIGURATION="${FORCE_CONFIGURATION:-false}"
-fi
-
-copy_to_config_dir \
-    "$CANONICAL_ID" \
-    "$PAYLOAD_DIR/module-aliases.sh" \
-    "MODULE_NAME_FORCE_CONFIGURATION"
-
-add_bash_source \
-    "$CANONICAL_ID" \
-    "$(get_config_dir)/module-aliases.sh"
-
-add_zsh_source \
-    "$CANONICAL_ID" \
-    "$(get_config_dir)/module-aliases.sh"
-```
-
-`MODULE_NAME` is a placeholder and must be replaced with the module's uppercase
-environment-variable prefix.
 
 ## GitHub and External Modules
 
@@ -485,7 +441,7 @@ For archives containing multiple binaries or a required directory structure:
 - Do not silently create or omit the desktop entry.
 - If the user confirms, create the desktop entry during `install.sh`.
 - Desktop-entry creation is part of installing the GUI application. It must not
-  be placed in `post_install.sh` or controlled by `SKIP_CONFIGURATION`.
+  be placed in `post_install.sh`.
 
 ### Desktop Entry Installation
 
