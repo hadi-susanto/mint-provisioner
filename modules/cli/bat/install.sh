@@ -2,6 +2,7 @@
 set -euo pipefail
 
 source "${LIB_DIR}/installer_apt.sh"
+source "${LIB_DIR}/messages.sh"
 source "${LIB_DIR}/state.sh"
 
 load_states "$CANONICAL_ID" || exit 1
@@ -21,3 +22,5 @@ if ! apt_install "$DEB_FILE"; then
 fi
 
 log_info "[$CANONICAL_ID] Package installed successfully"
+
+add_system_toolkit_message "$CANONICAL_ID"

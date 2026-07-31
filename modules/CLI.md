@@ -59,39 +59,10 @@ Downloads the latest AMD64 Debian package from the official GitHub releases page
     - Default:
       `bat_.*_amd64\.deb$`
 
-- `BAT_SKIP_CONFIGURATION`
-    - Skip post-install configuration.
-    - Default: `${SKIP_CONFIGURATION}`
+### System Toolkit Integration
 
-- `BAT_FORCE_CONFIGURATION`
-    - Overwrite existing configuration.
-    - Default: `${FORCE_CONFIGURATION}`
-
-### Post-install Configuration
-
-#### Installed Configuration
-
-- Installs `bat-aliases.sh` into the provisioner's configuration directory.
-- Configures the default Bat theme to **Dracula**.
-- Configures `MANPAGER` so `man` pages are automatically rendered using Bat with syntax highlighting.
-
-#### Shell Integration
-
-- Registers the configuration for **Bash**.
-- Registers the configuration for **Zsh**.
-
-#### Shell Aliases
-
-| Alias | Description                                                                                                                         |
-|-------|-------------------------------------------------------------------------------------------------------------------------------------|
-| `cat` | **Expands to:** `bat --paging=never`<br><br>Displays files with syntax highlighting while behaving like the standard `cat` command. |
-
-#### Shell Functions
-
-| Function       | Description                                                                                                                                                   |
-|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `bat-help`     | Displays the help output of any command using Bat syntax highlighting. If called without arguments, it renders help text from standard input.                 |
-| `git-bat-diff` | Displays all modified tracked files in the current Git repository using `bat --diff`. If Git is not installed, an informative error message is shown instead. |
+This module has additional features that can be enabled by running SysKit. See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
 
 ### Official Website
 
@@ -119,30 +90,10 @@ Downloads the latest Linux x86_64 MUSL release archive from the official GitHub 
 - `DELTA_REGEX`
     - Regular expression used to locate the GitHub release asset.
 
-- `DELTA_SKIP_CONFIGURATION`
-    - Skip post-install configuration.
-    - Default: `${SKIP_CONFIGURATION}`
+### System Toolkit Integration
 
-- `DELTA_FORCE_CONFIGURATION`
-    - Overwrite existing configuration files.
-    - Default: `${FORCE_CONFIGURATION}`
-
-### Post-install Configuration
-
-#### Installed Configuration
-
-- Copies `delta-aliases.sh` into the provisioner configuration directory.
-
-#### Shell Integration
-
-- Registers the configuration for **Bash**.
-- Registers the configuration for **Zsh**.
-
-#### Shell Functions
-
-| Function         | Description                                                                                                                                                                                        |
-|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `git-delta-diff` | Executes `git diff` using Delta with syntax highlighting, side-by-side view, keyboard navigation, and dark theme enabled. If Git is not installed, the function displays an error message instead. |
+This module has additional features that can be enabled by running SysKit. See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
 
 ### Official Website
 
@@ -159,45 +110,10 @@ improved sorting, and rich metadata while remaining familiar to existing `ls` us
 
 **External APT repository**
 
-### Supported ENV
+### System Toolkit Integration
 
-- `EZA_SKIP_CONFIGURATION`
-    - Skip post-install configuration.
-    - Default: `${SKIP_CONFIGURATION}`
-
-- `EZA_FORCE_CONFIGURATION`
-    - Overwrite existing configuration.
-    - Default: `${FORCE_CONFIGURATION}`
-
-### Post-install Configuration
-
-#### Installed Configuration
-
-- Installs `eza-aliases.sh` into the provisioner's configuration directory.
-
-#### Shell Integration
-
-- Registers the configuration for **Bash**.
-- Registers the configuration for **Zsh**.
-
-#### Shell Aliases
-
-> **Note:** Unless otherwise specified, all aliases:
->
-> * Display hidden files (`--all`)
-> * Show colored output and file icons
-> * Sort entries by file extension
-> * List directories before files
-
-| Alias          | Description                                                                                                                                                                                                                                         |
-|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `ls`           | **Expands to:** `eza --grid --color=always --icons=always --all --sort extension --group-directories-first`<br><br>Displays files in a compact grid layout.                                                                                         |
-| `ls-tree`      | **Expands to:** `eza --grid --tree --color=always --icons=always --all --sort extension --group-directories-first`<br><br>Displays files and directories as a tree.                                                                                 |
-| `ll`           | **Expands to:** `eza --long --color=always --icons=always --all --sort extension --group-directories-first --header --time-style long-iso`<br><br>Displays a detailed file listing with permissions, ownership, size, and ISO-formatted timestamps. |
-| `ll-tree`      | **Expands to:** `eza --long --tree --color=always --icons=always --all --sort extension --group-directories-first --header --time-style long-iso`<br><br>Displays a detailed directory tree with file metadata and ISO-formatted timestamps.        |
-| `ll-size`      | **Expands to:** `eza --long --color=always --icons=always --all --sort extension --group-directories-first --header --time-style long-iso --total-size`<br><br>Displays a detailed file listing with an overall directory size summary.             |
-| `ll-tree-size` | **Expands to:** `eza --long --tree --color=always --icons=always --all --sort extension --group-directories-first --header --time-style long-iso --total-size`<br><br>Displays a detailed directory tree with an overall size summary.              |
-| `ll-size-tree` | Alias of `ll-tree-size`.                                                                                                                                                                                                                            |
+This module has additional features that can be enabled by running SysKit. See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
 
 ### Official Website
 
@@ -216,53 +132,10 @@ merging, rebasing, tagging, and repository management.
 
 Installs Git directly from the distribution package repository.
 
-### Supported ENV
+### System Toolkit Integration
 
-- `GIT_SKIP_CONFIGURATION`
-    - Skip post-install configuration.
-    - Default: `${SKIP_CONFIGURATION}`
-
-- `GIT_FORCE_CONFIGURATION`
-    - Overwrite existing configuration files.
-    - Default: `${FORCE_CONFIGURATION}`
-
-### Post-install Configuration
-
-#### Installed Configuration
-
-- Copies `git-aliases.sh` into the provisioner configuration directory.
-
-#### Shell Integration
-
-- Registers the configuration for **Bash**.
-- Registers the configuration for **Zsh**.
-
-#### Shell Aliases
-
-> **Note:** These aliases provide convenient shortcuts for commonly used Git commands.
-
-| Alias  | Description                                                                                                                             |
-|--------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| `gcm`  | **Expands to:** `git commit -m`<br><br>Creates a commit with the message specified on the command line.                                 |
-| `gp`   | **Expands to:** `git push`<br><br>Pushes local commits to the configured remote repository.                                             |
-| `gb`   | **Expands to:** `git branch`<br><br>Lists, creates, or manages local branches.                                                          |
-| `gbr`  | **Expands to:** `git branch --remote`<br><br>Lists remote-tracking branches.                                                            |
-| `gba`  | **Expands to:** `git branch --all`<br><br>Lists both local and remote branches.                                                         |
-| `gbd`  | **Expands to:** `git branch --delete`<br><br>Deletes a fully merged local branch.                                                       |
-| `gbD`  | **Expands to:** `git branch --delete --force`<br><br>Forcefully deletes a local branch, even if it has unmerged changes.                |
-| `gbdr` | **Expands to:** `git branch --delete --remote`<br><br>Deletes a remote-tracking branch reference from the local repository.             |
-| `gco`  | **Expands to:** `git checkout`<br><br>Switches branches or restores files from the repository.                                          |
-| `gcor` | **Expands to:** `git checkout --recurse-submodules`<br><br>Checks out a branch or commit while updating submodules recursively.         |
-| `gsw`  | **Expands to:** `git switch`<br><br>Switches to an existing branch.                                                                     |
-| `gswc` | **Expands to:** `git switch --create`<br><br>Creates a new branch and switches to it.                                                   |
-| `gf`   | **Expands to:** `git fetch`<br><br>Downloads commits, branches, and tags from the configured remote without modifying the working tree. |
-| `gfo`  | **Expands to:** `git fetch origin`<br><br>Fetches updates from the `origin` remote only.                                                |
-
-#### Shell Functions
-
-| Function | Description                                                                                |
-|----------|--------------------------------------------------------------------------------------------|
-| `gpsup`  | Pushes the current branch to `origin` and automatically sets the upstream tracking branch. |
+This module has additional features that can be enabled by running SysKit. See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
 
 ### Official Website
 
@@ -304,18 +177,6 @@ The package installed depends on the selected configuration:
     * When unset during an interactive installation, the module asks whether the GUI should be installed.
     * When unset during a non-interactive installation, defaults to `false`.
 
-* `MKVTOOLNIX_SKIP_CONFIGURATION`
-
-    * Skip installation of the MKVToolNix shell helpers and shell integration.
-    * Falls back to the global `SKIP_CONFIGURATION` value when not explicitly set.
-    * Default: `${SKIP_CONFIGURATION}`
-
-* `MKVTOOLNIX_FORCE_CONFIGURATION`
-
-    * Overwrite existing MKVToolNix helper files and regenerate the MKVToolNix loader.
-    * Falls back to the global `FORCE_CONFIGURATION` value when not explicitly set.
-    * Default: `${FORCE_CONFIGURATION}`
-
 ### Installation Detection
 
 The module always checks for the following command-line tools:
@@ -347,155 +208,10 @@ FORCE_INSTALL=true ./install.sh cli/mkvtoolnix
 ./install.sh --force-install cli/mkvtoolnix
 ```
 
-### Post-install Configuration
+### System Toolkit Integration
 
-#### Installed Configuration
-
-* Installs helpers function to manipulate movies and extracting their infos via bash and zsh integration.
-
-#### Shell Integration
-
-* Registers `mkvtoolnix-loader.sh` for **Bash**.
-* Registers `mkvtoolnix-loader.sh` for **Zsh**.
-* Uses shell-native lowercase conversion for Bash and Zsh, with `tr` as a fallback for other shells.
-
-#### Runtime Dependencies
-
-* `jq`
-
-    * Used by `mkvmerge-extract-info` to parse the JSON output produced by `mkvmerge`.
-    * When `jq` is unavailable, the helper prints an error requesting that it be installed.
-
-#### Shell Functions
-
-| Function                | Description                                                                                                                                                                                                                                                                                                                                                      |
-|-------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `mkvmerge-extract-info` | Displays track information for a single media file or every matching file in a directory. The output includes the track ID, type, language, name, enabled flag, default flag, and forced flag. It accepts custom file extensions through `-e` or `--extension`, defaults to MKV files, and uses colored status icons when terminal color output is available.    |
-| `mkvmerge-process`      | Processes a single media file or every matching file in a directory using `mkvmerge`. It supports custom input and output paths, multiple file extensions, default-track and forced-track shorthand options, automatic expansion of repeated MKVToolNix option values, interactive confirmation, and a dry-run mode that prints commands without executing them. |
-
-### `mkvmerge-extract-info`
-
-The `mkvmerge-extract-info` function inspects media files using `mkvmerge -J` and formats the resulting track
-information into a readable table.
-
-#### Options
-
-| Option                   | Description                                                                                                                |
-|--------------------------|----------------------------------------------------------------------------------------------------------------------------|
-| `-i`, `--input FILE/DIR` | Inspect a specific file or every matching file directly inside a directory. Defaults to `.`.                               |
-| `-e`, `--extension EXT`  | Process files with the specified extension. May be repeated. Extensions are matched case-insensitively. Defaults to `mkv`. |
-| `-h`, `--help`           | Display usage information.                                                                                                 |
-
-#### Examples
-
-```bash
-mkvmerge-extract-info
-```
-
-Inspect a single file:
-
-```bash
-mkvmerge-extract-info \
-    --input movie.mkv
-```
-
-Inspect MKV and MP4 files in a directory:
-
-```bash
-mkvmerge-extract-info \
-    --input movies \
-    --extension mkv \
-    --extension mp4
-```
-
-### `mkvmerge-process`
-
-The `mkvmerge-process` function applies MKVToolNix options to one media file or multiple matching files in a
-directory.
-
-Processed files are written to an output directory while retaining their original filenames. When no output
-directory is provided, an `output` directory is created beside the input file or inside the input directory.
-
-Unless dry-run mode is enabled, the function asks for confirmation before processing files.
-
-#### Options
-
-| Option                   | Description                                                                                                                |
-|--------------------------|----------------------------------------------------------------------------------------------------------------------------|
-| `-i`, `--input FILE/DIR` | Process a specific file or every matching file directly inside a directory. Defaults to `.`.                               |
-| `-o`, `--output DIR`     | Write processed files into the specified directory. Defaults to an `output` directory associated with the input path.      |
-| `-e`, `--extension EXT`  | Process files with the specified extension. May be repeated. Extensions are matched case-insensitively. Defaults to `mkv`. |
-| `-d`, `--default`        | Shorthand for the MKVToolNix `--default-track-flag` option.                                                                |
-| `-f`, `--forced`         | Shorthand for the MKVToolNix `--forced-display-flag` option.                                                               |
-| `-dr`, `--dry-run`       | Print the generated `mkvmerge` commands without executing them.                                                            |
-| `-pc`, `--print-command` | Alias for `--dry-run`.                                                                                                     |
-| `-h`, `--help`           | Display usage information.                                                                                                 |
-| Other options            | Forwarded to `mkvmerge`. Consecutive values are expanded by repeating their associated MKVToolNix option.                  |
-
-At least one MKVToolNix processing option must be provided.
-
-#### Automatic Option Expansion
-
-When multiple values follow an MKVToolNix option, the function repeats that option for every value.
-
-For example:
-
-```bash
-mkvmerge-process \
-    --input movie.mkv \
-    --language eng jpn \
-    --track-name "0:English" "1:Japanese"
-```
-
-Expands to the equivalent of:
-
-```bash
-mkvmerge \
-    -o output/movie.mkv \
-    --language eng \
-    --language jpn \
-    --track-name "0:English" \
-    --track-name "1:Japanese" \
-    movie.mkv
-```
-
-#### Examples
-
-Process MKV files in the current directory:
-
-```bash
-mkvmerge-process \
-    --default 1:1
-```
-
-Process a single file and update its default and forced track flags:
-
-```bash
-mkvmerge-process \
-    --input movie.mkv \
-    --default 1:1 2:0 \
-    --forced 3:1
-```
-
-Process MKV and MP4 files into a custom output directory:
-
-```bash
-mkvmerge-process \
-    --input movies \
-    --output processed \
-    --extension mkv \
-    --extension mp4 \
-    --language 0:eng 1:jpn
-```
-
-Preview commands without modifying any files:
-
-```bash
-mkvmerge-process \
-    --input movies \
-    --default 1:1 \
-    --dry-run
-```
+This module has additional features that can be enabled by running SysKit. See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
 
 ### Official Website
 

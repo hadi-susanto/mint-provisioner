@@ -2,6 +2,7 @@
 set -euo pipefail
 
 source "${LIB_DIR}/installer_common.sh"
+source "${LIB_DIR}/messages.sh"
 source "${LIB_DIR}/state.sh"
 
 load_states "$CANONICAL_ID" || exit 1
@@ -48,3 +49,5 @@ else
 fi
 
 log_info "[$CANONICAL_ID] Installation completed successfully"
+
+add_system_toolkit_message "$CANONICAL_ID"

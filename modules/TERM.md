@@ -51,43 +51,10 @@ integration. It provides advanced terminal features while maintaining a clean us
     - Controls whether the Launchpad repository is added using `add-apt-repository`.
     - Default: `${USE_APT_ADD_REPOSITORY}`
 
-- `GHOSTTY_SKIP_CONFIGURATION`
-    - Skip post-install configuration.
-    - Default: `${SKIP_CONFIGURATION}`
+### System Toolkit Integration
 
-- `GHOSTTY_FORCE_CONFIGURATION`
-    - Overwrite existing configuration.
-    - Default: `${FORCE_CONFIGURATION}`
-
-### Post-install Configuration
-
-#### Installed Configuration
-
-- Creates the Ghostty configuration directory if it does not already exist.
-- Installs the bundled `mint-provisioner.ghostty` configuration file.
-- Automatically includes `mint-provisioner.ghostty` from `~/.config/ghostty/config.ghostty` if the include directive is
-  not already present.
-
-The bundled configuration includes:
-
-- GitHub Dark theme.
-- Disable restoring previous windows, tabs, and splits.
-- Split pane shortcuts.
-- Split navigation shortcuts.
-- Split zoom shortcut.
-
-#### Keyboard Shortcuts
-
-| Shortcut           | Action                                   |
-|--------------------|------------------------------------------|
-| `Ctrl+Shift+E`     | Split pane to the right.                 |
-| `Ctrl+Shift+O`     | Split pane downward.                     |
-| `Ctrl+Shift+Enter` | Automatically determine split direction. |
-| `Ctrl+←`           | Focus left split.                        |
-| `Ctrl+→`           | Focus right split.                       |
-| `Ctrl+↑`           | Focus upper split.                       |
-| `Ctrl+↓`           | Focus lower split.                       |
-| `Ctrl+Shift+X`     | Toggle split zoom.                       |
+This module has additional features that can be enabled by running SysKit. See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
 
 ### Official Website
 
@@ -120,67 +87,15 @@ Kitty as an available terminal emulator.
     - Default:
       `${INSTALL_DIR}/kitty`
 
-- `KITTY_SKIP_CONFIGURATION`
-    - Skip post-install configuration.
-    - Default:
-      `${SKIP_CONFIGURATION}`
-
-- `KITTY_FORCE_CONFIGURATION`
-    - Overwrite existing configuration files.
-    - Default:
-      `${FORCE_CONFIGURATION}`
-
 - `KITTY_INSTALL_OPEN_HANDLER`
     - Install `kitty-open.desktop`, allowing Kitty to be registered as an application for opening files.
     - Default:
       `false`
 
-### Post-install Configuration
+### System Toolkit Integration
 
-#### Installed Configuration
-
-- Creates `~/.config/kitty` if it does not already exist.
-- Copies `mint-provisioner.kitty` into `~/.config/kitty`.
-- Copies `mint-provisioner.session` into `~/.config/kitty`.
-- Creates `~/.config/kitty/kitty.conf` if it does not already exist.
-- Adds `include mint-provisioner.kitty` into `kitty.conf` if the include line does not already exist.
-
-The bundled Kitty configuration:
-
-- Enables only the split and stack layouts.
-- Disables remembered window size and window position.
-- Sets the initial window size to `120c` by `30c`.
-- Removes window margins.
-- Enables minimal borders.
-- Starts Kitty using `mint-provisioner.session`.
-
-#### Keyboard Shortcuts
-
-| Shortcut           | Action                                                                                |
-|--------------------|---------------------------------------------------------------------------------------|
-| `Ctrl+Shift+X`     | Switch to the next layout, mimicking maximize/minimize behavior for the current pane. |
-| `F5`               | Create a horizontal split.                                                            |
-| `Ctrl+Shift+O`     | Create a horizontal split.                                                            |
-| `F6`               | Create a vertical split.                                                              |
-| `Ctrl+Shift+E`     | Create a vertical split.                                                              |
-| `F4`               | Create an automatic split.                                                            |
-| `Ctrl+Shift+Enter` | Create an automatic split.                                                            |
-| `F7`               | Rotate the current split layout.                                                      |
-| `Shift+Up`         | Move the active window up.                                                            |
-| `Shift+Left`       | Move the active window left.                                                          |
-| `Shift+Right`      | Move the active window right.                                                         |
-| `Shift+Down`       | Move the active window down.                                                          |
-| `Ctrl+Shift+Up`    | Move the active window to the top screen edge.                                        |
-| `Ctrl+Shift+Left`  | Move the active window to the left screen edge.                                       |
-| `Ctrl+Shift+Right` | Move the active window to the right screen edge.                                      |
-| `Ctrl+Shift+Down`  | Move the active window to the bottom screen edge.                                     |
-| `Ctrl+Left`        | Focus the neighboring window on the left.                                             |
-| `Ctrl+Right`       | Focus the neighboring window on the right.                                            |
-| `Ctrl+Up`          | Focus the neighboring window above.                                                   |
-| `Ctrl+Down`        | Focus the neighboring window below.                                                   |
-| `Ctrl+.`           | Set split bias to 80%.                                                                |
-| `Ctrl+Shift+W`     | Maximize the active window horizontally.                                              |
-| `Ctrl+Shift+H`     | Maximize the active window vertically.                                                |
+This module has additional features that can be enabled by running SysKit. See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
 
 ### Official Website
 
@@ -218,27 +133,13 @@ link in `/usr/local/bin`.
     - Default:
       `${OH_MY_POSH_INSTALL_DIR}/themes`
 
-- `OH_MY_POSH_SKIP_CONFIGURATION`
-    - Skip post-install configuration.
-    - Default:
-      `${SKIP_CONFIGURATION}`
+### System Toolkit Integration
 
-- `OH_MY_POSH_FORCE_CONFIGURATION`
-    - Overwrite existing configuration files.
-    - Default:
-      `${FORCE_CONFIGURATION}`
+This module has additional features that can be enabled by running SysKit. See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
 
-### Post-install Configuration
-
-#### Installed Configuration
-
-- Copies `oh-my-posh.sh` into the provisioner's configuration directory.
-- Copies `oh-my-posh.zsh` into the provisioner's configuration directory.
-
-#### Shell Integration
-
-- Registers Oh My Posh initialization for **Bash**.
-- Registers Oh My Posh initialization for **Zsh**.
+Without System Toolkit, configure Oh My Posh manually using the
+[official prompt integration guide](https://ohmyposh.dev/docs/installation/prompt).
 
 ### Official Website
 
@@ -311,39 +212,13 @@ binary into the configured installation directory, makes it executable, and crea
     - Default:
       `${INSTALL_DIR}/starship`
 
-- `STARSHIP_SKIP_CONFIGURATION`
-    - Skip post-install configuration.
-    - Default:
-      `${SKIP_CONFIGURATION}`
+### System Toolkit Integration
 
-- `STARSHIP_FORCE_CONFIGURATION`
-    - Overwrite existing configuration files.
-    - Default:
-      `${FORCE_CONFIGURATION}`
+This module has additional features that can be enabled by running SysKit. See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
 
-### Post-install Configuration
-
-#### Installed Configuration
-
-- Copies `starship.sh` into the provisioner's configuration directory.
-- Copies `starship.zsh` into the provisioner's configuration directory.
-- Creates `~/.config/starship.toml` from the bundled payload if it does not exist.
-- If `~/.config/starship.toml` already exists and does not contain `add_newline`, prepends the provisioner's Starship
-  newline configuration.
-- If `~/.config/starship.toml` already contains `add_newline`, leaves the file unchanged and prints a manual update
-  message.
-
-#### Shell Integration
-
-- Registers Starship initialization for **Bash**.
-- Registers Starship initialization for **Zsh**.
-
-#### Shell Functions
-
-| Function             | Description                                                                    |
-|----------------------|--------------------------------------------------------------------------------|
-| `__starship_newline` | Bash helper that adds a blank line before each prompt except the first prompt. |
-| `starship_newline`   | Zsh helper that adds a blank line before each prompt except the first prompt.  |
+Without System Toolkit, follow the **Add the init script to your shell's config file** section in the
+[official Starship installation guide](https://starship.rs/).
 
 ### Official Website
 
@@ -390,42 +265,18 @@ https://gnome-terminator.org/
 Zsh is an advanced Unix shell that extends the Bourne shell with powerful scripting capabilities, intelligent tab
 completion, programmable prompts, command history improvements, and extensive customization.
 
-Within the provisioner, Zsh serves as the foundation for many shell integrations installed by other modules.
+Zsh serves as the foundation for many shell integrations managed by System Toolkit.
 
 ### Installation Method
 
 **APT package (Linux Mint / Ubuntu repository)**
 
-Installs Zsh from the distribution package repository and configures it as the default interactive shell for the current
-user.
+Installs Zsh from the distribution package repository.
 
-### Supported ENV
+### System Toolkit Integration
 
-- `ZSH_SKIP_CONFIGURATION`
-    - Skip post-install configuration.
-    - Default:
-      `${SKIP_CONFIGURATION}`
-
-- `ZSH_FORCE_CONFIGURATION`
-    - Overwrite existing configuration files.
-    - Default:
-      `${FORCE_CONFIGURATION}`
-
-### Post-install Configuration
-
-#### Installed Configuration
-
-- Creates the provisioner's Zsh configuration directory.
-- Installs the bundled `.zshrc`.
-- Installs the module loader.
-- Installs helper functions used by other provisioner modules.
-- Configures automatic loading of provisioner-managed shell integrations.
-- Preserves existing configuration unless `ZSH_FORCE_CONFIGURATION=true`.
-
-#### Shell Integration
-
-The provisioner automatically loads shell integrations installed by other modules from the generated loader file,
-allowing modules to contribute aliases, functions, completions, and environment variables without modifying `.zshrc`.
+This module has additional features that can be enabled by running SysKit. See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
 
 ### Official Website
 

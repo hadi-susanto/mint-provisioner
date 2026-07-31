@@ -2,6 +2,7 @@
 set -euo pipefail
 
 source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/messages.sh"
 source "${LIB_DIR}/state.sh"
 
 if ! load_states "$CANONICAL_ID"; then
@@ -44,3 +45,12 @@ log_info "$message"
 
 printf '%s\n' "$configs" | sudo debconf-set-selections &&
     sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y apt-fast
+
+add_system_toolkit_message "$CANONICAL_ID"
+
+message="Unless System Toolkit is used to enable apt-fast
+autocompletion, install the shell completions
+manually:
+  https://github.com/ilikenwf/apt-fast#autocompletion"
+
+add_message "$CANONICAL_ID" "info" "$message"
