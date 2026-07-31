@@ -10,10 +10,6 @@ export INSTALL_DIR="${ROOT_DIR%/*}"
 export LIB_DIR="$ROOT_DIR/lib"
 export MODULES_DIR="$ROOT_DIR/modules"
 
-# Standalone configuration always reruns supported post-install configuration.
-export FORCE_CONFIGURATION=true
-export SKIP_CONFIGURATION=false
-
 source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/messages.sh"
 source "${LIB_DIR}/module_configurer.sh"
@@ -38,10 +34,7 @@ Arguments:
   MODULE    Module to configure: <category>/<module>, <module>, or an alias.
 
 Examples:
-  ./configure.sh git
-  ./configure.sh cli/git
-  ./configure.sh dbeaver
-  ./configure.sh gui/flameshot term/kitty
+  ./configure.sh edge
   ./configure.sh --all
 
 Notes:

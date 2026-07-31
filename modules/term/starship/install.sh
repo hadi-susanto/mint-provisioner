@@ -57,7 +57,17 @@ fi
 
 log_info "[$CANONICAL_ID] Installation completed successfully"
 
-msg="starship is require nerd-font to be installed, please ensure you have nerd font installed.
-to install you can use mint-provisioner to install one."
+msg="Starship requires a Nerd Font to be installed. Ensure you
+have a Nerd Font installed.
+To install one, you can use mint-provisioner."
+
+add_message "$CANONICAL_ID" "info" "$msg"
+
+add_system_toolkit_message "$CANONICAL_ID"
+
+msg="Unless System Toolkit is used to enable the shell
+integration, follow the 'Add the init script to your
+shell's config file' section:
+  https://starship.rs/"
 
 add_message "$CANONICAL_ID" "info" "$msg"

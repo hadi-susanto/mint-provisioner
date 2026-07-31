@@ -155,6 +155,33 @@ add_message() {
 }
 
 ##
+# Adds standard guidance for integrations managed by System Toolkit.
+#
+# Parameters:
+#   $1 - Canonical module ID in <category>/<module> format.
+#
+# Returns:
+#   0 - Guidance was stored.
+#   1 - Canonical ID is invalid or the message could not be stored.
+#
+add_system_toolkit_message() {
+    local canonical_id="${1:-}"
+
+    if [[ -z "$canonical_id" ]]; then
+        log_error "[add_system_toolkit_message] Canonical ID must not be empty."
+
+        return 1
+    fi
+
+    local message
+    message="If System Toolkit is installed, try syskit-bin,
+syskit-bash, syskit-zsh, or syskit-cfg to enable additional
+integrations and functionality for this tool."
+
+    add_message "$canonical_id" "info" "$message"
+}
+
+##
 # Checks whether a module has any stored messages.
 #
 # Parameters:

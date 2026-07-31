@@ -42,7 +42,7 @@ Each category document contains detailed information about its modules, includin
 | [Development](DEV.md)           | `dev`  | `apache-maven`, `bruno`, `dbeaver-community`, `dbgate-community`, `docker`, `httptoolkit`, `mongodb-compass`, `pg-admin`, `postman`, `sdkman`, `yaak`                                |
 | [Desktop Applications](GUI.md)  | `gui`  | `brave-browser`, `brave-origin`, `cryptomator`, `deadbeef`, `double-commander`, `flameshot`, `fman`, `insync`, `keepass-xc`, `microsoft-edge`, `mu-commander`, `sunflower`, `tlp-ui` |
 | [IDE](IDE.md)                   | `ide`  | `clion`, `cudatext`, `datagrip`, `geany`, `goland`, `idea`, `phpstorm`, `pycharm`, `rider`, `rubymine`, `rustrover`, `vscode`, `vscodium`, `webstorm`                                |
-| [System Administration](SYS.md) | `sys`  | `apt-fast`, `dconf-editor`, `dnscrypt-proxy`, `nerd-font`, `oobe`                                                                                                                    |
+| [System Administration](SYS.md) | `sys`  | `apt-fast`, `dconf-editor`, `dnscrypt-proxy`, `nerd-font`, `system-toolkit`                                                                                                          |
 | [Terminal](TERM.md)             | `term` | `alacritty`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `terminator`, `zsh`                                                                                    |
 | [Terminal UI](TUI.md)           | `tui`  | `bottom`, `du-analyzer`, `du-rust`, `duf`, `git-ui`, `lazy-git`                                                                                                                      |
 | [Miscellaneous](MISC.md)        | `misc` | `any-desk`, `virtual-box`                                                                                                                                                            |
@@ -137,7 +137,7 @@ continues with the remaining selected modules, prints the complete summary, and 
 | `is_installed.sh`  |   Yes    | Determine whether the module is already installed                       |
 | `pre_install.sh`   |    No    | Prepare repositories, dependencies, downloads, keys, or temporary files |
 | `install.sh`       |   Yes    | Perform the software installation                                       |
-| `post_install.sh`  |    No    | Apply application configuration and shell integration                   |
+| `post_install.sh`  |    No    | Apply rerunnable installation-adjacent system adjustments               |
 | `cleanup.sh`       |    No    | Remove temporary state, downloads, and intermediate files               |
 
 ### `configuration.sh`
@@ -225,21 +225,21 @@ the same file.
 
 `install.sh` performs the actual software installation.
 
-Keep this phase focused on installing the application. User configuration, aliases, shell integrations, and optional
-customizations should normally be handled by `post_install.sh`.
+Keep this phase focused on installing the application, including configuration required for the installed software to
+function.
 
 ### `post_install.sh`
 
-Use `post_install.sh` for configuration applied after installation.
+Use `post_install.sh` only for a rerunnable system adjustment that depends on the completed installation.
 
 Typical responsibilities include:
 
-- Installing configuration files.
-- Registering Bash or Zsh integration.
-- Creating shell aliases or helper functions.
-- Setting an application theme.
-- Enabling optional features.
+- Resolving service compatibility issues discovered after installation.
+- Disabling vendor maintenance behavior that conflicts with repositories managed by Mint Provisioner.
 - Adding information to the installation summary.
+
+User preferences and shell integrations—including aliases, prompts, themes, and application defaults—belong in
+[System Toolkit](https://github.com/hadi-susanto/system-toolkit).
 
 The top-level `configure.sh` command executes `post_install.sh` independently for installed modules. It does not execute
 `configuration.sh`, `pre_install.sh`, `install.sh`, or `cleanup.sh`.
@@ -379,7 +379,7 @@ Then:
 3. Implement `install.sh`.
 4. Add `configuration.sh` when installation requires choices or automatic detection.
 5. Add `pre_install.sh` when preparation or manual downloads are required.
-6. Add `post_install.sh` when the application supports automatic configuration.
+6. Add `post_install.sh` only for a rerunnable system adjustment that depends on the completed installation.
 7. Add `cleanup.sh` when state, downloads, or temporary files are created.
 8. Add module-specific helpers, templates, or resources when necessary.
 9. Document the module in the corresponding category Markdown file.
@@ -488,42 +488,6 @@ Default:
 false
 ```
 
-### `SKIP_CONFIGURATION`
-
-Skips supported automatic post-install configuration.
-
-Software installation still proceeds, but supported modules avoid operations such as:
-
-- Copying configuration files.
-- Registering Bash or Zsh integration.
-- Installing shell aliases.
-- Installing shell helper functions.
-- Replacing application defaults.
-
-Default:
-
-```text
-false
-```
-
-### `FORCE_CONFIGURATION`
-
-Allows supported post-install configuration to overwrite or reapply existing configuration.
-
-Default for `install.sh`:
-
-```text
-false
-```
-
-Default for `configure.sh`:
-
-```text
-true
-```
-
-When both `SKIP_CONFIGURATION` and `FORCE_CONFIGURATION` are enabled, `SKIP_CONFIGURATION` takes precedence.
-
 ## 🔧 Common Module Environment Variables
 
 Module-specific environment variables use an uppercase prefix derived from the module ID.
@@ -573,28 +537,6 @@ Example:
 DELTA_INSTALL_DIR=/opt/tools/delta
 ```
 
-### `*_SKIP_CONFIGURATION`
-
-Overrides `SKIP_CONFIGURATION` for one module.
-
-Example:
-
-```bash
-DELTA_SKIP_CONFIGURATION=true
-```
-
-### `*_FORCE_CONFIGURATION`
-
-Overrides `FORCE_CONFIGURATION` for one module.
-
-Example:
-
-```bash
-GIT_FORCE_CONFIGURATION=true
-```
-
-Module-specific variables that do not follow these common patterns must be documented in the relevant category file.
-
 ## 📝 Module Documentation Requirements
 
 Each module must be documented under its corresponding category page.
@@ -618,9 +560,14 @@ Explain how the module installs the application.
     - Explain what the variable controls.
     - Default: `value`
 
-### Post-install Configuration
+### Post-install System Adjustment
 
-Describe installed configuration, shell integration, aliases, functions, or other automatic setup.
+Describe any rerunnable installation-adjacent system adjustment.
+
+### System Toolkit Integration
+
+When additional user preferences or integrations are available, link to the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
 
 ### Official Website
 
@@ -641,9 +588,10 @@ New and updated modules should:
 - Return `1` only when the application is not installed.
 - Return another non-zero status when detection itself fails.
 - Keep `install.sh` focused on installation.
-- Keep application configuration in `post_install.sh`.
+- Keep required application configuration in `install.sh`.
+- Keep user preferences and shell integrations in System Toolkit.
+- Use `post_install.sh` only for rerunnable installation-adjacent system adjustments.
 - Avoid prompts when `NON_INTERACTIVE=true`.
-- Respect global and module-specific configuration controls.
 - Use state instead of unrelated global variables to share values between phases.
 - Add cleanup whenever temporary resources are created.
 - Use shared framework helpers before duplicating installation logic.

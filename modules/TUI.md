@@ -39,8 +39,6 @@ https://github.com/ClementTsang/bottom
 
 ---
 
----
-
 ## Du Analyzer (`du-analyzer`) [alias: `dua`]
 
 Du Analyzer (dua-cli) is a fast disk usage analyzer designed for exploring directory sizes interactively. It helps
@@ -151,31 +149,6 @@ Downloads the latest Linux x86_64 release archive from the official GitHub repos
 - `GIT_UI_REGEX`
     - Regular expression used to locate the GitHub release asset.
 
-- `GIT_UI_SKIP_CONFIGURATION`
-    - Skip post-install configuration.
-    - Default: `${SKIP_CONFIGURATION}`
-
-- `GIT_UI_FORCE_CONFIGURATION`
-    - Overwrite existing configuration files.
-    - Default: `${FORCE_CONFIGURATION}`
-
-### Post-install Configuration
-
-#### Installed Configuration
-
-- Copies `git-ui-aliases.sh` into the provisioner configuration directory.
-
-#### Shell Integration
-
-- Registers the configuration for **Bash**.
-- Registers the configuration for **Zsh**.
-
-#### Shell Aliases
-
-| Alias | Description                                                                                               |
-|-------|-----------------------------------------------------------------------------------------------------------|
-| `gui` | **Expands to:** `gitui`<br><br>Launches the GitUI terminal user interface for interactive Git operations. |
-
 ### Official Website
 
 https://github.com/gitui-org/gitui
@@ -201,31 +174,6 @@ Downloads the latest Linux x86_64 release archive from the official GitHub repos
 
 - `LAZY_GIT_REGEX`
     - Regular expression used to locate the GitHub release asset.
-
-- `LAZY_GIT_SKIP_CONFIGURATION`
-    - Skip post-install configuration.
-    - Default: `${SKIP_CONFIGURATION}`
-
-- `LAZY_GIT_FORCE_CONFIGURATION`
-    - Overwrite existing configuration files.
-    - Default: `${FORCE_CONFIGURATION}`
-
-### Post-install Configuration
-
-#### Installed Configuration
-
-- Copies `lazy-git-aliases.sh` into the provisioner configuration directory.
-
-#### Shell Integration
-
-- Registers the configuration for **Bash**.
-- Registers the configuration for **Zsh**.
-
-#### Shell Aliases
-
-| Alias | Description                                                                                                   |
-|-------|---------------------------------------------------------------------------------------------------------------|
-| `lg`  | **Expands to:** `lazygit`<br><br>Launches the Lazygit terminal user interface for interactive Git operations. |
 
 ### Official Website
 

@@ -1,6 +1,8 @@
 # ⚙️ System (`sys`)
 
-System utilities, machine setup, performance tools, fonts, and operating system configuration. Modules in this category help configure, maintain, and optimize the operating system, including tools such as **apt-fast**, **Nerd Fonts**, and your opinionated **OOBE** configuration.
+System utilities, machine setup, performance tools, fonts, and operating system configuration. Modules in this category
+help configure, maintain, and optimize the operating system, including tools such as **apt-fast**, **Nerd Fonts**, and
+**System Toolkit**.
 
 ## Contents
 
@@ -8,7 +10,7 @@ System utilities, machine setup, performance tools, fonts, and operating system 
 - [Dconf Editor](#dconf-editor-dconf-editor)
 - [DNSCrypt Proxy](#dnscrypt-proxy-dnscrypt-proxy-alias-dnscrypt)
 - [Nerd Fonts](#nerd-fonts-nerd-font)
-- [Out of the Box Experience](#out-of-the-box-experience-oobe)
+- [System Toolkit](#system-toolkit-system-toolkit-alias-syskit)
 
 ---
 
@@ -49,24 +51,13 @@ The installer configures the official Apt Fast Launchpad PPA before installing t
     - Controls whether the Launchpad repository is added using `add-apt-repository`.
     - Default: `${USE_APT_ADD_REPOSITORY}`
 
-- `APT_FAST_SKIP_CONFIGURATION`
-    - Skip post-install configuration.
-    - Default: `${SKIP_CONFIGURATION}`
+### System Toolkit Integration
 
-- `APT_FAST_FORCE_CONFIGURATION`
-    - Overwrite existing shell completion files.
-    - Default: `${FORCE_CONFIGURATION}`
+This module has additional features that can be enabled by running SysKit. See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
 
-### Post-install Configuration
-
-#### Shell Completion
-
-The following shell completions are installed automatically:
-
-- Bash completion (`/etc/bash_completion.d/apt-fast`)
-- Zsh completion (`/usr/share/zsh/functions/Completion/Debian/_apt-fast`)
-
-Existing completion files are preserved unless `APT_FAST_FORCE_CONFIGURATION=true` is specified.
+Without System Toolkit, install shell completion manually using the
+[apt-fast autocompletion guide](https://github.com/ilikenwf/apt-fast#autocompletion).
 
 ### Official Website
 
@@ -110,12 +101,6 @@ protect DNS queries from interception and use DNS providers that offer filtering
 **Native distribution package**
 
 Installs the `dnscrypt-proxy` package from the Linux Mint or Ubuntu distribution repository using APT.
-
-### Supported ENV
-
-- `DNSCRYPT_PROXY_SKIP_CONFIGURATION`
-    - Skip post-install service adjustments and summary guidance.
-    - Default: `${SKIP_CONFIGURATION}`
 
 ### Post-install Configuration
 
@@ -173,30 +158,32 @@ https://www.nerdfonts.com/
 
 ---
 
-## Out of the Box Experience (`oobe`)
+## System Toolkit (`system-toolkit`) [alias: `syskit`]
 
-OOBE applies the opinionated Linux Mint configuration used by this provisioner. Rather than installing a standalone application, this module configures the operating system to provide a consistent and productive desktop environment.
-
-It's recommended to run this module after fresh installation of Linux Mint via `configure.sh`.
+System Toolkit, or SysKit, manages system configuration, shell integrations, and standalone executable scripts
+independently from Mint Provisioner.
 
 ### Installation Method
 
-**Internal module**
+**GitHub shallow clone**
 
-This module is part of the provisioner itself and does not download or install software from an external source.
+The installer clones the latest project state with `git clone --depth 1` into
+`$INSTALL_DIR/system-toolkit`. It makes every root-level `syskit-*` entrypoint executable and creates system-wide
+symbolic links for them under `/usr/local/bin`.
 
 ### Supported ENV
 
-- `OOBE_SKIP_CONFIGURATION`
-    - Skip all OOBE post-install configuration payloads.
-    - Default: `${SKIP_CONFIGURATION}`
+- `SYSTEM_TOOLKIT_INSTALL_DIR`
+    - Overrides the default checkout directory.
+    - Default: `$INSTALL_DIR/system-toolkit`
 
-### Post-install Configuration
+### Installed Commands
 
-#### Installed Configuration
-
-The module applies the provisioner's recommended Linux Mint configuration, including desktop preferences, system settings, and other operating system customizations.
+- `syskit-bin`
+- `syskit-bash`
+- `syskit-zsh`
+- `syskit-cfg`
 
 ### Official Website
 
-This module is maintained as part of the Linux Mint Provisioner project.
+https://github.com/hadi-susanto/system-toolkit

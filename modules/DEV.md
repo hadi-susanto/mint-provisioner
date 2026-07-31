@@ -374,7 +374,8 @@ between multiple versions of Java, Maven, Gradle, Kotlin, Scala, Groovy, Spring 
 
 Reads the official SDKMAN! bootstrap script to discover the current component versions, then downloads and installs the
 standard and native Linux x86_64 (`linuxx64`) archives in a non-interactive manner. Other SDKMAN! platforms are not
-currently supported by this module.
+currently supported by this module. The bundled SDKMAN! configuration is installed into
+`${SDKMAN_INSTALL_DIR}/etc/config`.
 
 ### Supported ENV
 
@@ -382,26 +383,28 @@ currently supported by this module.
     - Installation directory.
     - Default: `${INSTALL_DIR}/sdkman`
 
-- `SDKMAN_SKIP_CONFIGURATION`
-    - Skip post-install configuration.
-    - Default: `${SKIP_CONFIGURATION}`
+### System Toolkit Integration
 
-- `SDKMAN_FORCE_CONFIGURATION`
-    - Overwrite existing configuration files.
-    - Default: `${FORCE_CONFIGURATION}`
+This module has additional features that can be enabled by running SysKit. See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
 
-### Post-install Configuration
+Run the interactive configuration module and provide the SDKMAN! installation directory when prompted:
 
-#### Installed Configuration
+```bash
+syskit-cfg install dev/sdkman
+```
 
-- Copies the bundled SDKMAN! configuration into `${SDKMAN_INSTALL_DIR}/etc/config`.
-- Generates `sdkman-init.sh` inside the provisioner's configuration directory.
-- Fails the post-install phase if a required configuration file or shell integration cannot be installed.
+### Manual Shell Integration
 
-#### Shell Integration
+Without System Toolkit, add the following to your shell configuration and replace the placeholder with the SDKMAN!
+installation directory:
 
-- Registers SDKMAN! initialization for **Bash**.
-- Registers SDKMAN! initialization for **Zsh**.
+```bash
+# Enabling SDKMAN!
+export SDKMAN_DIR="/path/to/installed/sdkman"
+[[ -s "${SDKMAN_DIR}/bin/sdkman-init.sh" ]] && source "${SDKMAN_DIR}/bin/sdkman-init.sh"
+# End of SDKMAN!
+```
 
 ### Official Website
 

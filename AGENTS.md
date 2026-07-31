@@ -6,11 +6,15 @@
 - Every executable entrypoint and module phase script must enable strict mode immediately after the shebang using `set -euo pipefail`.
 - Sourced libraries, helpers, and shell-integration payloads must not change the caller's shell options. They must remain compatible with `set -euo pipefail`.
 - Quote variable expansions unless word splitting or pathname expansion is intentional.
+- Use `1` and `0` for internal Boolean variables and associative-array options.
+  Use `true` and `false` strings only for Boolean values originating from
+  environment variables, such as `FEATURE_ENABLE`.
 - Use guard clauses and avoid unnecessary nesting.
 - Prefer small, readable validation appropriate for this framework.
 - Use `NON_INTERACTIVE`, never `NONINTERACTIVE`.
 - Module canonical IDs use the `<category>/<module>` format.
 - Preserve unrelated user changes in the working tree.
+- Prefer (( ... )) for arithmetic conditions and numeric boolean flags. Prefer [[ ... ]] for string comparisons, pattern matching, and filesystem tests.
 
 ## Safety
 
@@ -106,7 +110,7 @@ Place a blank line before standalone `return` and `exit` statements when they fo
 Correct:
 
 ```bash
-if [[ "$failed" == "true" ]]; then
+if [[ "$failed" == "1" ]]; then
     log_error "Operation failed"
 
     exit 1
@@ -116,7 +120,7 @@ fi
 Incorrect:
 
 ```bash
-if [[ "$failed" == "true" ]]; then
+if [[ "$failed" == "1" ]]; then
     log_error "Operation failed"
     exit 1
 fi
@@ -132,9 +136,22 @@ load_states "$CANONICAL_ID" || exit $?
 
 Prefer guard clauses to reduce nesting and keep the main execution path easy to follow.
 
-Use an early `return`, `exit`, or `continue` when handling an exceptional, invalid, or skip condition before continuing with the main logic.
+Use the || operator only for simple control-flow guard clauses that immediately execute return, continue, break, or exit.
+
+If additional work is required (for example logging, cleanup, notifications, or any other statements), use an explicit if statement.
 
 Example:
+
+Allowed
+
+```bash
+load_states "$CANONICAL_ID" || return $?
+[[ -f "$file" ]] || continue
+parse_args options args "$@" || return $?
+mkdir -p "$dir" || exit $?
+```
+
+Prefer
 
 ```bash
 if [[ "${SKIP_CONFIGURATION:-false}" == "true" ]]; then
@@ -189,7 +206,7 @@ The same principle applies outside loops. Do not use an early `return` solely to
 Prefer:
 
 ```bash
-if [[ "$enabled" == "true" ]]; then
+if [[ "$enabled" == "1" ]]; then
     enable_feature
 fi
 ```
@@ -197,7 +214,7 @@ fi
 Instead of:
 
 ```bash
-if [[ "$enabled" != "true" ]]; then
+if [[ "$enabled" != "1" ]]; then
     return 0
 fi
 
@@ -213,6 +230,51 @@ Use judgment based on readability rather than applying guard clauses mechanicall
 - Do not log an error and then silently report success.
 - Preserve meaningful exit codes from installation-detection scripts.
 - Optional maintenance operations may log a warning and continue when their failure does not invalidate the installation.
+
+## Shell Script Structure
+
+All new executable-style shell scripts should follow a consistent entry-point structure.
+
+* Define a `main()` function as the primary entry point.
+* End the script with an explicit `main "$@"` call.
+* Scripts that accept or route command-line arguments should define a private `__parse_args()` function before `main()`.
+* `__parse_args()` should use an associative array to store parsed commands and options, and an indexed array for remaining positional arguments when applicable.
+* Store the selected command in the `CMD` key.
+* A command must not be replaced once `CMD` has been set. If parsing attempts to select another command, log an error and return `1`.
+* Keep command dispatch explicit using a `case` statement in `main()`. Do not dynamically derive executable script paths from arbitrary command input.
+* Scripts that do not accept command-line options or perform command routing may omit `__parse_args()`, but should still use the `main()` entry-point pattern.
+
+Example structure:
+
+```bash
+__parse_args() {
+    local -n options_ref="$1"
+    local -n args_ref="$2"
+    shift 2
+
+    options_ref=(
+        [CMD]=""
+    )
+
+    args_ref=()
+
+    # Parse arguments...
+}
+
+main() {
+    local -A options
+    local -a args
+
+    __parse_args options args "$@" || return $?
+
+    case "${options[CMD]}" in
+        # Explicit command handlers...
+    esac
+}
+
+main "$@"
+```
+
 
 ## Validation
 

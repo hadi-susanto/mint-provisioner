@@ -4,7 +4,7 @@ Mint Provisioner is a modular shell-script framework for automating software ins
 Linux Mint.
 
 It provides a structured, reusable module lifecycle for installing applications, collecting installation choices,
-applying post-install configuration, managing temporary state, and cleaning up downloaded artifacts.
+applying installation-adjacent system adjustments, managing temporary state, and cleaning up downloaded artifacts.
 
 Although designed primarily for Linux Mint, many modules may also work on Ubuntu and other Ubuntu-based distributions.
 
@@ -26,7 +26,7 @@ Both formats can be combined:
 Note:
 - In case `<module>` resolved to 2 or more canonical id, the process is aborted
 
-Reapply post-install configuration to installed modules:
+Reapply supported post-install system adjustments to installed modules:
 
 ```bash
 ./configure.sh <module> [<module>...]
@@ -100,10 +100,10 @@ Mint Provisioner provides two independent entry points:
 | Entry point    | Responsibility                                                               |
 |----------------|------------------------------------------------------------------------------|
 | `install.sh`   | Resolves modules and executes their configuration and installation lifecycle |
-| `configure.sh` | Applies or reapplies post-install configuration to installed modules         |
+| `configure.sh` | Reapplies supported post-install system adjustments to installed modules     |
 
 `configure.sh` is not called by `install.sh`. It is a separate command intended for users who want to reapply
-configuration without reinstalling an application.
+supported system adjustments without reinstalling an application.
 
 ### Configuration Naming
 
@@ -112,9 +112,9 @@ The similarly named scripts have different responsibilities:
 | Script             | Scope     | Responsibility                                           |
 |--------------------|-----------|----------------------------------------------------------|
 | `/install.sh`      | Framework | Installs selected modules                                |
-| `/configure.sh`    | Framework | Reconfigures already-installed modules                   |
+| `/configure.sh`    | Framework | Reapplies supported post-install system adjustments      |
 | `configuration.sh` | Module    | Collects or resolves values required before installation |
-| `post_install.sh`  | Module    | Applies application configuration after installation     |
+| `post_install.sh`  | Module    | Applies installation-adjacent system adjustments         |
 
 ## 🔄 Module Lifecycle
 
@@ -193,18 +193,19 @@ The mandatory `install.sh` performs the actual software installation.
 
 It should focus on installing the application and avoid unrelated user configuration whenever possible.
 
-#### Post-install configuration
+#### Post-install system adjustments
 
-The optional `post_install.sh` applies configuration after installation succeeds.
+The optional `post_install.sh` applies installation-adjacent system adjustments after installation succeeds.
 
 Typical responsibilities include:
 
-- Installing shell integrations.
-- Creating aliases or helper commands.
-- Writing application configuration files.
-- Enabling optional features.
-- Applying values saved during `configuration.sh`.
+- Resolving service compatibility issues that can only be evaluated after installation.
+- Disabling vendor maintenance behavior that conflicts with repositories managed by Mint Provisioner.
 - Adding information to the final installation summary.
+
+User preferences and shell integrations—including aliases, prompts, themes, and application defaults—belong in
+[System Toolkit](https://github.com/hadi-susanto/system-toolkit). Configuration required for the installed software to
+function belongs in `install.sh`.
 
 Modules that provide `post_install.sh` can also be reconfigured later through the top-level `configure.sh` command.
 
@@ -270,10 +271,6 @@ The following environment variables affect framework behavior:
 |----------------------------|------------------------------------------------------------------------------------|
 | `NON_INTERACTIVE=true`     | Disables interactive prompts and uses saved, detected, or default values           |
 | `FORCE_INSTALL=true`       | Runs installation even when `is_installed.sh` reports that the module is installed |
-| `SKIP_CONFIGURATION=true`  | Skips supported post-install configuration                                         |
-| `FORCE_CONFIGURATION=true` | Forces supported configuration to be reapplied or overwritten                      |
-
-When both `SKIP_CONFIGURATION` and `FORCE_CONFIGURATION` are enabled, skipping configuration takes precedence.
 
 The `--non-interactive` and `--unattended` installer options never read from standard input while acquiring sudo
 privileges. Sudo credentials must already be cached, or passwordless sudo must be available; otherwise the installer
@@ -310,7 +307,7 @@ mint-provisioner/
 │           ├── is_installed.sh         # Installation check (mandatory)
 │           ├── pre_install.sh          # Installation preparation (optional)
 │           ├── install.sh              # Software installation (mandatory)
-│           ├── post_install.sh         # Software configuration (optional)
+│           ├── post_install.sh         # Post-install system adjustments (optional)
 │           ├── cleanup.sh              # Temporary resource cleanup (optional)
 │           ├── helper.sh               # Module-specific helpers (optional)
 │           └── resources/              # Module payloads or templates (optional)
@@ -348,7 +345,7 @@ A complete module may implement every lifecycle phase:
 | `is_installed.sh`  |   Yes    | Report whether all required components are installed              |
 | `pre_install.sh`   |    No    | Prepare repositories, keys, dependencies, or downloaded artifacts |
 | `install.sh`       |   Yes    | Install the software                                              |
-| `post_install.sh`  |    No    | Apply application and user configuration                          |
+| `post_install.sh`  |    No    | Apply rerunnable installation-adjacent system adjustments         |
 | `cleanup.sh`       |    No    | Remove temporary state, artifacts, and intermediate files         |
 
 ### Module metadata
@@ -429,7 +426,7 @@ Then:
 3. Implement `install.sh`.
 4. Add `configuration.sh` when installation requires choices or detected values.
 5. Add `pre_install.sh` when installation requires preparation or manual downloads.
-6. Add `post_install.sh` when the module provides configurable behavior.
+6. Add `post_install.sh` only for a rerunnable system adjustment that depends on the completed installation.
 7. Add `cleanup.sh` when state, messages, downloads, or temporary files are created.
 8. Add module-specific helpers and resources when necessary.
 9. Document the module in the appropriate category file under `modules/`.
@@ -462,13 +459,15 @@ New modules should follow these conventions:
 - Keep `is_installed.sh` free of side effects.
 - Verify every component the module promises to install.
 - Keep `install.sh` focused on software installation.
-- Keep user configuration in `post_install.sh`.
+- Keep user preferences and shell integrations in System Toolkit.
+- Keep required application configuration in `install.sh`.
+- Use `post_install.sh` only for rerunnable installation-adjacent system adjustments.
 - Store cross-phase choices through the state library.
 - Use the messages library for information that should appear in the final summary.
 - Add `cleanup.sh` whenever temporary resources are created.
 - Return non-zero immediately when a phase cannot complete successfully.
 - Avoid interactive input when `NON_INTERACTIVE=true`.
-- Respect `SKIP_CONFIGURATION`, `FORCE_CONFIGURATION`, and `FORCE_INSTALL`.
+- Respect `FORCE_INSTALL`.
 - Make repeated execution safe whenever practical.
 - Use shared framework helpers before introducing duplicate module-specific logic.
 

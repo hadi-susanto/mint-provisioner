@@ -334,10 +334,6 @@ For interactive could use:
     - Disables the channel selection prompt.
     - Default: `${NON_INTERACTIVE}`
 
-- `MICROSOFT_EDGE_SKIP_CONFIGURATION`
-    - Skip post-install configuration, including disabling Edge's repository updater.
-    - Default: `${SKIP_CONFIGURATION}`
-
 ### Post-install Configuration
 
 Disables Edge's repository updater that may conflict with the repository managed by Mint Provisioner.

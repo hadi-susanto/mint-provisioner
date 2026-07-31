@@ -31,6 +31,7 @@ declare -Ar MODULE_ALIASES=(
     [origin]="gui/brave-origin"
     [pgadmin]="dev/pg-admin"
     [plvl10k]="term/power-level-10k"
+    [syskit]="sys/system-toolkit"
     [vbox]="misc/virtual-box"
 )
 

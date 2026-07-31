@@ -26,14 +26,4 @@ if ! apt_install "$package"; then
 fi
 
 add_message "$CANONICAL_ID" "info" "Installation success: $package"
-
-message="MkvToolNix package: '$package' has been installed successfully.
-
-The provisioner has also installed several helper commands to simplify common MkvToolNix tasks.
-
-Please reopen your terminal (or reload your shell) to load the new commands, then try:
-
-  • mkvmerge-process
-  • mkvmerge-extract-info"
-
-add_message "$CANONICAL_ID" "info" "$message"
+add_system_toolkit_message "$CANONICAL_ID"

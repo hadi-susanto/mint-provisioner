@@ -4,12 +4,6 @@ set -euo pipefail
 source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/messages.sh"
 
-if [[ "${DNSCRYPT_PROXY_SKIP_CONFIGURATION:-${SKIP_CONFIGURATION:-false}}" == "true" ]]; then
-    log_warn "[$CANONICAL_ID] Skipping configuration as requested"
-
-    exit 0
-fi
-
 resolvconf_service="dnscrypt-proxy-resolvconf.service"
 
 if systemctl status "$resolvconf_service" 2>&1 |

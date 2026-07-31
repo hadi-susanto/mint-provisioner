@@ -6,6 +6,7 @@ set -euo pipefail
 #
 
 source "${LIB_DIR}/installer_common.sh"
+source "${LIB_DIR}/messages.sh"
 source "${LIB_DIR}/state.sh"
 
 load_states "$CANONICAL_ID" || exit 1
@@ -142,3 +143,5 @@ if command -v update-desktop-database >/dev/null 2>&1; then
 fi
 
 log_info "[$CANONICAL_ID] Installation completed successfully"
+
+add_system_toolkit_message "$CANONICAL_ID"
