@@ -1,0 +1,23 @@
+README.md
+  6c22134ed40d66d8 467
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "65642796d4339e6e3d70fe0fc3a7019b401da795",
+  "prompts": {
+    "6c22134ed40d66d8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb70b-9d63-7910-ae45-a3ff387ca773",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
