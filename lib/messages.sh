@@ -175,7 +175,7 @@ add_system_toolkit_message() {
 
     local message
     message="If System Toolkit is installed, try syskit-bin,
-syskit-bash, or syskit-zsh to enable additional
+syskit-bash, syskit-zsh, or syskit-cfg to enable additional
 integrations and functionality for this tool."
 
     add_message "$canonical_id" "info" "$message"
