@@ -9,6 +9,7 @@ System utilities, machine setup, performance tools, fonts, and operating system 
 - [DNSCrypt Proxy](#dnscrypt-proxy-dnscrypt-proxy-alias-dnscrypt)
 - [Nerd Fonts](#nerd-fonts-nerd-font)
 - [Out of the Box Experience](#out-of-the-box-experience-oobe)
+- [System Toolkit](#system-toolkit-system-toolkit-alias-syskit)
 
 ---
 
@@ -200,3 +201,35 @@ The module applies the provisioner's recommended Linux Mint configuration, inclu
 ### Official Website
 
 This module is maintained as part of the Linux Mint Provisioner project.
+
+---
+
+## System Toolkit (`system-toolkit`) [alias: `syskit`]
+
+System Toolkit, or SysKit, manages system configuration, shell integrations, and standalone executable scripts
+independently from Mint Provisioner.
+
+### Installation Method
+
+**GitHub shallow clone**
+
+The installer clones the latest project state with `git clone --depth 1` into
+`$INSTALL_DIR/system-toolkit`. It makes every root-level `syskit-*` entrypoint executable and creates system-wide
+symbolic links for them under `/usr/local/bin`.
+
+### Supported ENV
+
+- `SYSTEM_TOOLKIT_INSTALL_DIR`
+    - Overrides the default checkout directory.
+    - Default: `$INSTALL_DIR/system-toolkit`
+
+### Installed Commands
+
+- `syskit-bin`
+- `syskit-bash`
+- `syskit-zsh`
+- `syskit-cfg`
+
+### Official Website
+
+https://github.com/hadi-susanto/system-toolkit
