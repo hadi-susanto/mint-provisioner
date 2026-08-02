@@ -1,0 +1,38 @@
+command/AGENTS.md
+  d8314e3597349453 1-607
+lib/AGENTS.md
+  dfeb491843f636dd 1-437
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "d3cf6024e4fbb562abfc1a9ca125bf050b20f714",
+  "prompts": {
+    "d8314e3597349453": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fc241-fe89-7d32-99d9-31da554e51ee",
+        "model": "unknown"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 607,
+      "total_deletions": 0,
+      "accepted_lines": 607,
+      "overriden_lines": 0
+    },
+    "dfeb491843f636dd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fbd1d-21d7-75f3-8587-9c12fa03d883",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 437,
+      "total_deletions": 0,
+      "accepted_lines": 437,
+      "overriden_lines": 0
+    }
+  }
+}
