@@ -46,11 +46,14 @@ Usage:
 
 Options:
   -c, --category <category>  Filter by category; may be repeated.
-  -s, --status <status>      Filter by status; currently only "all".
+  -s, --status <status>      Filter modules by installation status.
+                             Supported: all, installed, not-installed.
+                             Default: all.
 
 Description:
   Lists supported categories or modules from the Mint Provisioner catalog.
-  Module output is grouped by category. Installation status is not queried.
+  Module output is grouped by category and includes installation status.
+  Status filters apply only to module listings.
 EOF
 }
 

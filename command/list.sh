@@ -4,6 +4,7 @@ set -euo pipefail
 source "$LIB_COMMON/common.sh"
 source "$LIB_COMMON/metadata.sh"
 source "$LIB_COMMON/resolver.sh"
+source "$LIB_INSTALLER/detection.sh"
 
 __parse_args() {
     local options_name="$1"
@@ -86,9 +87,21 @@ __validate_options() {
             ;;
     esac
 
-    if [[ "${options_ref[STATUS]}" != "all" ]]; then
-        log_error "Unsupported list status '%s'; supported status: all" \
-            "${options_ref[STATUS]}"
+    case "${options_ref[STATUS]}" in
+        all | installed | not-installed)
+            ;;
+        *)
+            log_error \
+                "Unsupported list status '%s'; supported statuses: all, installed, not-installed" \
+                "${options_ref[STATUS]}"
+
+            return 2
+            ;;
+    esac
+
+    if [[ "${args_ref[0]}" == "category" ]] &&
+        [[ "${options_ref[STATUS]}" != "all" ]]; then
+        log_error "Status filters apply only to module listings"
 
         return 2
     fi
@@ -96,7 +109,7 @@ __validate_options() {
     return 0
 }
 
-__select_categories() {
+__resolve_categories() {
     local selected_name="$1"
     shift
 
@@ -175,6 +188,7 @@ __print_categories() {
     local category_id
     local index=1
 
+    # Preload, short circuit invalid metadata before print
     __load_category_metadata names descriptions "$@" || return $?
 
     printf 'Mint Provisioner Supported Categories\n'
@@ -199,91 +213,200 @@ __print_categories() {
     return 0
 }
 
-__load_module_metadata() {
+__inspect_modules() {
     local names_name="$1"
     local descriptions_name="$2"
-    shift 2
+    local statuses_name="$3"
+    shift 3
 
     local -n names_ref="$names_name"
     local -n descriptions_ref="$descriptions_name"
+    local -n statuses_ref="$statuses_name"
     local -A metadata=()
     local canonical_id
+    local status
 
     names_ref=()
     descriptions_ref=()
+    statuses_ref=()
 
     for canonical_id in "$@"; do
         parse_module_metadata "$MP_MODULES/$canonical_id" metadata || return $?
 
         names_ref["$canonical_id"]="${metadata[NAME]}"
         descriptions_ref["$canonical_id"]="${metadata[DESCRIPTION]}"
+
+        if module_installed "$canonical_id" metadata >/dev/null; then
+            status=0
+        else
+            status=$?
+        fi
+
+        statuses_ref["$canonical_id"]="$status"
     done
 
     return 0
 }
 
+__module_matches_status() {
+    local status_filter="$1"
+    local module_status="$2"
+
+    case "$status_filter" in
+        all)
+            return 0
+            ;;
+        installed)
+            (( module_status == 0 ))
+            ;;
+        not-installed)
+            (( module_status == 1 ))
+            ;;
+    esac
+}
+
+__print_installation_status() {
+    local module_status="$1"
+    local color
+    local icon
+
+    case "$module_status" in
+        0)
+            color="$COLOR_GREEN"
+            icon="✓"
+            ;;
+        1)
+            color="$COLOR_RED"
+            icon="✗"
+            ;;
+        *)
+            color="$COLOR_YELLOW"
+            icon="⚠"
+            ;;
+    esac
+
+    printf '[installed: %b%s%b]' "$color" "$icon" "$COLOR_RESET"
+}
+
+__print_module_category_header() {
+    local category_id="$1"
+    local category_name="$2"
+
+    printf '\n%b%s%b %b[id: %s]%b\n' \
+        "$COLOR_GREEN" "$category_name" "$COLOR_RESET" \
+        "$COLOR_YELLOW" "$category_id" "$COLOR_RESET"
+    printf '%s\n' '-----------------------------------'
+}
+
+__warn_unknown_modules() {
+    local category_id="$1"
+    local unknown_count="$2"
+    local module_label="modules"
+
+    if (( unknown_count == 1 )); then
+        module_label="module"
+    fi
+
+    log_warn \
+        "Installation state is unknown for %d %s in category '%s'; filtered results may be incomplete. Use 'mp list modules -c %s -s all' to inspect them." \
+        "$unknown_count" "$module_label" "$category_id" "$category_id"
+}
+
 __print_modules() {
+    local status_filter="$1"
+    shift
+
     local -a modules=()
     local -A category_names=()
-    local -A _category_descriptions=()
+    local -A category_descriptions=()
     local -A module_names=()
     local -A module_descriptions=()
-    local -A printed_categories=()
+    local -A module_statuses=()
     local canonical_id
     local category_id
-    local previous_category_id=""
-    local requested_category
-    local index=0
+    local category
+    local module_status
+    local category_has_modules
+    local matched_count
+    local unknown_count
+    local filtered_count
+    local detection_failed=0
+    local index
 
     list_modules modules "$@" || return $?
     __load_category_metadata \
-        category_names _category_descriptions "$@" || return $?
-    __load_module_metadata \
-        module_names module_descriptions "${modules[@]}" || return $?
+        category_names category_descriptions "$@" || return $?
+    __inspect_modules \
+        module_names module_descriptions module_statuses "${modules[@]}" || return $?
 
     printf 'Mint Provisioner Supported Modules\n'
     printf '==================================='
+
     if (( ${#modules[@]} == 0 )); then
         printf '\nNo supported modules.\n'
 
         return 0
     fi
 
-    for canonical_id in "${modules[@]}"; do
-        category_id="${canonical_id%%/*}"
+    for category in "$@"; do
+        __print_module_category_header "$category" "${category_names[$category]}"
 
-        if [[ "$category_id" != "$previous_category_id" ]]; then
-            printf '\n%b%s%b %b[id: %s]%b\n' \
-                "$COLOR_GREEN" "${category_names[$category_id]}" "$COLOR_RESET" \
-                "$COLOR_YELLOW" "$category_id" "$COLOR_RESET"
-            printf '%s\n' '-----------------------------------'
+        category_has_modules=0
+        matched_count=0
+        unknown_count=0
+        filtered_count=0
+        index=1
 
-            printed_categories["$category_id"]=1
-            previous_category_id="$category_id"
-            index=1
+        # We can do single loop, but for simplicity sake we do double loop
+        for canonical_id in "${modules[@]}"; do
+            category_id="${canonical_id%%/*}"
+            if [[ "$category_id" != "$category" ]]; then
+                continue
+            fi
+
+            category_has_modules=1
+            module_status="${module_statuses[$canonical_id]}"
+
+            if (( module_status > 1 )); then
+                ((unknown_count += 1))
+                detection_failed=1
+            fi
+
+            if ! __module_matches_status "$status_filter" "$module_status"; then
+                ((filtered_count += 1))
+
+                continue
+            fi
+
+            printf '%2d. %b%s%b %b[id: %s]%b ' \
+                "$index" \
+                "$COLOR_CYAN" "${module_names[$canonical_id]}" "$COLOR_RESET" \
+                "$COLOR_YELLOW" "$canonical_id" "$COLOR_RESET"
+            __print_installation_status "$module_status"
+            printf '\n'
+            printf '    %s\n' "${module_descriptions[$canonical_id]}"
+
+            ((index += 1))
+            ((matched_count += 1))
+        done
+
+        if (( ! category_has_modules )); then
+            printf '  %bNo supported modules.%b\n' "$COLOR_GRAY" "$COLOR_RESET"
+        elif (( matched_count == 0 )); then
+            printf "  %bNo modules with confirmed status '%s'.%b\n" \
+                "$COLOR_GRAY" "$status_filter" "$COLOR_RESET"
+        elif (( filtered_count > 0)); then
+            printf "  %bShowing %d matching module(s) of %d%b\n" \
+                "$COLOR_GRAY" "$matched_count" \
+                "$((matched_count + filtered_count))" "$COLOR_RESET"
         fi
 
-        printf '%2d. %b%s%b %b[id: %s]%b\n' \
-            "$index" \
-            "$COLOR_CYAN" "${module_names[$canonical_id]}" "$COLOR_RESET" \
-            "$COLOR_YELLOW" "$canonical_id" "$COLOR_RESET"
-        printf '    %s\n' "${module_descriptions[$canonical_id]}"
-
-        ((index += 1))
-    done
-
-    for requested_category in "$@"; do
-        if [[ -v "printed_categories[$requested_category]" ]]; then
-            continue
+        if [[ "$status_filter" != "all" ]] && (( unknown_count > 0 )); then
+            __warn_unknown_modules "$category" "$unknown_count"
         fi
-
-        printf '\n%b%s%b %b[id: %s]%b\n' \
-            "$COLOR_GREEN" "${category_names[$requested_category]}" "$COLOR_RESET" \
-            "$COLOR_YELLOW" "$requested_category" "$COLOR_RESET"
-        printf 'No supported modules.\n'
     done
 
-    return 0
+    return "$detection_failed"
 }
 
 main() {
@@ -307,7 +430,7 @@ main() {
         return "$status"
     fi
 
-    __select_categories selected_categories "${requested_categories[@]}" || status=$?
+    __resolve_categories selected_categories "${requested_categories[@]}" || status=$?
     if (( status != 0 )); then
         if (( status == 2 )); then
             bash "$MP_COMMAND/help.sh" list >&2
@@ -321,7 +444,7 @@ main() {
             __print_categories "${selected_categories[@]}"
             ;;
         modules)
-            __print_modules "${selected_categories[@]}"
+            __print_modules "${options[STATUS]}" "${selected_categories[@]}"
             ;;
     esac
 }
