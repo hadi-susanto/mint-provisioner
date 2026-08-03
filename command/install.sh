@@ -2,7 +2,7 @@
 set -euo pipefail
 
 main() {
-    printf "not implemented yet"
+    printf "Install command is not implemented yet" >&2
 
     return 1
 }

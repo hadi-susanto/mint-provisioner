@@ -348,12 +348,15 @@ exec bash "$COMMAND_DIR/install.sh" "$@" || return $?
 If `exec` fails, the shell continues and `exec` returns a non-zero status. Handle that failure explicitly when a custom error message is needed:
 
 ```bash
+local status
+
 if exec bash "$COMMAND_DIR/install.sh" "$@"; then
-	:
+    :
 else
+    status=$?
     log_error "Unable to execute install command"
 
-    return $?
+    return "$status"
 fi
 ```
 

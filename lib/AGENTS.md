@@ -428,7 +428,9 @@ example_public_function() {
     local input="$1"
     local result
 
-    if ! result="$(__example_private_function "$input")"; then
+    if result="$(__example_private_function "$input")"; then
+        :
+    else
         return $?
     fi
 
