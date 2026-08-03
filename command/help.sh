@@ -54,6 +54,27 @@ Description:
 EOF
 }
 
+__install_help() {
+    cat <<'EOF'
+Mint Provisioner
+----------------
+
+Usage:
+  mp install [OPTIONS] MODULE...
+
+Options:
+  -f, --force  Process modules even when they are already installed.
+
+Arguments:
+  MODULE  A canonical ID, unique module ID, or registered alias.
+
+Description:
+  Resolves and checks one or more modules before installation. The current
+  migration stage reports a mocked successful installation without running
+  module lifecycle scripts.
+EOF
+}
+
 main() {
     local help_type="${1:-basic}"
 
@@ -61,8 +82,11 @@ main() {
         basic | -h | --help)
             __basic_help
             ;;
-        help | install)
+        help)
             __placeholder_help "$help_type"
+            ;;
+        install)
+            __install_help
             ;;
         list)
             __list_help

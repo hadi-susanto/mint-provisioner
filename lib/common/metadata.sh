@@ -8,14 +8,6 @@ readonly __MINT_PROVISIONER_METADATA_LOADED=1
 
 source "$LIB_COMMON/common.sh"
 
-__trim_metadata_value() {
-    local value_name="$1"
-    local -n value_ref="$value_name"
-
-    value_ref="${value_ref#"${value_ref%%[![:space:]]*}"}"
-    value_ref="${value_ref%"${value_ref##*[![:space:]]}"}"
-}
-
 __validate_required_metadata() {
     local metadata_name="$1"
     local metadata_file="$2"
@@ -76,7 +68,7 @@ parse_metadata() {
     while IFS= read -r line || [[ -n "$line" ]]; do
         ((line_number += 1))
         line="${line%$'\r'}"
-        __trim_metadata_value line
+        __trim line
 
         if [[ -z "$line" ]] || [[ "$line" == \#* ]]; then
             continue
@@ -90,8 +82,8 @@ parse_metadata() {
 
         key="${line%%=*}"
         value="${line#*=}"
-        __trim_metadata_value key
-        __trim_metadata_value value
+        __trim key
+        __trim value
 
         if [[ ! "$key" =~ ^[A-Z][A-Z0-9_]*$ ]]; then
             tlog_error "metadata" "Invalid metadata key at %s:%d: %s" \

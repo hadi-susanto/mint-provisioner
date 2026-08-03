@@ -21,6 +21,14 @@ else
     readonly COLOR_RESET=''
 fi
 
+__trim() {
+    local value_name="$1"
+    local -n value_ref="$value_name"
+
+    value_ref="${value_ref#"${value_ref%%[![:space:]]*}"}"
+    value_ref="${value_ref%"${value_ref##*[![:space:]]}"}"
+}
+
 __log_tagged() {
     local level="$1"
     local level_color="$2"
