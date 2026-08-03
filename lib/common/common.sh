@@ -21,6 +21,20 @@ else
     readonly COLOR_RESET=''
 fi
 
+__log_tagged() {
+    local level="$1"
+    local level_color="$2"
+    local tag="$3"
+    local format="$4"
+
+    shift 4
+
+    printf '%b[%s]%b %b[%s]%b ' \
+        "$level_color" "$level" "$COLOR_RESET" \
+        "$COLOR_GREEN" "$tag" "$COLOR_RESET" >&2
+    printf "$format\n" "$@" >&2
+}
+
 ##
 # log_info
 #
@@ -79,4 +93,52 @@ log_error() {
 
     printf '%b[ERROR]%b ' "$COLOR_RED" "$COLOR_RESET" >&2
     printf "$format\n" "$@" >&2
+}
+
+##
+# tlog_info
+#
+# Prints a tagged informational message to standard error.
+#
+# Supports printf-style formatting.
+#
+# Parameters:
+#   tag:    Message source tag.
+#   format: Printf-style format string.
+#   ...:    Values referenced by the format string.
+#
+tlog_info() {
+    __log_tagged "INFO" "$COLOR_CYAN" "$@"
+}
+
+##
+# tlog_warn
+#
+# Prints a tagged warning message to standard error.
+#
+# Supports printf-style formatting.
+#
+# Parameters:
+#   tag:    Message source tag.
+#   format: Printf-style format string.
+#   ...:    Values referenced by the format string.
+#
+tlog_warn() {
+    __log_tagged "WARN" "$COLOR_YELLOW" "$@"
+}
+
+##
+# tlog_error
+#
+# Prints a tagged error message to standard error.
+#
+# Supports printf-style formatting.
+#
+# Parameters:
+#   tag:    Message source tag.
+#   format: Printf-style format string.
+#   ...:    Values referenced by the format string.
+#
+tlog_error() {
+    __log_tagged "ERROR" "$COLOR_RED" "$@"
 }

@@ -35,6 +35,25 @@ Detailed help for the $command command is not available yet.
 EOF
 }
 
+__list_help() {
+    cat <<'EOF'
+Mint Provisioner
+----------------
+
+Usage:
+  mp list category [OPTIONS]
+  mp list modules [OPTIONS]
+
+Options:
+  -c, --category <category>  Filter by category; may be repeated.
+  -s, --status <status>      Filter by status; currently only "all".
+
+Description:
+  Lists supported categories or modules from the Mint Provisioner catalog.
+  Module output is grouped by category. Installation status is not queried.
+EOF
+}
+
 main() {
     local help_type="${1:-basic}"
 
@@ -42,8 +61,11 @@ main() {
         basic | -h | --help)
             __basic_help
             ;;
-        list | install)
+        help | install)
             __placeholder_help "$help_type"
+            ;;
+        list)
+            __list_help
             ;;
         *)
             log_error "Unknown help topic: %s" "$help_type"
