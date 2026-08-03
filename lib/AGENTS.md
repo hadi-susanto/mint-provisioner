@@ -443,4 +443,3 @@ __example_private_function() {
     ...
 }
 ```
-

@@ -492,6 +492,7 @@ Use this structure for new dedicated commands:
 
 ```bash
 #!/usr/bin/env bash
+set -euo pipefail
 
 source "$LIB_DIR/common.sh"
 source "$LIB_DIR/logging.sh"
@@ -610,4 +611,3 @@ main() {
 
 main "$@"
 ```
-
