@@ -1,0 +1,67 @@
+modules/dev/apache-maven/metadata.conf
+  f58523bd4d710cae 4
+modules/tui/du-rust/metadata.conf
+  f58523bd4d710cae 4
+modules/misc/virtual-box/metadata.conf
+  f58523bd4d710cae 4
+modules/tui/du-analyzer/metadata.conf
+  f58523bd4d710cae 4
+modules/cli/mkvtoolnix/installed.sh
+  f58523bd4d710cae 1-6
+modules/gui/brave-origin/installed.sh
+  f58523bd4d710cae 1-10
+modules/sys/system-toolkit/metadata.conf
+  f58523bd4d710cae 4
+modules/ide/vscodium/metadata.conf
+  f58523bd4d710cae 4
+modules/dev/dbgate-community/metadata.conf
+  f58523bd4d710cae 4
+modules/gui/keepass-xc/metadata.conf
+  f58523bd4d710cae 4
+modules/misc/any-desk/metadata.conf
+  f58523bd4d710cae 4
+modules/tui/bottom/metadata.conf
+  f58523bd4d710cae 4
+modules/gui/brave-browser/installed.sh
+  f58523bd4d710cae 1-10
+modules/tui/git-ui/metadata.conf
+  f58523bd4d710cae 4
+modules/gui/double-commander/metadata.conf
+  f58523bd4d710cae 4
+modules/dev/docker/metadata.conf
+  f58523bd4d710cae 4
+modules/tui/lazy-git/metadata.conf
+  f58523bd4d710cae 4
+lib/common/resolver.sh
+  f58523bd4d710cae 11-36,168-176,178,180-181,183-184,186-189,191-193,195-197,199-211,213-230,233-236,240,242,245-246,249,251,256-257,259,262-269,271,273-274,276-277
+command/help.sh
+  f58523bd4d710cae 57,63,66,68-70,72-74,77,85,88-89
+modules/gui/microsoft-edge/installed.sh
+  f58523bd4d710cae 1-11
+lib/common/script.sh
+  f58523bd4d710cae 1-69
+modules/dev/dbeaver-community/metadata.conf
+  f58523bd4d710cae 4
+modules/ide/vscode/installed.sh
+  f58523bd4d710cae 1-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "0607ca759504b3938557bc4f10bb607e8e7aa23c",
+  "prompts": {
+    "f58523bd4d710cae": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fc633-579c-7b70-b81e-4f5bdae1e5d2",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 672,
+      "total_deletions": 232,
+      "accepted_lines": 672,
+      "overriden_lines": 0
+    }
+  }
+}
