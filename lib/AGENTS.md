@@ -47,8 +47,15 @@ command_that_may_fail || return $?
 Capture an expected failure safely:
 
 ```bash
-if ! output="$(command_that_may_fail)"; then
-    return $?
+local status
+
+if output="$(command_that_may_fail)"; then
+    :
+else
+    status=$?
+    log_error "Command failed"
+
+    return "$status"
 fi
 ```
 

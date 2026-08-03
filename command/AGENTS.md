@@ -14,7 +14,7 @@ Every command script must include a Bash shebang:
 
 Unlike library files, command scripts are executable entry points or dedicated command handlers.
 
-The command may inherit strict shell options from its entry point. Any sourced library must remain compatible with those options.
+Every command script must enable strict shell options immediately after the shebang. Any sourced library must remain compatible with those options.
 
 ## Command Structure
 
@@ -22,6 +22,7 @@ Command scripts should follow this general structure:
 
 ```bash
 #!/usr/bin/env bash
+set -euo pipefail
 
 source ...
 
@@ -347,7 +348,9 @@ exec bash "$COMMAND_DIR/install.sh" "$@" || return $?
 If `exec` fails, the shell continues and `exec` returns a non-zero status. Handle that failure explicitly when a custom error message is needed:
 
 ```bash
-if ! exec bash "$COMMAND_DIR/install.sh" "$@"; then
+if exec bash "$COMMAND_DIR/install.sh" "$@"; then
+	:
+else
     log_error "Unable to execute install command"
 
     return $?
