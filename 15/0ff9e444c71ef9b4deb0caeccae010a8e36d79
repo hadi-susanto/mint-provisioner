@@ -1,0 +1,25 @@
+command/list.sh
+  f58523bd4d710cae 7,90-91,95-96,102-104,215,218-219,223,226,230,237-241,244,250-252,254-265,267-285,287-288,290-298,300-311,315-317,323,327-330,332-333,338,343,352-355,357-360,362-373,377-391,393,402,407,445
+command/help.sh
+  f58523bd4d710cae 49-51,55-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "150ff9e444c71ef9b4deb0caeccae010a8e36d79",
+  "prompts": {
+    "f58523bd4d710cae": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fc633-579c-7b70-b81e-4f5bdae1e5d2",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 474,
+      "total_deletions": 357,
+      "accepted_lines": 369,
+      "overriden_lines": 8
+    }
+  }
+}
