@@ -1,0 +1,25 @@
+lib/common/common.sh
+  dfeb491843f636dd 1,3-81
+command/help.sh
+  dfeb491843f636dd 46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "8508345ec76fac19c3fcdc0ecaffe0ff1891cad9",
+  "prompts": {
+    "dfeb491843f636dd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fbd1d-21d7-75f3-8587-9c12fa03d883",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 764,
+      "total_deletions": 80,
+      "accepted_lines": 764,
+      "overriden_lines": 0
+    }
+  }
+}
