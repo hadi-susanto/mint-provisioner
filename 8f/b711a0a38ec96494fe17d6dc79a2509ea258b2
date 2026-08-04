@@ -1,0 +1,38 @@
+lib/installer/execution.sh
+  f58523bd4d710cae 1-133
+command/install.sh
+  f58523bd4d710cae 93,95,100,108,111,125-126,187,193,195-198,232,234,243-245,248-249,257,260,266,275,285,303-304,306,317-322
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "8fb711a0a38ec96494fe17d6dc79a2509ea258b2",
+  "prompts": {
+    "dfeb491843f636dd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fbd1d-21d7-75f3-8587-9c12fa03d883",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null,
+      "messages": [],
+      "total_additions": 830,
+      "total_deletions": 778,
+      "accepted_lines": 60,
+      "overriden_lines": 0
+    },
+    "f58523bd4d710cae": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fc633-579c-7b70-b81e-4f5bdae1e5d2",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 527,
+      "total_deletions": 121,
+      "accepted_lines": 133,
+      "overriden_lines": 0
+    }
+  }
+}
