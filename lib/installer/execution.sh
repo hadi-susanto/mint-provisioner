@@ -23,28 +23,37 @@ readonly -a __EXECUTION_INSTALL_PHASES=(
 #
 # Parameters:
 #   canonical_id - Resolved canonical module ID.
+#   non_interactive - 1 to disable prompts or 0 to allow them.
 #
 # Return:
 #   0 - The interactive script completed or no script exists.
-#   1 - The argument or interactive-script path is invalid.
+#   1 - An argument or the interactive-script path is invalid.
 #   Other - The interactive script's non-zero status is preserved.
 #
 exec_interactive() {
     local canonical_id="${1:-}"
+    local non_interactive="${2:-}"
     local tag="interactive"
 
     if [[ -n "$canonical_id" ]]; then
         tag+=":$canonical_id"
     fi
 
-    if (( $# != 1 )) || [[ -z "$canonical_id" ]]; then
-        tlog_error "$tag" "A canonical ID is required"
+    if (( $# != 2 )) || [[ -z "$canonical_id" ]] ||
+        [[ "$non_interactive" != "0" && "$non_interactive" != "1" ]]; then
+        tlog_error "$tag" \
+            "A canonical ID and non-interactive value of 0 or 1 are required"
 
         return 1
     fi
 
     local interactive_script="$MP_MODULES/$canonical_id/interactive.sh"
+    local non_interactive_value="false"
     local status
+
+    if (( non_interactive )); then
+        non_interactive_value="true"
+    fi
 
     if [[ ! -e "$interactive_script" ]]; then
         return 0
@@ -64,7 +73,10 @@ exec_interactive() {
 
     tlog_info "$tag" "Running interactive setup"
 
-    if run_script "$interactive_script" "CANONICAL_ID" "$canonical_id"; then
+    if run_script \
+        "$interactive_script" \
+        "CANONICAL_ID" "$canonical_id" \
+        "NON_INTERACTIVE" "$non_interactive_value"; then
         return 0
     else
         status=$?

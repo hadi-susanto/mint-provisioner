@@ -17,6 +17,7 @@ __parse_args() {
 
     options_ref=(
         [FORCE]=0
+        [NON_INTERACTIVE]=0
     )
     args_ref=()
 
@@ -24,6 +25,10 @@ __parse_args() {
         case "$1" in
             -f | --force)
                 options_ref[FORCE]=1
+                shift
+                ;;
+            -ni | --non-interactive | --unattended)
+                options_ref[NON_INTERACTIVE]=1
                 shift
                 ;;
             --)
@@ -140,11 +145,22 @@ __filter_installed_modules() {
 }
 
 __run_interactive_session() {
+    local non_interactive="${1:-}"
+
+    if (( $# < 1 )) ||
+        [[ "$non_interactive" != "0" && "$non_interactive" != "1" ]]; then
+        log_error "Interactive setup requires a non-interactive value of 0 or 1"
+
+        return 1
+    fi
+
+    shift
+
     local canonical_id
     local status
 
     for canonical_id in "$@"; do
-        if exec_interactive "$canonical_id"; then
+        if exec_interactive "$canonical_id" "$non_interactive"; then
             continue
         else
             status=$?
@@ -156,6 +172,22 @@ __run_interactive_session() {
     done
 
     return 0
+}
+
+__build_unattended_retry_command() {
+    local result_name="$1"
+    shift
+
+    local -n result_ref="$result_name"
+    local argument
+    local quoted_argument
+
+    result_ref="sudo -v && mp install"
+
+    for argument in "$@"; do
+        printf -v quoted_argument '%q' "$argument"
+        result_ref+=" $quoted_argument"
+    done
 }
 
 __cache_sudo_privileges() {
@@ -187,6 +219,22 @@ __cache_sudo_privileges() {
     log_info "Continuing without cached sudo privileges"
 
     return 0
+}
+
+__validate_sudo_privileges() {
+    log_info \
+        "Non-interactive mode: validating cached or passwordless sudo privileges..."
+
+    if sudo -n -v; then
+        return 0
+    fi
+
+    __build_unattended_retry_command retry_command "$@"
+    log_error \
+        "Non-interactive mode could not acquire sudo privileges without prompting"
+    log_info "Retry after validating sudo privileges: %s" "$retry_command"
+
+    return 1
 }
 
 __current_time_ms() {
@@ -283,6 +331,7 @@ main() {
     local -a args=()
     local -a canonical_ids=()
     local -a filtered_ids=()
+    local -a original_args=("$@")
     local status=0
 
     __parse_args options args "$@" || status=$?
@@ -326,8 +375,13 @@ main() {
         return 0
     fi
 
-    __run_interactive_session "${filtered_ids[@]}" || return $?
-    __cache_sudo_privileges || return $?
+    __run_interactive_session \
+        "${options[NON_INTERACTIVE]}" "${filtered_ids[@]}" || return $?
+    if (( ${options[NON_INTERACTIVE]} )); then
+        __validate_sudo_privileges "${original_args[@]}"
+    else
+        __cache_sudo_privileges || return $?
+    fi
     __run_installation "${filtered_ids[@]}"
 }
 

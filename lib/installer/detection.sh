@@ -123,6 +123,14 @@ module_installed() {
         return 2
     fi
 
+    if [[ -L "$installed_script" ]]; then
+    tlog_error "$tag" \
+        "Installed-state script must not be a symbolic link: %s" \
+        "$installed_script"
+
+    return 2
+fi
+
     if [[ -e "$installed_script" ]] && [[ ! -f "$installed_script" ]]; then
         tlog_error "$tag" "Invalid installed-state script: %s" \
             "$installed_script"

@@ -66,7 +66,10 @@ Usage:
   mp install [OPTIONS] MODULE...
 
 Options:
-  -f, --force  Process modules even when they are already installed.
+  -f,  --force            Process modules even when they are already installed.
+  -ni, --non-interactive  Use supplied values, auto-detection, or defaults instead
+                          of prompting during module interaction.
+       --unattended       Alias for --non-interactive.
 
 Arguments:
   MODULE  A canonical ID, unique module ID, or registered alias.
@@ -75,6 +78,10 @@ Description:
   Resolves and checks one or more modules before installation. Optional
   interactive setup may run before installation begins. Lifecycle installation
   phases are currently reported as mocked and are never executed.
+
+  Non-interactive modes still run module interaction scripts with a child-scoped
+  NON_INTERACTIVE=true value. They never prompt while caching sudo privileges;
+  cached credentials or passwordless sudo must already be available.
 EOF
 
     printf '\n%bWARNING: Do not run mp install with sudo or as root.%b\n' \

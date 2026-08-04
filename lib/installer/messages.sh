@@ -70,7 +70,7 @@ add_message() {
     local message_dir
 
     if (( $# != 3 )) || [[ -z "canonical_id" || -z "$level" || -z "$message" ]]; then
-        tlog_error "messages" "add_message requires Canonical ID, Level and Message"
+        tlog_error "messages" "add_message requires Canonical ID, Level, and Message"
 
         return 1
     fi

@@ -188,7 +188,7 @@ __print_categories() {
     local category_id
     local index=1
 
-    # Preload, short circuit invalid metadata before print
+    # Preload metadata so invalid entries fail before output begins.
     __load_category_metadata names descriptions "$@" || return $?
 
     printf 'Mint Provisioner Supported Categories\n'
@@ -357,7 +357,7 @@ __print_modules() {
         filtered_count=0
         index=1
 
-        # We can do single loop, but for simplicity sake we do double loop
+        # We can do single loop, but for simplicity's sake we do double loop
         for canonical_id in "${modules[@]}"; do
             category_id="${canonical_id%%/*}"
             if [[ "$category_id" != "$category" ]]; then
