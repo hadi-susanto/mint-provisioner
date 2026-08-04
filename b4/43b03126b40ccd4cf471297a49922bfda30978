@@ -1,0 +1,23 @@
+lib/installer/execution.sh
+  f58523bd4d710cae 20,27-30,79,86-88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "b443b03126b40ccd4cf471297a49922bfda30978",
+  "prompts": {
+    "f58523bd4d710cae": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fc633-579c-7b70-b81e-4f5bdae1e5d2",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 527,
+      "total_deletions": 121,
+      "accepted_lines": 133,
+      "overriden_lines": 0
+    }
+  }
+}
