@@ -285,6 +285,7 @@ resolve_module_selectors() {
     shift
 
     local -n modules_ref="$modules_name"
+    local -A seen=()
     local selector
     local canonical_id
     local failed=0
@@ -293,16 +294,21 @@ resolve_module_selectors() {
     __preload_all_modules || return $?
 
     for selector in "$@"; do
-        if __resolve_module_selector "$selector" canonical_id; then
-            modules_ref+=("$canonical_id")
-        else
+        if ! __resolve_module_selector "$selector" canonical_id; then
             failed=1
+            continue
         fi
+
+        if (( ${seen["$canonical_id"]:-0} )); then
+            continue
+        fi
+
+        seen["$canonical_id"]=1
+        modules_ref+=("$canonical_id")
     done
 
     if (( failed )); then
         modules_ref=()
-
         return 1
     fi
 

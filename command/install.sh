@@ -5,6 +5,7 @@ source "$LIB_COMMON/common.sh"
 source "$LIB_COMMON/metadata.sh"
 source "$LIB_COMMON/resolver.sh"
 source "$LIB_INSTALLER/detection.sh"
+source "$LIB_INSTALLER/execution.sh"
 
 __parse_args() {
     local options_name="$1"
@@ -58,93 +59,220 @@ __validate_options() {
     return 0
 }
 
-__mock_install_module() {
-    local canonical_id="$1"
+##
+# __filter_installed_modules <force> <result_array> <canonical_id...>
+#
+# Filters resolved module IDs using one metadata parse and detection call per
+# unique canonical ID. Selector order and duplicates are preserved.
+#
+# Returns:
+#   1 after inspecting every unique module when metadata or detection fails.
+#   2 when the filter arguments are invalid.
+#
+__filter_installed_modules() {
+    local force="${1:-}"
+    local result_name="${2:-}"
 
-    tlog_info "install:$canonical_id" "Mock installation completed successfully"
+    if (( $# < 2 )) || [[ "$force" != "0" && "$force" != "1" ]] ||
+        [[ ! "$result_name" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+        log_error \
+            "Module filtering requires a force value of 0 or 1 and a result array"
+
+        return 2
+    fi
+
+    shift 2
+
+    local -n result_ref="$result_name"
+    local -A metadata=()
+    local canonical_id
+    local module_name
+    local failed=0
+    local status
+
+    result_ref=()
+
+    for canonical_id in "$@"; do
+        metadata=()
+
+        if ! parse_module_metadata "$MP_MODULES/$canonical_id" metadata; then
+            tlog_error "install:$canonical_id" \
+                "Unable to load module metadata: %s" "$canonical_id"
+            failed=1
+
+            continue
+        fi
+
+        module_name="${metadata[NAME]}"
+
+        if module_installed "$canonical_id" metadata; then
+            status=0
+        else
+            status=$?
+        fi
+
+        if (( status > 1 )); then
+            tlog_error "install:$canonical_id" \
+                "Installed-state detection failed for %s (status: %d)" \
+                "$module_name" "$status"
+            failed=1
+
+            continue
+        fi
+
+        if (( status != 0 )); then
+            tlog_info "install:$canonical_id" "Module will be processed: %s" "$module_name"
+            result_ref+=("$canonical_id")
+
+            continue
+        fi
+
+        if (( force )); then
+            tlog_warn "install:$canonical_id" \
+                "Already installed; forcing installation: %s" "$module_name"
+            result_ref+=("$canonical_id")
+        else
+            tlog_info "install:$canonical_id" "Already installed; skipping: %s" "$module_name"
+        fi
+    done
+
+    return "$failed"
+}
+
+__run_interactive_session() {
+    local canonical_id
+    local status
+
+    for canonical_id in "$@"; do
+        if exec_interactive "$canonical_id"; then
+            continue
+        else
+            status=$?
+        fi
+
+        log_error "Interactive setup failed; installation aborted"
+
+        return "$status"
+    done
 
     return 0
 }
 
-__process_module() {
-    local options_name="$1"
-    local canonical_id="$2"
-    local result_name="$3"
-    local -n options_ref="$options_name"
-    local -n result_ref="$result_name"
-    local -A metadata=()
-    local status
+__cache_sudo_privileges() {
+    local response
 
-    result_ref="FAILED"
+    log_info \
+        "The installer can cache sudo privileges now so modules can invoke sudo when necessary."
 
-    if ! parse_module_metadata "$MP_MODULES/$canonical_id" metadata; then
-        tlog_error "install:$canonical_id" "Unable to load module metadata"
+    if ! IFS= read -r -p "Cache sudo privileges now? (Y/n): " response; then
+        log_error "Unable to read the sudo privilege response"
 
         return 1
     fi
 
-    if module_installed "$canonical_id" metadata; then
-        status=0
-    else
-        status=$?
-    fi
+    response="${response:-y}"
 
-    case "$status" in
-        0)
-            if (( ! options_ref[FORCE] )); then
-                tlog_info "install:$canonical_id" "Already installed; skipping"
-                result_ref="SKIPPED"
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        log_info "Acquiring sudo privileges..."
 
-                return 0
-            fi
-
-            tlog_warn "install:$canonical_id" \
-                "Already installed; forcing installation"
-            ;;
-        1)
-            tlog_info "install:$canonical_id" "Not installed"
-            ;;
-        *)
-            tlog_error "install:$canonical_id" \
-                "Installed-state detection failed (status: %d)" "$status"
+        if ! sudo -v; then
+            log_error "Failed to acquire sudo privileges"
 
             return 1
-            ;;
-    esac
+        fi
 
-    __mock_install_module "$canonical_id" || return $?
-    result_ref="SUCCESS"
+        return 0
+    fi
+
+    log_info "Continuing without cached sudo privileges"
 
     return 0
 }
 
-__run_installation() {
-    local options_name="$1"
-    local canonical_ids_name="$2"
-    local -n canonical_ids_ref="$canonical_ids_name"
+__current_time_ms() {
+    local current_time
 
+    if ! current_time="$(date +%s%3N)" ||
+        [[ ! "$current_time" =~ ^[0-9]+$ ]]; then
+        log_error "Unable to read the current time in milliseconds"
+
+        return 1
+    fi
+
+    printf '%s\n' "$current_time"
+}
+
+__format_module_duration() {
+    local duration_ms="$1"
+    local result_name="$2"
+    local -n result_ref="$result_name"
+
+    printf -v result_ref '%d seconds %03d milliseconds' \
+        "$((duration_ms / 1000))" "$((duration_ms % 1000))"
+}
+
+__format_total_duration() {
+    local duration_ms="$1"
+    local result_name="$2"
+    local -n result_ref="$result_name"
+    local total_seconds=$((duration_ms / 1000))
+
+    printf -v result_ref '%d minutes %02d seconds %03d milliseconds' \
+        "$((total_seconds / 60))" \
+        "$((total_seconds % 60))" \
+        "$((duration_ms % 1000))"
+}
+
+__run_installation() {
     local canonical_id
+    local start_time_ms
+    local end_time_ms
+    local total_start_time_ms
+    local total_end_time_ms
+    local duration_ms
+    local total_duration_ms
+    local duration
+    local total_duration
     local result
     local exit_status=0
     local index
+    local -a canonical_ids=("$@")
+    local -a durations=()
     local -a results=()
 
-    for canonical_id in "${canonical_ids_ref[@]}"; do
-        if __process_module "$options_name" "$canonical_id" result; then
-            :
+    total_start_time_ms="$(__current_time_ms)" || return $?
+
+    for canonical_id in "${canonical_ids[@]}"; do
+        start_time_ms="$(__current_time_ms)" || return $?
+
+        if exec_install "$canonical_id"; then
+            result="SUCCESS"
         else
+            result="FAILED"
             exit_status=1
         fi
 
+        end_time_ms="$(__current_time_ms)" || return $?
+        duration_ms=$((end_time_ms - start_time_ms))
+        __format_module_duration "$duration_ms" duration
+
         results+=("$result")
+        durations+=("$duration")
     done
 
-    printf 'Installation Results\n'
+    total_end_time_ms="$(__current_time_ms)" || return $?
+    total_duration_ms=$((total_end_time_ms - total_start_time_ms))
+    __format_total_duration "$total_duration_ms" total_duration
+
+    printf 'Installation Results [time: %s]\n' "$total_duration"
     printf '%s\n' '===================='
 
-    for (( index = 0; index < ${#canonical_ids_ref[@]}; index += 1 )); do
-        printf '%2d. %-30s %s\n' \
-            "$((index + 1))" "${canonical_ids_ref[$index]}" "${results[$index]}"
+    for (( index = 0; index < ${#canonical_ids[@]}; index += 1 )); do
+        printf '%2d. %-30s %-7s [time: %s]\n' \
+            "$((index + 1))" \
+            "${canonical_ids[$index]}" \
+            "${results[$index]}" \
+            "${durations[$index]}"
     done
 
     return "$exit_status"
@@ -154,6 +282,7 @@ main() {
     local -A options=()
     local -a args=()
     local -a canonical_ids=()
+    local -a filtered_ids=()
     local status=0
 
     __parse_args options args "$@" || status=$?
@@ -171,7 +300,10 @@ main() {
     fi
 
     if (( EUID == 0 )); then
-        log_error "Do not run the install command with administrative privileges"
+        log_error "Do not run 'mp install' with sudo or as root"
+        log_error "Module installers invoke sudo themselves only when necessary"
+        log_error \
+            "Running as root can select the wrong \$HOME, create root-owned files, damage the current user's home setup, or install and configure software for root"
 
         return 2
     fi
@@ -182,7 +314,21 @@ main() {
         return 2
     fi
 
-    __run_installation options canonical_ids
+    if ! __filter_installed_modules "${options[FORCE]}" filtered_ids "${canonical_ids[@]}"; then
+        log_error "Installation aborted because module filtering failed"
+
+        return 1
+    fi
+
+    if (( ${#filtered_ids[@]} == 0 )); then
+        log_info "No modules require installation."
+
+        return 0
+    fi
+
+    __run_interactive_session "${filtered_ids[@]}" || return $?
+    __cache_sudo_privileges || return $?
+    __run_installation "${filtered_ids[@]}"
 }
 
 main "$@"

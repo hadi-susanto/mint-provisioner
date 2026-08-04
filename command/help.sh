@@ -72,10 +72,21 @@ Arguments:
   MODULE  A canonical ID, unique module ID, or registered alias.
 
 Description:
-  Resolves and checks one or more modules before installation. The current
-  migration stage reports a mocked successful installation without running
-  module lifecycle scripts.
+  Resolves and checks one or more modules before installation. Optional
+  interactive setup may run before installation begins. Lifecycle installation
+  phases are currently reported as mocked and are never executed.
 EOF
+
+    printf '\n%bWARNING: Do not run mp install with sudo or as root.%b\n' \
+        "$COLOR_RED" "$COLOR_RESET"
+    printf '%bModule installers invoke sudo themselves only when necessary.%b\n' \
+        "$COLOR_YELLOW" "$COLOR_RESET"
+    printf '%bRunning the entire command as root can select the wrong $HOME, create%b\n' \
+        "$COLOR_YELLOW" "$COLOR_RESET"
+    printf '%broot-owned files, damage your home setup, or install and configure%b\n' \
+        "$COLOR_YELLOW" "$COLOR_RESET"
+    printf '%bsoftware for root instead of the current user.%b\n' \
+        "$COLOR_YELLOW" "$COLOR_RESET"
 }
 
 main() {
