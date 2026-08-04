@@ -8,6 +8,38 @@ readonly __MINT_PROVISIONER_RESOLVER_LOADED=1
 
 source "$LIB_COMMON/common.sh"
 
+declare -Ar __MINT_PROVISIONER_MODULE_ALIASES=(
+    [anydesk]="misc/any-desk"
+    [btm]="tui/bottom"
+    [brave]="gui/brave-browser"
+    [compass]="dev/mongodb-compass"
+    [db-cmd]="gui/double-commander"
+    [dbgate]="dev/dbgate-community"
+    [dbeaver]="dev/dbeaver-community"
+    [dnscrypt]="sys/dnscrypt-proxy"
+    [dua]="tui/du-analyzer"
+    [dust]="tui/du-rust"
+    [edge]="gui/microsoft-edge"
+    [keepass]="gui/keepass-xc"
+    [keepassxc]="gui/keepass-xc"
+    [maven]="dev/apache-maven"
+    [mkvmerge]="cli/mkvtoolnix"
+    [mu-cmd]="gui/mu-commander"
+    [mvn]="dev/apache-maven"
+    [omp]="term/oh-my-posh"
+    [origin]="gui/brave-origin"
+    [pgadmin]="dev/pg-admin"
+    [plvl10k]="term/power-level-10k"
+    [syskit]="sys/system-toolkit"
+    [vbox]="misc/virtual-box"
+)
+
+__MODULES_PRELOADED=0
+declare -a __ALL_MODULES=()
+declare -A __CANONICAL_MODULES=()
+declare -A __UNIQUE_MODULES=()
+declare -A __DUPLICATE_MODULES=()
+
 __valid_catalog_id() {
     local catalog_id="$1"
 
@@ -125,8 +157,8 @@ list_modules() {
             module_id="${module_dir##*/}"
 
             if ! __valid_catalog_id "$module_id"; then
-                tlog_warn "resolver" "Skipping invalid module ID: %s/%s" \
-                    "$category" "$module_id"
+                tlog_warn "resolver:$category/$module_id" \
+                    "Skipping invalid module ID"
 
                 continue
             fi
@@ -135,6 +167,150 @@ list_modules() {
             modules_ref+=("$canonical_id")
         done
     done
+
+    return 0
+}
+
+__preload_all_modules() {
+    if (( __MODULES_PRELOADED )); then
+        return 0
+    fi
+
+    local canonical_id
+    local module_id
+
+    __ALL_MODULES=()
+    __CANONICAL_MODULES=()
+    __UNIQUE_MODULES=()
+    __DUPLICATE_MODULES=()
+
+    list_modules __ALL_MODULES || return $?
+
+    for canonical_id in "${__ALL_MODULES[@]}"; do
+        module_id="${canonical_id##*/}"
+        __CANONICAL_MODULES["$canonical_id"]=1
+
+        if [[ -v "__DUPLICATE_MODULES[$module_id]" ]]; then
+            __DUPLICATE_MODULES["$module_id"]+=", $canonical_id"
+
+            continue
+        fi
+
+        if [[ -v "__UNIQUE_MODULES[$module_id]" ]]; then
+            __DUPLICATE_MODULES["$module_id"]="${__UNIQUE_MODULES[$module_id]}, $canonical_id"
+            unset "__UNIQUE_MODULES[$module_id]"
+
+            continue
+        fi
+
+        __UNIQUE_MODULES["$module_id"]="$canonical_id"
+    done
+
+    __MODULES_PRELOADED=1
+
+    return 0
+}
+
+__resolve_module_selector() {
+    local selector="$1"
+    local result_name="$2"
+    local -n result_ref="$result_name"
+    local alias_target
+
+    result_ref=""
+
+    if [[ ! "$selector" =~ ^[a-z0-9][a-z0-9-]*(/[a-z0-9][a-z0-9-]*)?$ ]]; then
+        tlog_error "resolver" "Invalid module selector: %s" "${selector:-<empty>}"
+
+        return 1
+    fi
+
+    # Canonical IDs take priority over short IDs and aliases.
+    if [[ -v "__CANONICAL_MODULES[$selector]" ]]; then
+        result_ref="$selector"
+
+        return 0
+    fi
+
+    if [[ -v "__UNIQUE_MODULES[$selector]" ]]; then
+        result_ref="${__UNIQUE_MODULES[$selector]}"
+        tlog_info "resolver:$result_ref" "Module selector resolved: %s -> %s" \
+            "$selector" "${__UNIQUE_MODULES[$selector]}"
+
+        return 0
+    fi
+
+    if [[ -v "__DUPLICATE_MODULES[$selector]" ]]; then
+        tlog_error "resolver" "Ambiguous module selector '%s'. Candidates: %s" \
+            "$selector" "${__DUPLICATE_MODULES[$selector]}"
+
+        return 1
+    fi
+
+    if [[ ! -v "__MINT_PROVISIONER_MODULE_ALIASES[$selector]" ]]; then
+        tlog_error "resolver" "Module not found: %s" "$selector"
+
+        return 1
+    fi
+
+    alias_target="${__MINT_PROVISIONER_MODULE_ALIASES[$selector]}"
+    if [[ -v "__CANONICAL_MODULES[$alias_target]" ]]; then
+        result_ref="$alias_target"
+        tlog_info "resolver:$result_ref" "Module alias resolved: %s -> %s" \
+            "$selector" "$alias_target"
+
+        return 0
+    fi
+
+    tlog_error "resolver:$alias_target" \
+        "Module alias %s points to an unavailable module: %s" "$selector" "$alias_target"
+
+    return 1
+}
+
+##
+# resolve_module_selectors
+#
+# Resolves canonical IDs, unique short IDs, and registered aliases.
+#
+# Parameters:
+#   modules_name - Name of the indexed array that receives canonical IDs.
+#   selectors    - Module selectors to resolve.
+#
+# Returns:
+#   1 when one or more selectors cannot be resolved.
+#
+resolve_module_selectors() {
+    local modules_name="$1"
+    shift
+
+    local -n modules_ref="$modules_name"
+    local -A seen=()
+    local selector
+    local canonical_id
+    local failed=0
+
+    modules_ref=()
+    __preload_all_modules || return $?
+
+    for selector in "$@"; do
+        if ! __resolve_module_selector "$selector" canonical_id; then
+            failed=1
+            continue
+        fi
+
+        if (( ${seen["$canonical_id"]:-0} )); then
+            continue
+        fi
+
+        seen["$canonical_id"]=1
+        modules_ref+=("$canonical_id")
+    done
+
+    if (( failed )); then
+        modules_ref=()
+        return 1
+    fi
 
     return 0
 }
