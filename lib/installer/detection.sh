@@ -16,11 +16,12 @@ source "$LIB_COMMON/script.sh"
 #
 # Parameters:
 #   canonical_id - Canonical module ID used for error logging.
-#   packages     - Debian package names to check.
+#   package - One or more Debian package names to check.
 #
-# Returns:
-#   0 when any package is installed; 1 when none are installed; 2 when the
-#   request is invalid or a package query fails unexpectedly.
+# Return:
+#   0 - At least one supplied package is installed.
+#   1 - None of the supplied packages are installed.
+#   2 - Input is invalid or a package query failed unexpectedly.
 #
 package_installed() {
     local canonical_id="${1:-}"
@@ -86,9 +87,11 @@ package_installed() {
 #   canonical_id - Canonical module ID.
 #   metadata_name - Name of the associative array containing module metadata.
 #
-# Returns:
-#   0 when installed; 1 when not installed; 2 when the state cannot be
-#   determined; otherwise the custom detector's non-zero status.
+# Return:
+#   0 - The module is installed.
+#   1 - The module is not installed.
+#   2 - Input is invalid or the installation state cannot be determined.
+#   Other - The custom detector's non-zero status is preserved.
 #
 module_installed() {
     local canonical_id="${1:-}"

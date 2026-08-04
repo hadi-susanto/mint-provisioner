@@ -17,16 +17,17 @@ readonly -a __EXECUTION_INSTALL_PHASES=(
 )
 
 ##
-# exec_interactive <canonical_id>
+# exec_interactive
 #
 # Runs a module's optional interactive setup.
 #
 # Parameters:
 #   canonical_id - Resolved canonical module ID.
 #
-# Returns:
-#   Non-zero when the argument or interactive path is invalid, or when the
-#   interactive script fails. Script exit status is preserved.
+# Return:
+#   0 - The interactive script completed or no script exists.
+#   1 - The argument or interactive-script path is invalid.
+#   Other - The interactive script's non-zero status is preserved.
 #
 exec_interactive() {
     local canonical_id="${1:-}"
@@ -75,15 +76,16 @@ exec_interactive() {
 }
 
 ##
-# exec_install <canonical_id>
+# exec_install
 #
 # Reports mocked installation phases without executing their scripts.
 #
 # Parameters:
 #   canonical_id - Resolved canonical module ID.
 #
-# Returns:
-#   1 when the argument or a phase path is invalid, or install.sh is missing.
+# Return:
+#   0 - Every available installation phase was reported successfully.
+#   1 - Input or a phase path is invalid, or install.sh is missing.
 #
 exec_install() {
     local canonical_id="${1:-}"
