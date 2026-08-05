@@ -6,6 +6,10 @@ source "$LIB_COMMON/metadata.sh"
 source "$LIB_COMMON/resolver.sh"
 source "$LIB_INSTALLER/detection.sh"
 source "$LIB_INSTALLER/execution.sh"
+source "$LIB_INSTALLER/messages.sh"
+
+declare -A __MODULE_NAMES=()
+declare -A __MODULE_DESCRIPTIONS=()
 
 __parse_args() {
     local options_name="$1"
@@ -96,12 +100,14 @@ __filter_installed_modules() {
     local status
 
     result_ref=()
+    __MODULE_NAMES=()
+    __MODULE_DESCRIPTIONS=()
 
     for canonical_id in "$@"; do
         metadata=()
 
         if ! parse_module_metadata "$MP_MODULES/$canonical_id" metadata; then
-            tlog_error "install:$canonical_id" \
+            tlog_error "installation:$canonical_id" \
                 "Unable to load module metadata: %s" "$canonical_id"
             failed=1
 
@@ -109,6 +115,8 @@ __filter_installed_modules() {
         fi
 
         module_name="${metadata[NAME]}"
+        __MODULE_NAMES["$canonical_id"]="$module_name"
+        __MODULE_DESCRIPTIONS["$canonical_id"]="${metadata[DESCRIPTION]}"
 
         if module_installed "$canonical_id" metadata; then
             status=0
@@ -117,7 +125,7 @@ __filter_installed_modules() {
         fi
 
         if (( status > 1 )); then
-            tlog_error "install:$canonical_id" \
+            tlog_error "installation:$canonical_id" \
                 "Installed-state detection failed for %s (status: %d)" \
                 "$module_name" "$status"
             failed=1
@@ -126,18 +134,18 @@ __filter_installed_modules() {
         fi
 
         if (( status != 0 )); then
-            tlog_info "install:$canonical_id" "Module will be processed: %s" "$module_name"
+            tlog_info "installation:$canonical_id" "Module will be processed: %s" "$module_name"
             result_ref+=("$canonical_id")
 
             continue
         fi
 
         if (( force )); then
-            tlog_warn "install:$canonical_id" \
+            tlog_warn "installation:$canonical_id" \
                 "Already installed; forcing installation: %s" "$module_name"
             result_ref+=("$canonical_id")
         else
-            tlog_info "install:$canonical_id" "Already installed; skipping: %s" "$module_name"
+            tlog_info "installation:$canonical_id" "Already installed; skipping: %s" "$module_name"
         fi
     done
 
@@ -271,6 +279,45 @@ __format_total_duration() {
         "$((duration_ms % 1000))"
 }
 
+__print_module_header() {
+    local canonical_id="$1"
+    local name="$2"
+    local description="${3:-}"
+
+    printf '%s\n' \
+        '----------------------------------------------------------------------'
+    printf 'Installing: %b%s%b\n' "$COLOR_CYAN" "$name" "$COLOR_RESET"
+    printf 'Module ID : %b%s%b\n' "$COLOR_YELLOW" "$canonical_id" "$COLOR_RESET"
+    if [[ -n "$description" ]]; then
+        printf '%s\n' "$description"
+    fi
+    printf '%s\n' \
+        '----------------------------------------------------------------------'
+}
+
+__print_module_footer() {
+    local status="$1"
+    local duration="$2"
+    local status_text
+    local status_color
+
+    if [[ "$status" == "SUCCESS" ]]; then
+        status_text="Installation succeeded"
+        status_color="$COLOR_GREEN"
+    else
+        status_text="Installation failed"
+        status_color="$COLOR_RED"
+    fi
+
+    printf '%s\n' \
+        '----------------------------------------------------------------------'
+    printf -- '-= %b%s%b =- [duration: %b%s%b]\n' \
+        "$status_color" "$status_text" "$COLOR_RESET" \
+        "$COLOR_YELLOW" "$duration" "$COLOR_RESET"
+    printf '%s\n' \
+        '----------------------------------------------------------------------'
+}
+
 __run_installation() {
     local canonical_id
     local start_time_ms
@@ -282,17 +329,27 @@ __run_installation() {
     local duration
     local total_duration
     local result
+    local result_color
     local exit_status=0
     local index
+    local message_status
     local -a canonical_ids=("$@")
     local -a durations=()
     local -a results=()
 
+    if ! delete_all_messages; then
+        tlog_error "installation" "Failed to clear messages from a previous installation run"
+    fi
+
     total_start_time_ms="$(__current_time_ms)" || return $?
 
     for canonical_id in "${canonical_ids[@]}"; do
-        start_time_ms="$(__current_time_ms)" || return $?
+        __print_module_header \
+            "$canonical_id" \
+            "${__MODULE_NAMES[$canonical_id]:-$canonical_id}" \
+            "${__MODULE_DESCRIPTIONS[$canonical_id]:-}"
 
+        start_time_ms="$(__current_time_ms)" || return $?
         if exec_install "$canonical_id"; then
             result="SUCCESS"
         else
@@ -303,9 +360,12 @@ __run_installation() {
         end_time_ms="$(__current_time_ms)" || return $?
         duration_ms=$((end_time_ms - start_time_ms))
         __format_module_duration "$duration_ms" duration
+        __print_module_footer "$result" "$duration"
 
         results+=("$result")
         durations+=("$duration")
+
+        printf '\n'
     done
 
     total_end_time_ms="$(__current_time_ms)" || return $?
@@ -313,15 +373,38 @@ __run_installation() {
     __format_total_duration "$total_duration_ms" total_duration
 
     printf 'Installation Results [time: %s]\n' "$total_duration"
-    printf '%s\n' '===================='
+    printf '%s\n' '================================'
 
     for (( index = 0; index < ${#canonical_ids[@]}; index += 1 )); do
-        printf '%2d. %-30s %-7s [time: %s]\n' \
+        if [[ "${results[$index]}" == "SUCCESS" ]]; then
+            result_color="$COLOR_GREEN"
+        else
+            result_color="$COLOR_RED"
+        fi
+
+        canonical_id="${canonical_ids[$index]}"
+        printf '%2d. %b%s%b %b[id: %s]%b %b[%s: %s]%b\n' \
             "$((index + 1))" \
-            "${canonical_ids[$index]}" \
-            "${results[$index]}" \
-            "${durations[$index]}"
+            "$COLOR_CYAN" "${__MODULE_NAMES[$canonical_id]:-$canonical_id}" "$COLOR_RESET" \
+            "$COLOR_YELLOW" "$canonical_id" "$COLOR_RESET" \
+            "$result_color" "${results[$index]}" "${durations[$index]}" "$COLOR_RESET"
+
+        if has_messages "$canonical_id"; then
+            if ! print_messages "$canonical_id" 4; then
+                tlog_error "installation:$canonical_id" "Failed to print stored messages"
+            fi
+        else
+            message_status=$?
+
+            if (( message_status > 1 )); then
+                tlog_error "installation:$canonical_id" "Failed to inspect stored messages"
+            fi
+        fi
     done
+
+    if ! delete_all_messages; then
+        tlog_error "installation" "Failed to delete stored installation messages"
+    fi
 
     return "$exit_status"
 }

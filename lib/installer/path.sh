@@ -10,6 +10,49 @@ source "$LIB_COMMON/common.sh"
 source "$LIB_INSTALLER/messages.sh"
 
 ##
+# can_write <target>
+#
+# Checks whether an existing path is writable or a missing path can be created
+# beneath its nearest existing writable ancestor.
+#
+# Parameters:
+#   target - Existing path or prospective path to inspect.
+#
+# Return:
+#   0 - The target is writable or can be created.
+#   1 - The argument is invalid or no writable target or ancestor exists.
+#
+can_write() {
+    local target="${1:-}"
+    local directory
+    local parent
+
+    if (( $# != 1 )) || [[ -z "$target" ]]; then
+        return 1
+    fi
+
+    if [[ "$target" == "~" || "$target" == "~/"* ]]; then
+        target="${target/#\~/$HOME}"
+    fi
+
+    if [[ -e "$target" ]]; then
+        [[ -w "$target" ]]
+
+        return
+    fi
+
+    directory="$(dirname -- "$target")" || return 1
+
+    while [[ ! -d "$directory" ]]; do
+        parent="$(dirname -- "$directory")" || return 1
+        [[ "$parent" != "$directory" ]] || return 1
+        directory="$parent"
+    done
+
+    [[ -w "$directory" ]]
+}
+
+##
 # add_to_path
 #
 # Registers a non-empty directory in the system-wide PATH.

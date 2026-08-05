@@ -13,8 +13,8 @@ readonly -a __EXECUTION_INSTALL_PHASES=(
     pre_install
     install
     post_install
-    cleanup
 )
+readonly __EXECUTION_CLEANUP_PHASE="cleanup"
 
 ##
 # exec_interactive
@@ -33,7 +33,7 @@ readonly -a __EXECUTION_INSTALL_PHASES=(
 exec_interactive() {
     local canonical_id="${1:-}"
     local non_interactive="${2:-}"
-    local tag="interactive"
+    local tag="exec-interactive"
 
     if [[ -n "$canonical_id" ]]; then
         tag+=":$canonical_id"
@@ -90,18 +90,20 @@ exec_interactive() {
 ##
 # exec_install
 #
-# Reports mocked installation phases without executing their scripts.
+# Executes a module's installation lifecycle in phase order.
 #
 # Parameters:
 #   canonical_id - Resolved canonical module ID.
 #
 # Return:
-#   0 - Every available installation phase was reported successfully.
+#   0 - Every available installation phase completed successfully.
 #   1 - Input or a phase path is invalid, or install.sh is missing.
+#   Other - The first failed normal phase's status is preserved, or cleanup's
+#           status is returned when it is the only failed phase.
 #
 exec_install() {
     local canonical_id="${1:-}"
-    local tag="install"
+    local tag="exec-install"
 
     if [[ -n "$canonical_id" ]]; then
         tag+=":$canonical_id"
@@ -115,8 +117,11 @@ exec_install() {
 
     local module_dir="$MP_MODULES/$canonical_id"
     local install_script="$module_dir/install.sh"
+    local cleanup_script="$module_dir/$__EXECUTION_CLEANUP_PHASE.sh"
     local phase
     local phase_script
+    local primary_status=0
+    local cleanup_status=0
 
     # Validate the required installation phase before executing anything.
     if [[ -L "$install_script" ]] || [[ ! -f "$install_script" ]]; then
@@ -127,7 +132,7 @@ exec_install() {
     fi
 
     # Validate every optional phase before executing anything.
-    for phase in "${__EXECUTION_INSTALL_PHASES[@]}"; do
+    for phase in "${__EXECUTION_INSTALL_PHASES[@]}" "$__EXECUTION_CLEANUP_PHASE"; do
         phase_script="$module_dir/$phase.sh"
 
         if [[ ! -e "$phase_script" ]] && [[ ! -L "$phase_script" ]]; then
@@ -149,10 +154,46 @@ exec_install() {
             continue
         fi
 
-        tlog_info "$tag" "Running phase: %s (mocked)" "$phase"
+        tlog_info "$tag" "Running phase: %s" "$phase"
+
+        if run_script "$phase_script" "CANONICAL_ID" "$canonical_id"; then
+            continue
+        else
+            primary_status=$?
+        fi
+
+        tlog_error "$tag" "Phase failed: %s (status: %d)" \
+            "$phase" "$primary_status"
+
+        break
     done
 
-    tlog_info "$tag" "Mock installation completed successfully"
+    if [[ -e "$cleanup_script" ]]; then
+        tlog_info "$tag" "Running phase: %s" "$__EXECUTION_CLEANUP_PHASE"
+
+        if run_script "$cleanup_script" "CANONICAL_ID" "$canonical_id"; then
+            :
+        else
+            cleanup_status=$?
+            tlog_error "$tag" "Phase failed: %s (status: %d)" \
+                "$__EXECUTION_CLEANUP_PHASE" "$cleanup_status"
+        fi
+    fi
+
+    if (( primary_status != 0 )); then
+        if (( cleanup_status != 0 )); then
+            tlog_error "$tag" \
+                "Preserving the earlier phase failure status after cleanup failed"
+        fi
+
+        return "$primary_status"
+    fi
+
+    if (( cleanup_status != 0 )); then
+        return "$cleanup_status"
+    fi
+
+    tlog_info "$tag" "Installation completed successfully"
 
     return 0
 }

@@ -67,8 +67,8 @@ Usage:
 
 Options:
   -f,  --force            Process modules even when they are already installed.
-  -ni, --non-interactive  Use supplied values, auto-detection, or defaults instead
-                          of prompting during module interaction.
+  -ni, --non-interactive  Use supplied values, auto-detection, or defaults
+                          instead of prompting during module interaction.
        --unattended       Alias for --non-interactive.
 
 Arguments:
@@ -76,8 +76,8 @@ Arguments:
 
 Description:
   Resolves and checks one or more modules before installation. Optional
-  interactive setup may run before installation begins. Lifecycle installation
-  phases are currently reported as mocked and are never executed.
+  interactive setup may run before installation begins. Installation phases
+  execute in lifecycle order and stop for a module when one phase fails.
 
   Non-interactive modes still run module interaction scripts with a child-scoped
   NON_INTERACTIVE=true value. They never prompt while caching sudo privileges;

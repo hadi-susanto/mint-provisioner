@@ -233,9 +233,26 @@ rm -rf "$temporary_directory"
 Framework-managed messages required by the final installation summary should remain available until the summary is
 printed. The framework removes those messages afterward.
 
-Lifecycle execution stops when a phase fails. Consequently, `cleanup.sh` normally runs only when the preceding phases
-succeed. A phase that creates temporary files should clean up immediately or use a suitable trap when those files must
-also be removed after failure.
+Lifecycle execution stops normal phases when one fails, then runs `cleanup.sh` when it exists. If both a normal phase
+and cleanup fail, the normal phase status is preserved and the cleanup failure is logged separately. A phase must still
+remove temporary files created before it saves discoverable state, because cleanup cannot locate those files.
+
+#### Installation registry
+
+Temporary module state and the durable installation registry have different lifetimes. Module state passes selections
+and download paths between lifecycle phases and is normally deleted by `cleanup.sh`. A module registry records facts
+needed to manage a successful installation later, such as its installation path or installed variants, and must survive
+ordinary cleanup.
+
+Registry files are stored per user under
+`$HOME/.local/state/mint-provisioner/registry/<category>/<module>.registry`. Their presence is not proof that software
+is still installed: the module's installed-state detector must verify the registered path or another concrete artifact.
+Modules should update the registry only after their required installation operations succeed, and should delete it only
+during an explicit future uninstall or registry-management operation.
+
+The `mp` entrypoint exports `INSTALL_DIR` for installed-state detectors and lifecycle phases. An existing absolute value
+is preserved; otherwise it defaults to the parent directory of the Mint Provisioner repository. Relative values are
+rejected before command dispatch.
 
 ### Complete Execution Order
 
