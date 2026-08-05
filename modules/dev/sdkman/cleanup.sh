@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-#
-# Performs post-install cleanup for SDKMAN!
-#
+source "$LIB_COMMON/common.sh"
+source "$LIB_INSTALLER/state.sh"
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/state.sh"
+TAG="cleanup:$CANONICAL_ID"
 
 if ! load_states "$CANONICAL_ID"; then
-    log_warn "[$CANONICAL_ID] State not found, skipping cleanup"
+    tlog_warn "$TAG" "State not found, skipping cleanup"
 
     exit 0
 fi
@@ -18,12 +16,12 @@ fi
 for key in STANDARD_FILE NATIVE_FILE CANDIDATES_FILE; do
     file_path="$(get_state "$key")"
     if [[ -n "$file_path" && -f "$file_path" ]]; then
-        log_info "[$CANONICAL_ID] Removing downloaded file: $file_path"
+        tlog_info "$TAG" "Removing downloaded file: $file_path"
         rm -f "$file_path"
     fi
 done
 
-log_info "[$CANONICAL_ID] Deleting states"
+tlog_info "$TAG" "Deleting states"
 delete_states "$CANONICAL_ID"
 
-log_info "[$CANONICAL_ID] Cleanup completed successfully"
+tlog_info "$TAG" "[$CANONICAL_ID] Cleanup completed successfully"

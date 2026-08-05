@@ -136,14 +136,30 @@ Nerd Fonts provides patched developer fonts containing thousands of additional g
 
 **GitHub latest release (precompiled archive)**
 
-The installer downloads selected font archives from the official Nerd Fonts project, extracts the fonts into the system font directory (`/usr/local/share/fonts`), and refreshes the font cache.
-The installer will create folder for each font family, eg: `/usr/local/share/fonts/nerd-font/Inconsolata`, the folder name is the font family name.
+The installer downloads selected font archives from the official Nerd Fonts project, extracts the fonts into the system font directory (`/usr/local/share/fonts/nerd-font`), and refreshes the font cache.
+The installer creates one folder per font family, for example `/usr/local/share/fonts/nerd-font/FiraCode`.
 
 ### Supported ENV
 
+- `NERD_FONT_FAMILIES`
+    - Comma-separated font families to install.
+    - Takes priority over `NERD_FONT_FAMILY` when non-empty.
 - `NERD_FONT_FAMILY`
-    - Font family to install.
-    - Default: `Inconsolata`.
+    - Single-family or comma-separated selection.
+    - Used only when `NERD_FONT_FAMILIES` is empty.
+
+At least one of these variables must be non-empty. Family names are trimmed,
+validated, and deduplicated before downloads begin.
+
+### Installation Detection and Registry
+
+Detection checks the requested family directory and requires at least one `.ttf` or `.otf` file. Mint Provisioner keeps
+one registry file for the module containing the install root and a comma-separated, sorted list of font families that
+it manages. Post-install reconciliation removes missing managed families from that list and adds every successfully
+installed family from the current request.
+
+Valid font families found under the install root but absent from the registry remain unmanaged. The installer logs and
+stores aggregated warnings for unmanaged families and managed families that were removed manually.
 
 ### Post-install Configuration
 
@@ -151,6 +167,8 @@ The installer will create folder for each font family, eg: `/usr/local/share/fon
 
 - Installs the selected fonts into `/usr/local/share/fonts/nerd-font/<family>`.
 - Refreshes the font cache automatically using `fc-cache`.
+- Reconciles installed families with the registry without adopting fonts installed manually.
+- Can be rerun after ordinary cleanup; when transient installation state is absent, only existing registry entries are reconciled.
 
 ### Official Website
 

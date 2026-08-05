@@ -1,32 +1,31 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-#
-# Performs post-install cleanup for Nerd Font.
-#
-# Actions:
-#   - Removes the downloaded zip package.
-#   - Removes the module state file.
-#
+source "$LIB_COMMON/common.sh"
+source "$LIB_INSTALLER/state.sh"
+source "$MP_MODULES/sys/nerd-font/font.sh"
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/state.sh"
+main() {
+    local canonical_id="$1"
+    local raw_families
+    local -a font_families=()
 
-if ! load_states "$CANONICAL_ID"; then
-    log_warn "[$CANONICAL_ID] State not found, skipping cleanup"
+    if ! load_states "$canonical_id"; then
+        tlog_warn "cleanup:$canonical_id" "State not found, skipping cleanup"
 
-    exit 0
-fi
+        return 0
+    fi
 
-DOWNLOADED_FILE="$(get_state "DOWNLOAD_FILE")"
+    if ! raw_families="$(get_state "FONT_FAMILIES")" ||
+        ! nerd_font_parse_families "$raw_families" font_families; then
+        tlog_error "cleanup:$canonical_id" "Invalid Nerd Font installation state"
+        delete_states "$canonical_id" || true
 
-if [[ -n "$DOWNLOADED_FILE" && -f "$DOWNLOADED_FILE" ]]; then
-    log_info "[$CANONICAL_ID] Removing downloaded file: ${DOWNLOADED_FILE}"
-    rm -f "$DOWNLOADED_FILE"
-fi
+        return 1
+    fi
 
-log_info "[$CANONICAL_ID] Deleting states"
-delete_states "$CANONICAL_ID"
+    nerd_font_cleanup_downloads "$canonical_id" font_families || return $?
+    tlog_info "cleanup:$canonical_id" "Cleanup completed successfully"
+}
 
-log_info "[$CANONICAL_ID] Cleanup completed"
-exit 0
+main "$CANONICAL_ID"
