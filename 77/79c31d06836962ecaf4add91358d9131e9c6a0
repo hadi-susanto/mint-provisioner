@@ -1,0 +1,27 @@
+command/install.sh
+  2d24c87a6b37ed78 9-11,102,116,290,293,298-301,327,330-337,342-353,356-358
+lib/installer/execution.sh
+  2d24c87a6b37ed78 93,99,101,121,154-164,167
+command/help.sh
+  2d24c87a6b37ed78 70-71,79-80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "7779c31d06836962ecaf4add91358d9131e9c6a0",
+  "prompts": {
+    "2d24c87a6b37ed78": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fcd99-0d61-7e21-b466-cf46e8719454",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 774,
+      "total_deletions": 260,
+      "accepted_lines": 720,
+      "overriden_lines": 3
+    }
+  }
+}
