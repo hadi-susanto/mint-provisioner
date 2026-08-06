@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/installer_apt.sh"
-source "${LIB_DIR}/messages.sh"
+source "$LIB_INSTALLER/apt.sh"
+source "$LIB_INSTALLER/messages.sh"
 
-if ! apt_install tlp tlp-rdw; then
+if ! apt_install "$CANONICAL_ID" tlp tlp-rdw; then
     exit 1
 fi
 
-log_info "[$CANONICAL_ID] Enabling TLP service"
+tlog_info "install:$CANONICAL_ID" "Enabling TLP service"
 
 if ! sudo systemctl enable --now tlp.service; then
-    log_error "[$CANONICAL_ID] Failed to enable TLP service"
+    tlog_error "install:$CANONICAL_ID" "Failed to enable TLP service"
 
     exit 1
 fi
 
-log_info "[$CANONICAL_ID] TLP service enabled successfully"
+tlog_info "install:$CANONICAL_ID" "TLP service enabled successfully"
 
 message="TLP installed successfully.
 
@@ -27,6 +27,6 @@ Edit the TLP configuration:
     sudo nano /etc/tlp.conf
 
 Install the graphical configuration interface:
-    ./install.sh gui/tlp-ui"
+    mp install gui/tlp-ui"
 
 add_message "$CANONICAL_ID" "info" "$message"

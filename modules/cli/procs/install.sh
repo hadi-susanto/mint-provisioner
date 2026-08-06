@@ -1,50 +1,55 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/installer_common.sh"
-source "${LIB_DIR}/state.sh"
+source "$LIB_COMMON/common.sh"
+source "$LIB_INSTALLER/path.sh"
+source "$LIB_INSTALLER/registry.sh"
+source "$LIB_INSTALLER/state.sh"
+source "$LIB_INSTALLER/symlink.sh"
 
-load_states "$CANONICAL_ID" || exit 1
-ARCHIVE_FILE="$(get_state "ARCHIVE_FILE")" || exit 1
+main() {
+    local canonical_id="$1"
+    local raw_install_path="$2"
+    local archive_file
+    local install_path
+    local tag="install:$canonical_id"
 
-if [[ ! -f "$ARCHIVE_FILE" ]]; then
-    log_error "[$CANONICAL_ID] Archive file not found: ${ARCHIVE_FILE}"
+    load_states "$canonical_id" || return 1
+    archive_file="$(get_state "ARCHIVE_FILE")" || return 1
 
-    exit 2
-fi
+    if [[ ! -f "$archive_file" ]]; then
+        tlog_error "$tag" "Archive file not found: %s" "$archive_file"
 
-if [[ -z "${PROCS_INSTALL_DIR:-}" ]]; then
-    PROCS_INSTALL_DIR="$INSTALL_DIR/procs"
-fi
+        return 2
+    fi
 
-SUDO_CMD=""
-if ! can_write "$PROCS_INSTALL_DIR"; then
-    SUDO_CMD="sudo"
-fi
+    install_path="$(expand_path "$raw_install_path")" || return $?
+    if ! mkdir -p -- "$install_path"; then
+        tlog_error "$tag" "Failed to create install directory: %s" "$install_path"
 
-if ! $SUDO_CMD mkdir -p "$PROCS_INSTALL_DIR"; then
-    log_error "[$CANONICAL_ID] Failed to create install directory: $PROCS_INSTALL_DIR"
+        return 3
+    fi
 
-    exit 3
-fi
+    if ! unzip -oq "$archive_file" -d "$install_path"; then
+        tlog_error "$tag" "Failed to extract procs into: %s" "$install_path"
 
-if ! $SUDO_CMD unzip -oq "$ARCHIVE_FILE" -d "$PROCS_INSTALL_DIR"; then
-    log_error "[$CANONICAL_ID] Extraction failed"
+        return 4
+    fi
 
-    exit 4
-fi
+    if ! chmod +x "$install_path/procs"; then
+        tlog_error "$tag" "Failed to make procs executable"
 
-if ! $SUDO_CMD chmod +x "$PROCS_INSTALL_DIR/procs"; then
-    log_error "[$CANONICAL_ID] Failed to make binary executable"
+        return 5
+    fi
 
-    exit 5
-fi
+    if [[ "$install_path" != "$(symlink_location)" ]]; then
+        symlink_binary "$canonical_id" "$install_path/procs" || return 6
+    fi
 
-log_info "[$CANONICAL_ID] Creating symbolic links"
-if [[ "$PROCS_INSTALL_DIR" != "$(symlink_location)" ]]; then
-    symlink_binary "$CANONICAL_ID" "$PROCS_INSTALL_DIR/procs"
-else
-    log_info "[$CANONICAL_ID] Install directory matches symlink location, skipping symlink creation"
-fi
+    set_registry "INSTALL_PATH" "$install_path" || return 7
+    save_registry "$canonical_id" || return 7
 
-log_info "[$CANONICAL_ID] Installation completed successfully"
+    tlog_info "$tag" "Installation completed successfully"
+}
+
+main "$CANONICAL_ID" "${PROCS_INSTALL_DIR:-$INSTALL_DIR/procs}"

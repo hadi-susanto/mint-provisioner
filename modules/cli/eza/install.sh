@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$LIB_DIR/installer_apt.sh"
-source "$LIB_DIR/messages.sh"
+source "$LIB_INSTALLER/apt.sh"
+source "$LIB_INSTALLER/messages.sh"
 
-apt_install eza
+apt_install "$CANONICAL_ID" eza
 
 add_system_toolkit_message "$CANONICAL_ID"
