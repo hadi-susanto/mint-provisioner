@@ -1,60 +1,176 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-#
-# Installs power-level-10k by cloning the git repository.
-#
+source "$LIB_COMMON/common.sh"
+source "$LIB_INSTALLER/messages.sh"
+source "$LIB_INSTALLER/path.sh"
+source "$LIB_INSTALLER/registry.sh"
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/messages.sh"
+__clone_git_repository() {
+    local canonical_id="$1"
+    local install_path="$2"
+    local tag="install:$canonical_id"
+    local repository_url="https://github.com/romkatv/powerlevel10k.git"
+    local parent_dir
+    local existing_entry
+    local temporary_dir
 
-if [[ -z "${POWERLEVEL10K_INSTALL_DIR:-}" ]]; then
-    POWERLEVEL10K_INSTALL_DIR="$INSTALL_DIR/power-level-10k"
-fi
+    if [[ -f "$install_path/powerlevel10k.zsh-theme" ]]; then
+        tlog_warn "$tag" \
+            "Powerlevel10k already exists; skipping clone: %s" "$install_path"
 
-log_info "[$CANONICAL_ID] Installing to $POWERLEVEL10K_INSTALL_DIR"
-
-SUDO_CMD=""
-if ! can_write "$POWERLEVEL10K_INSTALL_DIR"; then
-    SUDO_CMD="sudo"
-fi
-
-if [[ -d "$POWERLEVEL10K_INSTALL_DIR" ]]; then
-    log_warn "[$CANONICAL_ID] Target directory already exists, skipping clone: $POWERLEVEL10K_INSTALL_DIR"
-else
-    if ! $SUDO_CMD mkdir -p "$POWERLEVEL10K_INSTALL_DIR"; then
-        log_error "[$CANONICAL_ID] Failed to create install directory: $POWERLEVEL10K_INSTALL_DIR"
-
-        exit 1
+        return 0
     fi
 
-    REPO_URL="https://github.com/romkatv/powerlevel10k.git"
-    if ! $SUDO_CMD git clone --depth 1 "$REPO_URL" "$POWERLEVEL10K_INSTALL_DIR"; then
-        log_error "[$CANONICAL_ID] Failed to clone repository: $REPO_URL"
+    if [[ -e "$install_path" && ! -d "$install_path" ]]; then
+        tlog_error "$tag" \
+            "Installation target exists but is not a directory: %s" "$install_path"
 
-        exit 2
+        return 1
     fi
-fi
 
-log_info "[$CANONICAL_ID] Installation completed successfully"
+    if [[ -d "$install_path" ]]; then
+        if ! existing_entry="$(
+            find "$install_path" -mindepth 1 -maxdepth 1 -print -quit
+        )"; then
+            tlog_error "$tag" \
+                "Failed to inspect installation directory: %s" "$install_path"
 
-printf -v install_dir_literal '%q' "$POWERLEVEL10K_INSTALL_DIR"
-printf -v theme_file_literal '%q' "$POWERLEVEL10K_INSTALL_DIR/powerlevel10k.zsh-theme"
+            return 1
+        fi
 
-msg="To enable Powerlevel10k through System Toolkit, run:
+        if [[ -n "$existing_entry" ]]; then
+            tlog_error "$tag" \
+                "Installation directory is non-empty but does not contain Powerlevel10k: %s" \
+                "$install_path"
 
-  POWERLEVEL10K_INSTALL_DIR=$install_dir_literal syskit-cfg install term/power-level-10k
+            return 1
+        fi
+    fi
+
+    parent_dir="$(dirname -- "$install_path")" || return 1
+
+    if ! mkdir -p "$parent_dir"; then
+        tlog_error "$tag" \
+            "Failed to create installation parent directory: %s" "$parent_dir"
+
+        return 1
+    fi
+
+    if ! temporary_dir="$(
+        mktemp -d "$parent_dir/.powerlevel10k.XXXXXX"
+    )"; then
+        tlog_error "$tag" "Failed to create a temporary clone directory"
+
+        return 1
+    fi
+
+    tlog_info "$tag" "Cloning git repository: %s" "$repository_url"
+
+    if ! git clone --depth 1 "$repository_url" "$temporary_dir"; then
+        tlog_error "$tag" \
+            "Failed to clone Powerlevel10k from: %s" "$repository_url"
+        rm -rf -- "$temporary_dir"
+
+        return 2
+    fi
+
+    if [[ ! -f "$temporary_dir/powerlevel10k.zsh-theme" ]]; then
+        tlog_error "$tag" \
+            "Cloned repository does not contain the Powerlevel10k theme"
+        rm -rf -- "$temporary_dir"
+
+        return 3
+    fi
+
+    if [[ -d "$install_path" ]] && ! rmdir -- "$install_path"; then
+        tlog_error "$tag" \
+            "Installation directory is no longer empty: %s" "$install_path"
+        rm -rf -- "$temporary_dir"
+
+        return 1
+    fi
+
+    if ! mv -- "$temporary_dir" "$install_path"; then
+        tlog_error "$tag" \
+            "Failed to move Powerlevel10k into: %s" "$install_path"
+        rm -rf -- "$temporary_dir"
+
+        return 1
+    fi
+}
+
+__generate_installation_messages() {
+    local canonical_id="$1"
+    local install_path="$2"
+    local install_path_literal
+    local theme_file_literal
+    local message
+
+    printf -v install_path_literal '%q' "$install_path"
+    printf -v theme_file_literal '%q' "$install_path/powerlevel10k.zsh-theme"
+
+    message="To enable Powerlevel10k through System Toolkit, run:
+
+  POWERLEVEL10K_INSTALL_DIR=$install_path_literal syskit-cfg install term/power-level-10k
 
 Without System Toolkit, add the following to your Zsh configuration:
 
   source $theme_file_literal"
+    
+    if ! add_message "$canonical_id" info "$message"; then
+        tlog_warn "install:$canonical_id" "Failed to persist Powerlevel10k integration guidance"
+    fi
 
-add_message "$CANONICAL_ID" "info" "$msg"
+    if command -v zsh >/dev/null 2>&1; then
+        return 0
+    fi
 
-if ! command -v zsh >/dev/null 2>&1; then
-    msg="Zsh is not installed. Install it before enabling Powerlevel10k.
-You can install Zsh using Mint Provisioner: './install.sh term/zsh'"
+    message="Zsh is not installed. Install it before enabling Powerlevel10k.
+You can install Zsh using Mint Provisioner: 'mp install term/zsh'"
 
-    log_warn "[$CANONICAL_ID] Zsh not found. Powerlevel10k requires Zsh."
-    add_message "$CANONICAL_ID" "warn" "$msg"
-fi
+    tlog_warn "install:$canonical_id" "Zsh is not installed; Powerlevel10k requires it"
+
+    if ! add_message "$canonical_id" warn "$message"; then
+        tlog_warn "install:$canonical_id" "Failed to persist the missing-Zsh warning"
+    fi
+}
+
+main() {
+    local canonical_id="$1"
+    local raw_install_path="$2"
+    local install_path
+    local revision
+
+    install_path="$(expand_path "$raw_install_path")" || return $?
+    tlog_info "install:$canonical_id" "Installing Powerlevel10k to %s" "$install_path"
+
+    __clone_git_repository "$canonical_id" "$install_path" || return $?
+    if [[ ! -f "$install_path/powerlevel10k.zsh-theme" ]]; then
+        tlog_error "install:$canonical_id" \
+            "Powerlevel10k theme source was not installed: %s" \
+            "$install_path/powerlevel10k.zsh-theme"
+
+        return 3
+    fi
+
+    set_registry "INSTALL_PATH" "$install_path" || return 4
+
+    if revision="$(git -C "$install_path" rev-parse HEAD 2>/dev/null)"; then
+        set_registry "GIT_REVISION" "$revision" || return 4
+    else
+        tlog_warn "install:$canonical_id" "Unable to record the installed Git revision"
+    fi
+
+    if ! save_registry "$canonical_id"; then
+        tlog_error "install:$canonical_id" "Failed to save the installation registry"
+
+        return 4
+    fi
+
+    tlog_info "install:$canonical_id" "Installation completed successfully"
+
+    __generate_installation_messages "$canonical_id" "$install_path"
+}
+
+main "$CANONICAL_ID" "${POWERLEVEL10K_INSTALL_DIR:-$INSTALL_DIR/power-level-10k}"

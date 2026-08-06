@@ -286,8 +286,9 @@ delete_states "$CANONICAL_ID" || exit $?
 Messages intended for the final installation summary must remain available until the summary is printed.
 Framework-managed messages are deleted automatically afterward.
 
-Because lifecycle execution stops when a phase fails, `cleanup.sh` normally runs only when all preceding phases succeed.
-A phase that must remove an artifact after failure should perform its own immediate cleanup or register a suitable trap.
+Lifecycle execution stops normal phases when one fails, then runs `cleanup.sh` when it exists. If cleanup also fails,
+the original phase status is preserved. A phase must still remove temporary artifacts created before their paths are
+saved in module state, because cleanup cannot discover them.
 
 ## 🏷️ Module Metadata
 

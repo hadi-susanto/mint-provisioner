@@ -1,170 +1,161 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-#
-# Installs SDKMAN! from downloaded archives.
-#
+source "$LIB_COMMON/common.sh"
+source "$LIB_INSTALLER/messages.sh"
+source "$LIB_INSTALLER/registry.sh"
+source "$LIB_INSTALLER/state.sh"
 
-source "${LIB_DIR}/installer_common.sh"
-source "${LIB_DIR}/messages.sh"
-source "${LIB_DIR}/state.sh"
-
-SCRIPT_DIR="${MODULES_DIR}/${CANONICAL_ID}"
-PAYLOAD_CONFIG="${SCRIPT_DIR}/payload/config"
-
-load_states "$CANONICAL_ID" || exit 1
-STANDARD_ARCHIVE="$(get_state "STANDARD_FILE")" || exit 1
-NATIVE_ARCHIVE="$(get_state "NATIVE_FILE")" || exit 1
-SDKMAN_VERSION="$(get_state "SDKMAN_VERSION")" || exit 1
-SDKMAN_NATIVE_VERSION="$(get_state "SDKMAN_NATIVE_VERSION")" || exit 1
-CANDIDATES_FILE="$(get_state "CANDIDATES_FILE")" || exit 1
-
-if [[ -z "${SDKMAN_INSTALL_DIR:-}" ]]; then
-    SDKMAN_INSTALL_DIR="$INSTALL_DIR/sdkman"
-fi
-
-log_info "[$CANONICAL_ID] Installing SDKMAN! to $SDKMAN_INSTALL_DIR"
-
-SUDO_CMD=""
-if ! can_write "$SDKMAN_INSTALL_DIR"; then
-    SUDO_CMD="sudo"
-fi
-
-if ! $SUDO_CMD mkdir -p "$SDKMAN_INSTALL_DIR"; then
-    log_error "[$CANONICAL_ID] Failed to create install directory: $SDKMAN_INSTALL_DIR"
-
-    exit 2
-fi
-
-# SDKMAN requires these directories to be present.
-if ! $SUDO_CMD mkdir -p \
-    "$SDKMAN_INSTALL_DIR/tmp" \
-    "$SDKMAN_INSTALL_DIR/ext" \
-    "$SDKMAN_INSTALL_DIR/etc" \
-    "$SDKMAN_INSTALL_DIR/var" \
-    "$SDKMAN_INSTALL_DIR/candidates"
-then
-    log_error "[$CANONICAL_ID] Failed to create the SDKMAN! directory structure"
-
-    exit 2
-fi
-
-##
-# Extracts a ZIP archive and copies the contents below its root directory.
-#
-# Parameters:
-#   archive    ZIP archive to extract.
-#   dest       Destination directory.
-#
-# Returns:
-#   Non-zero when temporary directory creation, extraction, root-directory
-#   discovery, or copying fails.
-#
 __extract_strip_root() {
-    local archive="${1:-}"
-    local dest="${2:-}"
-    local temp_dir
+    local canonical_id="$1"
+    local archive="$2"
+    local destination="$3"
+    local root_directory
+    local temporary_directory
 
-    if [[ -z "$archive" || -z "$dest" ]]; then
-        log_error "[$CANONICAL_ID] Missing extraction arguments"
-
-        return 1
-    fi
-
-    if ! temp_dir="$(mktemp -d)"; then
-        log_error "[$CANONICAL_ID] Failed to create a temporary extraction directory"
+    if ! temporary_directory="$(mktemp -d)"; then
+        tlog_error "install:$canonical_id" "Failed to create a temporary extraction directory"
 
         return 1
     fi
 
-    if ! unzip -q "$archive" -d "$temp_dir"; then
-        log_error "[$CANONICAL_ID] Failed to unzip $archive"
-        rm -rf "$temp_dir"
+    if ! unzip -q "$archive" -d "$temporary_directory"; then
+        tlog_error "install:$canonical_id" "Failed to extract archive: %s" "$archive"
+        rm -rf "$temporary_directory"
 
         return 1
     fi
 
-    # Find the root folder in the temp dir
-    local root_folder
-    root_folder="$(find "$temp_dir" -mindepth 1 -maxdepth 1 -type d -print -quit)"
-
-    if [[ -z "$root_folder" ]]; then
-        log_error "[$CANONICAL_ID] No root folder found in $archive"
-        rm -rf "$temp_dir"
+    if ! root_directory="$(
+        find "$temporary_directory" -mindepth 1 -maxdepth 1 -type d -print -quit
+    )" || [[ -z "$root_directory" ]]; then
+        tlog_error "install:$canonical_id" "No root directory found in archive: %s" "$archive"
+        rm -rf "$temporary_directory"
 
         return 2
     fi
 
-    if ! $SUDO_CMD cp -r "${root_folder}/." "$dest/"; then
-        log_error "[$CANONICAL_ID] Failed to copy files from $root_folder to $dest"
-        rm -rf "$temp_dir"
+    if ! cp -r "${root_directory}/." "$destination/"; then
+        tlog_error "install:$canonical_id" \
+            "Failed to copy extracted files into: %s" "$destination"
+        rm -rf "$temporary_directory"
 
         return 3
     fi
 
-    rm -rf "$temp_dir"
-
-    return 0
+    rm -rf "$temporary_directory"
 }
 
-log_info "[$CANONICAL_ID] Extracting standard SDKMAN!"
-if ! __extract_strip_root "$STANDARD_ARCHIVE" "$SDKMAN_INSTALL_DIR"; then
-    exit 3
-fi
+__install_files() {
+    local canonical_id="$1"
+    local install_path="$2"
+    local payload_config="$3/config"
+    local standard_archive
+    local native_archive
+    local candidates_file
 
-log_info "[$CANONICAL_ID] Extracting native SDKMAN!"
-if ! __extract_strip_root "$NATIVE_ARCHIVE" "$SDKMAN_INSTALL_DIR"; then
-    exit 4
-fi
+    standard_archive="$(get_state "STANDARD_FILE")" || return 1
+    native_archive="$(get_state "NATIVE_FILE")" || return 1
+    candidates_file="$(get_state "CANDIDATES_FILE")" || return 1
 
-# Write SDKMAN! required data such as versions, platform, and candidates
-log_info "[$CANONICAL_ID] Writing versions, platform, and candidates"
+    tlog_info "install:$canonical_id" "Extracting the SDKMAN! standard archive"
+    __extract_strip_root "$canonical_id" "$standard_archive" "$install_path" || return 3
 
-if ! printf '%s\n' "$SDKMAN_VERSION" | \
-    $SUDO_CMD tee "$SDKMAN_INSTALL_DIR/var/version" >/dev/null
-then
-    log_error "[$CANONICAL_ID] Failed to write the SDKMAN! version"
+    tlog_info "install:$canonical_id" "Extracting the SDKMAN! native archive"
+    __extract_strip_root "$canonical_id" "$native_archive" "$install_path" || return 4
 
-    exit 5
-fi
+    if ! cp "$candidates_file" "$install_path/var/candidates"; then
+        tlog_error "install:$canonical_id" "Failed to install the SDKMAN! candidates list"
 
-if ! printf '%s\n' "$SDKMAN_NATIVE_VERSION" | \
-    $SUDO_CMD tee "$SDKMAN_INSTALL_DIR/var/version_native" >/dev/null
-then
-    log_error "[$CANONICAL_ID] Failed to write the SDKMAN! native version"
+        return 8
+    fi
 
-    exit 6
-fi
+    if ! install -m 0644 -- "$payload_config" "$install_path/etc/config"; then
+        tlog_error "install:$canonical_id" "Failed to install the SDKMAN! configuration"
 
-if ! printf '%s\n' "linuxx64" | \
-    $SUDO_CMD tee "$SDKMAN_INSTALL_DIR/var/platform" >/dev/null
-then
-    log_error "[$CANONICAL_ID] Failed to write the SDKMAN! platform"
+        return 9
+    fi
+}
 
-    exit 7
-fi
+__write_sdkman_vars() {
+    local canonical_id="$1"
+    local install_path="$2"
+    local sdkman_version
+    local sdkman_native_version
 
-if ! $SUDO_CMD cp "$CANDIDATES_FILE" "$SDKMAN_INSTALL_DIR/var/candidates"; then
-    log_error "[$CANONICAL_ID] Failed to install the SDKMAN! candidates list"
+    sdkman_version="$(get_state "SDKMAN_VERSION")" || return 1
+    sdkman_native_version="$(get_state "SDKMAN_NATIVE_VERSION")" || return 1
 
-    exit 8
-fi
+    if ! printf '%s\n' "$sdkman_version" >"$install_path/var/version"; then
+        tlog_error "install:$canonical_id" "Failed to write the SDKMAN! version"
 
-log_info "[$CANONICAL_ID] Installing SDKMAN! configuration"
-if ! $SUDO_CMD install -m 0644 -- \
-    "$PAYLOAD_CONFIG" \
-    "$SDKMAN_INSTALL_DIR/etc/config"
-then
-    log_error "[$CANONICAL_ID] Failed to install the SDKMAN! configuration"
+        return 5
+    fi
 
-    exit 9
-fi
+    if ! printf '%s\n' "$sdkman_native_version" >"$install_path/var/version_native"; then
+        tlog_error "install:$canonical_id" "Failed to write the SDKMAN! native version"
 
-log_info "[$CANONICAL_ID] Installation completed successfully"
+        return 6
+    fi
 
-printf -v sdkman_dir_literal '%q' "$SDKMAN_INSTALL_DIR"
+    if ! printf '%s\n' "linuxx64" >"$install_path/var/platform"; then
+        tlog_error "install:$canonical_id" "Failed to write the SDKMAN! platform"
 
-message="To enable SDKMAN! through System Toolkit, run:
+        return 7
+    fi
+}
+
+__save_sdkman_registry() {
+    local canonical_id="$1"
+    local install_path="$2"
+    local sdkman_native_version
+    local sdkman_version
+
+    sdkman_version="$(get_state "SDKMAN_VERSION")" || return 1
+    sdkman_native_version="$(get_state "SDKMAN_NATIVE_VERSION")" || return 1
+
+    set_registry "INSTALL_PATH" "$install_path" || return 10
+    set_registry "SDKMAN_VERSION" "$sdkman_version" || return 10
+    set_registry "SDKMAN_NATIVE_VERSION" "$sdkman_native_version" || return 10
+
+    if ! save_registry "$canonical_id"; then
+        tlog_error "install:$canonical_id" "Failed to save the installation registry"
+
+        return 10
+    fi
+}
+
+main() {
+    local canonical_id="$1"
+    local install_path="$2"
+    local payload_dir="$3/$canonical_id/payload"
+    local message
+    local sdkman_dir_literal
+
+    load_states "$canonical_id" || return 1
+
+    tlog_info "install:$canonical_id" "Installing SDKMAN! to %s" "$install_path"
+
+    if ! mkdir -p \
+        "$install_path/tmp" \
+        "$install_path/ext" \
+        "$install_path/etc" \
+        "$install_path/var" \
+        "$install_path/candidates"; then
+        tlog_error "install:$canonical_id" \
+            "Failed to create the SDKMAN! directory structure: %s" "$install_path"
+
+        return 2
+    fi
+
+    __install_files "$canonical_id" "$install_path" "$payload_dir" || return $?
+    __write_sdkman_vars "$canonical_id" "$install_path" || return $?
+    __save_sdkman_registry "$canonical_id" "$install_path" || return $?
+
+    tlog_info "install:$canonical_id" "Installation completed successfully"
+
+    printf -v sdkman_dir_literal '%q' "$install_path"
+    message="To enable SDKMAN! through System Toolkit, run:
 
   SDKMAN_DIR=$sdkman_dir_literal syskit-cfg install dev/sdkman
 
@@ -177,4 +168,9 @@ if [[ -s \"\${SDKMAN_DIR}/bin/sdkman-init.sh\" ]]; then
 fi
 # <<< mint-provisioner enabling SDKMAN! <<<"
 
-add_message "$CANONICAL_ID" "info" "$message"
+    if ! add_message "$canonical_id" info "$message"; then
+        tlog_warn "install:$canonical_id" "Failed to persist SDKMAN! integration guidance"
+    fi
+}
+
+main "$CANONICAL_ID" "${SDKMAN_INSTALL_DIR:-$INSTALL_DIR/sdkman}" "$MP_MODULES"

@@ -383,6 +383,13 @@ currently supported by this module. The bundled SDKMAN! configuration is install
     - Installation directory.
     - Default: `${INSTALL_DIR}/sdkman`
 
+### Installation Detection and Registry
+
+SDKMAN! is detected from `bin/sdkman-init.sh`, because `sdk` is a shell function that exists only after SDKMAN! shell
+integration has been loaded. After installation, Mint Provisioner records the installation directory and discovered
+standard and native component versions in the module registry. The detector verifies the registered path rather than
+treating the registry itself as proof of installation.
+
 ### System Toolkit Integration
 
 This module has additional features that can be enabled by running SysKit. See the

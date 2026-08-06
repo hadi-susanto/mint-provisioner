@@ -165,6 +165,12 @@ Clones the official Powerlevel10k GitHub repository into the configured installa
     - Default:
       `${INSTALL_DIR}/power-level-10k`
 
+### Installation Detection and Registry
+
+Powerlevel10k is detected by verifying `powerlevel10k.zsh-theme` in the configured, registered, or default installation
+directory. After installation, Mint Provisioner stores the checkout path and Git revision when it can be resolved. A
+stale registry does not make a missing theme appear installed.
+
 ### System Toolkit Integration
 
 This module has additional features that can be enabled by running SysKit. See the
