@@ -18,7 +18,6 @@ Create the target directory or adjust its ownership and permissions, then retry 
 
 main() {
     local canonical_id="$1"
-    local install_path="$2"
     local raw_install_path="$2"
     local install_path
 

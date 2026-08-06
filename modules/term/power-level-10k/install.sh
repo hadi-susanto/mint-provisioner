@@ -103,6 +103,8 @@ __clone_git_repository() {
 __generate_installation_messages() {
     local canonical_id="$1"
     local install_path="$2"
+    local install_path_literal
+    local theme_file_literal
     local message
 
     printf -v install_path_literal '%q' "$install_path"

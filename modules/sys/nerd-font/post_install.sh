@@ -50,10 +50,10 @@ __collect_managed_and_unmanaged() {
     local unmanaged_name="$2"
     local -n managed_ref="$managed_name"
     local -n unmanaged_ref="$unmanaged_name"
-    
+
     managed_ref=()
     unmanaged_ref=()
-    
+
     for font_family in "${!__FONT_FAMILY_FLAGS[@]}"; do
         if (( __FONT_FAMILY_FLAGS["$font_family"] )); then
             managed_ref+=("$font_family")
