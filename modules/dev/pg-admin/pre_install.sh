@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/distro.sh"
-source "${LIB_DIR}/installer_apt.sh"
+source "$LIB_COMMON/common.sh"
+source "$LIB_INSTALLER/distro.sh"
+source "$LIB_INSTALLER/apt.sh"
 
 if ! UBUNTU_CODENAME="$(get_ubuntu_codename)"; then
-    log_error "[$CANONICAL_ID] Failed to determine the upstream Ubuntu codename"
+    tlog_error "pre-install:$CANONICAL_ID" \
+        "Failed to determine the upstream Ubuntu codename"
 
     exit 1
 fi
 
 if [[ -z "$UBUNTU_CODENAME" ]]; then
-    log_error "[$CANONICAL_ID] Upstream Ubuntu codename is empty"
+    tlog_error "pre-install:$CANONICAL_ID" "Upstream Ubuntu codename is empty"
 
     exit 2
 fi
@@ -26,7 +27,8 @@ if ! install_asc_key \
     "pgadmin4" \
     "main"
 then
-    log_error "[$CANONICAL_ID] Failed to configure the pgAdmin APT repository"
+    tlog_error "pre-install:$CANONICAL_ID" \
+        "Failed to configure the pgAdmin APT repository"
 
     exit 3
 fi

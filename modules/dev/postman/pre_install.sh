@@ -1,40 +1,42 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/installer_external.sh"
-source "${LIB_DIR}/state.sh"
+source "$LIB_INSTALLER/external.sh"
+source "$LIB_INSTALLER/install-target.sh"
+source "$LIB_INSTALLER/state.sh"
 
-download_url="https://dl.pstmn.io/download/latest/linux64"
+main() {
+    local canonical_id="$1"
+    local raw_install_path="$2"
+    local download_url="https://dl.pstmn.io/download/latest/linux64"
+    local archive_file
+    local install_path
+    local tag="pre-install:$canonical_id"
 
-log_info "[$CANONICAL_ID] Creating temporary download file"
+    install_path="$(resolve_install_target "$canonical_id" "$raw_install_path")" || return $?
 
-if ! archive_file="$(mktemp --suffix=.tar.gz)"; then
-    log_error "[$CANONICAL_ID] Failed to create temporary file"
+    if ! archive_file="$(mktemp --suffix=.tar.gz)"; then
+        tlog_error "$tag" "Failed to create a temporary archive"
 
-    exit 1
-fi
+        return 2
+    fi
 
-log_info "[$CANONICAL_ID] Downloading the latest Postman Linux archive"
+    if ! download_file "$canonical_id" "$download_url" "$archive_file"; then
+        tlog_error "$tag" "Failed to download the Postman archive"
+        rm -f -- "$archive_file"
 
-if ! download_file "$CANONICAL_ID" "$download_url" "$archive_file"; then
-    log_error "[$CANONICAL_ID] Download failed"
-    rm -f "$archive_file"
+        return 3
+    fi
 
-    exit 2
-fi
+    if ! set_state "ARCHIVE_FILE" "$archive_file" ||
+        ! save_states "$canonical_id"; then
+        tlog_error "$tag" "Failed to save installation state"
+        rm -f -- "$archive_file"
 
-if ! set_state "ARCHIVE_FILE" "$archive_file"; then
-    log_error "[$CANONICAL_ID] Failed to store installation state"
-    rm -f "$archive_file"
+        return 4
+    fi
 
-    exit 3
-fi
+    tlog_info "$tag" "Pre-install phase completed successfully"
+}
 
-if ! save_states "$CANONICAL_ID"; then
-    log_error "[$CANONICAL_ID] Failed to save installation state"
-    rm -f "$archive_file"
-
-    exit 4
-fi
-
-log_info "[$CANONICAL_ID] Download completed successfully"
+main "$CANONICAL_ID" "${POSTMAN_INSTALL_DIR:-$INSTALL_DIR/postman}"

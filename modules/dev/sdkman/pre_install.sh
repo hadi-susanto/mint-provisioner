@@ -2,42 +2,8 @@
 set -euo pipefail
 
 source "$LIB_INSTALLER/external.sh"
-source "$LIB_INSTALLER/path.sh"
+source "$LIB_INSTALLER/install-target.sh"
 source "$LIB_INSTALLER/state.sh"
-
-__add_access_message() {
-    local canonical_id="$1"
-    local install_path="$2"
-    local message
-
-    message="Mint Provisioner cannot install to $install_path as the current user.
-Create the target directory or adjust its ownership and permissions, then retry the installation."
-
-    if ! add_message "$canonical_id" info "$message"; then
-        tlog_warn "pre-install:$canonical_id" "Failed to persist installation-directory guidance"
-    fi
-}
-
-__validate_install_target() {
-    local canonical_id="$1"
-    local install_path="$2"
-    local tag="pre-install:$canonical_id"
-
-    if [[ -e "$install_path" && ! -d "$install_path" ]]; then
-        tlog_error "$tag" "Installation target exists but is not a directory: %s" "$install_path"
-        __add_access_message "$canonical_id" "$install_path"
-
-        return 1
-    fi
-
-    if ! can_write "$install_path"; then
-        tlog_error "$tag" \
-            "Installation target is not writable by the current user: %s" "$install_path"
-        __add_access_message "$canonical_id" "$install_path"
-
-        return 1
-    fi
-}
 
 __download_bootstrap_script() {
     local canonical_id="$1"
@@ -183,11 +149,12 @@ __save_sdkman_states() {
 
 main() {
     local canonical_id="$1"
-    local install_path="$2"
+    local raw_install_path="$2"
     local tag="pre-install:$canonical_id"
     local sdkman_platform="linuxx64"
     local candidates_file
     local -a files=()
+    local install_path
     local native_file
     local script_file
     local sdkman_native_version
@@ -196,7 +163,7 @@ main() {
     local standard_file
     local url
 
-    __validate_install_target "$canonical_id" "$install_path" || return $?
+    install_path="$(resolve_install_target "$canonical_id" "$raw_install_path")" || return $?
 
     tlog_info "$tag" "Downloading the SDKMAN! bootstrap script to resolve versions"
     script_file="$(__download_bootstrap_script "$canonical_id")" || return $?

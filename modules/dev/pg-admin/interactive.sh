@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/state.sh"
+source "$LIB_COMMON/common.sh"
+source "$LIB_INSTALLER/state.sh"
 
 __resolve_pgadmin_package() {
     local ui="${1:-desktop}"
@@ -12,36 +12,32 @@ __resolve_pgadmin_package() {
         desktop)
             package="pgadmin4-desktop"
             ;;
-
         web)
             package="pgadmin4-web"
             ;;
-
         both)
             package="pgadmin4"
             ;;
-
         *)
-            log_error \
-                "[$CANONICAL_ID] Invalid PGADMIN_UI value: $ui. Expected desktop, web, or both."
+            tlog_error "interactive:$CANONICAL_ID" \
+                "Invalid PGADMIN_UI value: %s. Expected desktop, web, or both." "$ui"
 
             return 1
             ;;
     esac
 
     set_state "PGADMIN_PACKAGE" "$package"
-    log_info "[$CANONICAL_ID] Selected package: $package"
+    tlog_info "interactive:$CANONICAL_ID" "Selected package: %s" "$package"
 }
 
 if [[ "${PGADMIN_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]; then
     __resolve_pgadmin_package "${PGADMIN_UI:-desktop}" || exit $?
-
     save_states "$CANONICAL_ID" || exit $?
 
     exit 0
 fi
 
-source "${LIB_DIR}/prompt.sh"
+source "$LIB_INSTALLER/prompt.sh"
 
 __ask_pgadmin_package() {
     local selected_index
@@ -66,8 +62,8 @@ __ask_pgadmin_package() {
             ui="both"
             ;;
         *)
-            log_error \
-                "[$CANONICAL_ID] Unexpected pgAdmin package selection index: $selected_index"
+            tlog_error "interactive:$CANONICAL_ID" \
+                "Unexpected pgAdmin package selection index: %s" "$selected_index"
 
             return 1
             ;;
@@ -83,5 +79,3 @@ else
 fi
 
 save_states "$CANONICAL_ID" || exit $?
-
-exit 0
