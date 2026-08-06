@@ -1,0 +1,21 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "104a1aca9e43e96f4109d377298217943ea7833f",
+  "prompts": {
+    "066059532c65605f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fd4cc-e8cf-7e11-ad94-944a06cadecb",
+        "model": "unknown"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 462,
+      "overriden_lines": 0
+    }
+  }
+}
