@@ -19,6 +19,8 @@ Create the target directory or adjust its ownership and permissions, then retry 
 main() {
     local canonical_id="$1"
     local install_path="$2"
+    local raw_install_path="$2"
+    local install_path
 
     if ! command -v git >/dev/null 2>&1; then
         tlog_error "pre-install:$canonical_id" "git is required but not installed"
@@ -26,6 +28,7 @@ main() {
         return 1
     fi
 
+    install_path="$(expand_path "$raw_install_path")" || return $?
     if [[ -e "$install_path" && ! -d "$install_path" ]]; then
         tlog_error "pre-install:$canonical_id" \
             "Installation target exists but is not a directory: %s" "$install_path"

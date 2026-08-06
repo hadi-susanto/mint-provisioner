@@ -10,6 +10,88 @@ source "$LIB_COMMON/common.sh"
 source "$LIB_INSTALLER/messages.sh"
 
 ##
+# expand_path
+#
+# Expands a path into an absolute, normalized path.
+#
+# A leading ~ refers to the current user's HOME. Other user-home forms such as
+# ~other-user are not supported. Environment variables and shell expressions
+# are not evaluated.
+#
+# Parameters:
+#   path - Non-empty path to expand.
+#
+# Output:
+#   Prints the expanded absolute path.
+#
+# Return:
+#   1 - The path, HOME, or current working directory is invalid, or expansion
+#       failed.
+#
+expand_path() {
+    local path="${1:-}"
+    local expanded_path
+
+    if (( $# != 1 )) || [[ -z "$path" ]]; then
+        tlog_error "path" "A non-empty path is required"
+
+        return 1
+    fi
+
+    if [[ "$path" == *$'\n'* || "$path" == *$'\r'* ]]; then
+        tlog_error "path" "Path must be single-line"
+
+        return 1
+    fi
+
+    case "$path" in
+        "~")
+            if [[ -z "${HOME:-}" || "$HOME" != /* ]]; then
+                tlog_error "path" "HOME must be set to an absolute path"
+
+                return 1
+            fi
+
+            path="$HOME"
+            ;;
+        "~/"*)
+            if [[ -z "${HOME:-}" || "$HOME" != /* ]]; then
+                tlog_error "path" "HOME must be set to an absolute path"
+
+                return 1
+            fi
+
+            path="$HOME/${path:2}"
+            ;;
+        "~"*)
+            tlog_error "path" \
+                "User-specific home expansion is not supported: %s" "$path"
+
+            return 1
+            ;;
+    esac
+
+    if [[ "$path" != /* ]]; then
+        if [[ -z "${PWD:-}" || "$PWD" != /* ]]; then
+            tlog_error "path" \
+                "The current working directory must be absolute"
+
+            return 1
+        fi
+
+        path="$PWD/$path"
+    fi
+
+    if ! expanded_path="$(realpath -m -- "$path")"; then
+        tlog_error "path" "Failed to expand path: %s" "$path"
+
+        return 1
+    fi
+
+    printf '%s\n' "$expanded_path"
+}
+
+##
 # can_write <target>
 #
 # Checks whether an existing path is writable or a missing path can be created
@@ -31,12 +113,14 @@ can_write() {
         return 1
     fi
 
-    if [[ "$target" == "~" || "$target" == "~/"* ]]; then
-        target="${target/#\~/$HOME}"
-    fi
+    target="$(expand_path "$target")" || return 1
 
     if [[ -e "$target" ]]; then
-        [[ -w "$target" ]]
+        if [[ -d "$target" ]]; then
+            [[ -w "$target" && -x "$target" ]]
+        else
+            [[ -w "$target" ]]
+        fi
 
         return
     fi
@@ -49,7 +133,7 @@ can_write() {
         directory="$parent"
     done
 
-    [[ -w "$directory" ]]
+    [[ -w "$directory" && -x "$directory" ]]
 }
 
 ##
