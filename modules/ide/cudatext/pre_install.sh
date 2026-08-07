@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/installer_external.sh"
-source "${LIB_DIR}/state.sh"
+source "${LIB_INSTALLER}/external.sh"
+source "${LIB_INSTALLER}/state.sh"
 
 if ! load_states "$CANONICAL_ID"; then
-    log_error "[$CANONICAL_ID] CudaText installation state was not found"
+    tlog_error "$CANONICAL_ID" " CudaText installation state was not found"
 
     exit 1
 fi
@@ -17,7 +17,8 @@ case "$CUDATEXT_UI_TOOLKIT" in
         ;;
 
     *)
-        log_error "[$CANONICAL_ID] Invalid CudaText UI toolkit in state: $CUDATEXT_UI_TOOLKIT"
+        tlog_error "$CANONICAL_ID" \
+            "Invalid CudaText UI toolkit in state: %s" "$CUDATEXT_UI_TOOLKIT"
 
         exit 2
         ;;
@@ -26,25 +27,21 @@ esac
 version_regex='^[0-9]+(\.[0-9]+){3}$'
 artifact_regex="^cudatext_[0-9]+(\\.[0-9]+){3}-[0-9]+_${CUDATEXT_UI_TOOLKIT}_amd64\\.deb$"
 
-log_info "[$CANONICAL_ID] Finding the latest CudaText $CUDATEXT_UI_TOOLKIT package"
+tlog_info "$CANONICAL_ID" "Finding the latest CudaText %s package" "$CUDATEXT_UI_TOOLKIT"
 
 if ! url="$(
     sourceforge_find_release \
-        "$CANONICAL_ID" \
-        "cudatext" \
-        "release" \
-        "$version_regex" \
-        "$artifact_regex"
+        "$CANONICAL_ID" "cudatext" "release" "$version_regex" "$artifact_regex"
 )"; then
-    log_error "[$CANONICAL_ID] Failed to resolve the latest CudaText release"
+    tlog_error "$CANONICAL_ID" "Failed to resolve the latest CudaText release"
 
     exit 3
 fi
 
-log_info "[$CANONICAL_ID] Creating temporary package file"
+tlog_info "$CANONICAL_ID" "Creating temporary package file"
 
 if ! deb_file="$(mktemp --suffix=.deb)"; then
-    log_error "[$CANONICAL_ID] Failed to create temporary package file"
+    tlog_error "$CANONICAL_ID" "Failed to create temporary package file"
 
     exit 4
 fi
@@ -63,4 +60,4 @@ if ! save_states "$CANONICAL_ID"; then
     exit 6
 fi
 
-log_info "[$CANONICAL_ID] Download completed successfully"
+tlog_info "$CANONICAL_ID" "Download completed successfully"

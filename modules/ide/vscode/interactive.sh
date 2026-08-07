@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/state.sh"
+source "${LIB_COMMON}/common.sh"
+source "${LIB_INSTALLER}/state.sh"
 
 __resolve_vscode_channel() {
     local channel="${1:-}"
@@ -17,8 +17,10 @@ __resolve_vscode_channel() {
             set_state "VSCODE_PACKAGE" "code-insiders"
             ;;
         *)
-            log_error \
-                "[$CANONICAL_ID] Invalid VSCODE_CHANNEL value: $channel. Expected stable, insiders, code, or code-insiders."
+            tlog_error \
+                "$CANONICAL_ID" \
+                "Invalid VSCODE_CHANNEL value: %s. Expected stable, insiders, code, or code-insiders." \
+                "$channel"
 
             return 1
             ;;
@@ -32,7 +34,7 @@ if [[ "${VSCODE_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]; then
     exit 0
 fi
 
-source "${LIB_DIR}/prompt.sh"
+source "${LIB_INSTALLER}/prompt.sh"
 
 __ask_vscode_channel() {
     local selected_index

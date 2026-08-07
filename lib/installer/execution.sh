@@ -34,6 +34,7 @@ exec_interactive() {
     local canonical_id="${1:-}"
     local non_interactive="${2:-}"
     local tag="exec-interactive"
+    local -a env_args
 
     if [[ -n "$canonical_id" ]]; then
         tag+=":$canonical_id"
@@ -71,12 +72,15 @@ exec_interactive() {
         return 1
     fi
 
-    tlog_info "$tag" "Running interactive setup"
+    env_args=("CANONICAL_ID" "$canonical_id")
+    if [[ "$non_interactive_value" == "true" ]]; then
+        tlog_warn "$tag" "Non-interactive mode enabled; passing NON_INTERACTIVE=true to each interactive.sh"
+        env_args+=("NON_INTERACTIVE" "$non_interactive_value")
+    else
+        tlog_info "$tag" "Running interactive setup"
+    fi
 
-    if run_script \
-        "$interactive_script" \
-        "CANONICAL_ID" "$canonical_id" \
-        "NON_INTERACTIVE" "$non_interactive_value"; then
+    if run_script "$interactive_script" "${env_args[@]}"; then
         return 0
     else
         status=$?

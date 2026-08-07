@@ -1,27 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/state.sh"
-source "${LIB_DIR}/ui-toolkit.sh"
+source "${LIB_COMMON}/common.sh"
+source "${LIB_INSTALLER}/state.sh"
+source "${LIB_INSTALLER}/ui-toolkit.sh"
 
 __resolve_cudatext_ui_toolkit() {
     local toolkit="${1:-auto}"
 
     if [[ "$toolkit" == "auto" ]]; then
         if ! toolkit="$(detect_ui_toolkit)"; then
-            log_error "[$CANONICAL_ID] UI toolkit auto-detection failed"
+            tlog_error "$CANONICAL_ID" "UI toolkit auto-detection failed"
 
             return 1
         fi
 
-        log_info "[$CANONICAL_ID] Detected UI toolkit: $toolkit"
-        log_info "[$CANONICAL_ID] Recommending the matching CudaText $toolkit package"
+        tlog_info "$CANONICAL_ID" "Detected UI toolkit: %s" "$toolkit"
+        tlog_info "$CANONICAL_ID" "Recommending the matching CudaText $toolkit package"
     fi
 
     case "$toolkit" in
         gtk4)
-            log_info "[$CANONICAL_ID] gtk4 installed in the system, using gtk3 as fallback"
+            tlog_info "$CANONICAL_ID" "gtk4 installed in the system, using gtk3 as fallback"
             toolkit="gtk3"
             ;;
 
@@ -29,21 +29,21 @@ __resolve_cudatext_ui_toolkit() {
             ;;
 
         *)
-            log_error \
-                "[$CANONICAL_ID] Invalid UI toolkit: $toolkit. Expected auto, gtk2, gtk3, qt5, or qt6."
+            tlog_error "$CANONICAL_ID" \
+                "Invalid UI toolkit: $toolkit. Expected auto, gtk2, gtk3, qt5, or qt6."
 
             return 1
             ;;
     esac
 
     set_state "CUDATEXT_UI_TOOLKIT" "$toolkit"
-    log_info "[$CANONICAL_ID] Selected CudaText UI toolkit: $toolkit"
+    tlog_info "$CANONICAL_ID" "Selected CudaText UI toolkit: %s" "$toolkit"
 }
 
 if [[ "${CUDATEXT_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]; then
     if ! __resolve_cudatext_ui_toolkit "${CUDATEXT_UI_TOOLKIT:-auto}"; then
-        log_error \
-            "[$CANONICAL_ID] Failed to resolve the CudaText UI toolkit. Specify CUDATEXT_UI_TOOLKIT manually."
+        tlog_error "$CANONICAL_ID" \
+            "Failed to resolve the CudaText UI toolkit. Specify CUDATEXT_UI_TOOLKIT manually."
 
         exit 1
     fi
@@ -53,7 +53,7 @@ if [[ "${CUDATEXT_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]; the
     exit 0
 fi
 
-source "${LIB_DIR}/prompt.sh"
+source "${LIB_INSTALLER}/prompt.sh"
 
 __ask_cudatext_ui_toolkit() {
     local detected_toolkit

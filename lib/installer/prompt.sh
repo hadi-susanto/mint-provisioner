@@ -58,25 +58,27 @@ __prompt_confirm() {
 
 __prompt_write_simple_question() {
     local question="$1"
-    local default_value="${2-}"
-    local minimum_value="${3-}"
-    local maximum_value="${4-}"
+    local default="${2-}"
+    local minimum="${3-}"
+    local maximum="${4-}"
 
-    printf '%s' "$question" >/dev/tty
+    printf '%bQuestion:%b %s' "$COLOR_CYAN" "$COLOR_RESET" "$question" >/dev/tty
 
-    if [[ -n "$minimum_value" && -n "$maximum_value" ]]; then
-        printf ' [%s-%s]' "$minimum_value" "$maximum_value" >/dev/tty
-    elif [[ -n "$minimum_value" ]]; then
-        printf ' [min: %s]' "$minimum_value" >/dev/tty
-    elif [[ -n "$maximum_value" ]]; then
-        printf ' [max: %s]' "$maximum_value" >/dev/tty
+    if [[ -n "$minimum" || -n "$maximum" || -n "$default" ]]; then
+        printf '\n   %bRules:%b' "$COLOR_YELLOW" "$COLOR_RESET" >/dev/tty
     fi
 
-    if [[ -n "$default_value" ]]; then
-        printf ' [default: %s]' "$default_value" >/dev/tty
+    if [[ -n "$minimum" ]]; then
+        printf ' %b[min: %s]%b' "$COLOR_GRAY" "$minimum" "$COLOR_RESET" >/dev/tty
+    fi
+    if [[ -n "$maximum" ]]; then
+        printf ' %b[max: %s]%b' "$COLOR_GRAY" "$maximum" "$COLOR_RESET" >/dev/tty
+    fi
+    if [[ -n "$default" ]]; then
+        printf ' %b[default: %s]%b' "$COLOR_GRAY" "$default" "$COLOR_RESET" >/dev/tty
     fi
 
-    printf ': ' >/dev/tty
+    printf '\n\n' >/dev/tty
 }
 
 __prompt_read_number() {
@@ -87,6 +89,7 @@ __prompt_read_number() {
     local value
 
     while true; do
+        printf 'Input a number: ' >/dev/tty
         if ! IFS= read -r input </dev/tty; then
             tlog_error "prompt" "Unable to read numeric input"
 
@@ -138,6 +141,7 @@ __prompt_read_text() {
     local input
 
     while true; do
+        printf 'Answer: ' >/dev/tty
         if ! IFS= read -r input </dev/tty; then
             tlog_error "prompt" "Unable to read text input"
 
@@ -221,9 +225,10 @@ choose_option() {
             printf '  %d. %s\n' "$index" "$option" >/dev/tty
             (( index += 1 ))
         done
+        printf '\n' >/dev/tty
 
         while true; do
-            printf '\nChoose an option [1-%d]: ' "${#options[@]}" >/dev/tty
+            printf 'Choose an option [1-%d]: ' "${#options[@]}" >/dev/tty
 
             if ! IFS= read -r selected </dev/tty; then
                 tlog_error "prompt" "Unable to read option input"
@@ -241,10 +246,12 @@ choose_option() {
             __prompt_show_input_error \
                 "Invalid choice. Enter a number between 1 and ${#options[@]}."
         done
+        __prompt_clear_line
 
         selected_option="${options[$((selected_number - 1))]}"
 
         if __prompt_confirm "$selected_option"; then
+            __prompt_clear_line
             printf '%d\n' "$((selected_number - 1))"
 
             return 0
@@ -347,8 +354,10 @@ ask_number() {
 
         selected_value="$(__prompt_read_number \
             "$default_value" "$minimum_value" "$maximum_value")" || return $?
+        __prompt_clear_line
 
         if __prompt_confirm "$selected_value"; then
+            __prompt_clear_line
             printf '%s\n' "$selected_value"
 
             return 0
@@ -404,8 +413,10 @@ ask_text() {
     while true; do
         __prompt_write_simple_question "$question" "$default_value"
         selected_value="$(__prompt_read_text "$default_value")" || return $?
+        __prompt_clear_line
 
         if __prompt_confirm "$selected_value"; then
+            __prompt_clear_line
             printf '%s\n' "$selected_value"
 
             return 0
