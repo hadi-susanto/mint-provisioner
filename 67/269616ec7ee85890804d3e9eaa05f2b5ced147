@@ -1,0 +1,34 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "67269616ec7ee85890804d3e9eaa05f2b5ced147",
+  "prompts": {
+    "935fc6c5e298791d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fd528-83d8-7910-83ae-a58d5cebbe15",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 330,
+      "total_deletions": 176,
+      "accepted_lines": 330,
+      "overriden_lines": 0
+    },
+    "d29973c9d3fee789": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fd528-8ee0-72c0-a223-c180c3cb5118",
+        "model": "unknown"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 462,
+      "overriden_lines": 0
+    }
+  }
+}
