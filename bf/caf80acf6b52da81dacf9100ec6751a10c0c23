@@ -1,0 +1,51 @@
+modules/term/oh-my-posh/install.sh
+  935fc6c5e298791d 8-12,19,25,34,42,48,54,63,71,77,82,86,91-92,95-98
+modules/term/kitty/cleanup.sh
+  935fc6c5e298791d 8-9,12,20,24,27
+modules/term/ghostty/pre_install.sh
+  935fc6c5e298791d 4,7,10,12
+modules/term/oh-my-posh/cleanup.sh
+  935fc6c5e298791d 8-9,12,20,25,28
+modules/term/zsh/install.sh
+  935fc6c5e298791d 4-5,7
+modules/term/ghostty/install.sh
+  935fc6c5e298791d 4-5,7
+modules/term/starship/install.sh
+  935fc6c5e298791d 8-12,18,27,35,42,48,53,57,60-63
+modules/term/starship/cleanup.sh
+  935fc6c5e298791d 8-9,12,20,24,27
+modules/term/kitty/pre_install.sh
+  935fc6c5e298791d 4-5,7,10,19,28,35,44
+modules/term/terminator/install.sh
+  935fc6c5e298791d 4,6
+modules/term/terminator/pre_install.sh
+  935fc6c5e298791d 4,7,10,12
+modules/term/starship/pre_install.sh
+  935fc6c5e298791d 8-9,12,21,30,37,46
+modules/term/alacritty/install.sh
+  935fc6c5e298791d 4,6
+modules/term/kitty/install.sh
+  935fc6c5e298791d 8-12,19,28,36,43,52,57,62,67,73,76,84,94,100,105,112,118,122,128,135,143,147-150
+modules/term/oh-my-posh/pre_install.sh
+  935fc6c5e298791d 8-9,15,20,23,29,36,43,53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "bfcaf80acf6b52da81dacf9100ec6751a10c0c23",
+  "prompts": {
+    "935fc6c5e298791d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fd528-83d8-7910-83ae-a58d5cebbe15",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 288,
+      "overriden_lines": 0
+    }
+  }
+}
