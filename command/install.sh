@@ -173,7 +173,7 @@ __filter_installed_modules() {
     joined=${joined%, }
     if (( force )); then
         tlog_warn "installation" \
-            "Also queued for reinstallation: %s" "$joined"
+            "Queued for reinstallation: %s" "$joined"
     else
         tlog_info "installation" \
             "Skipped because already installed: %s" "$joined"
@@ -293,7 +293,7 @@ __format_module_duration() {
     local result_name="$2"
     local -n result_ref="$result_name"
 
-    printf -v result_ref '%d seconds %03d milliseconds' \
+    printf -v result_ref '%d.%03d second(s)' \
         "$((duration_ms / 1000))" "$((duration_ms % 1000))"
 }
 
@@ -303,7 +303,7 @@ __format_total_duration() {
     local -n result_ref="$result_name"
     local total_seconds=$((duration_ms / 1000))
 
-    printf -v result_ref '%d minutes %02d seconds %03d milliseconds' \
+    printf -v result_ref '%02d:%02d.%03d' \
         "$((total_seconds / 60))" \
         "$((total_seconds % 60))" \
         "$((duration_ms % 1000))"
@@ -403,7 +403,7 @@ __run_installation() {
     __format_total_duration "$total_duration_ms" total_duration
 
     printf 'Installation Results [time: %s]\n' "$total_duration"
-    printf '%s\n' '================================'
+    printf '%s\n' '=================================================='
 
     for (( index = 0; index < ${#canonical_ids[@]}; index += 1 )); do
         if [[ "${results[$index]}" == "SUCCESS" ]]; then

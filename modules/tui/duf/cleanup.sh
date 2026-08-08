@@ -5,11 +5,11 @@ set -euo pipefail
 # Performs post-install cleanup for duf.
 #
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/state.sh"
+source "${LIB_COMMON}/common.sh"
+source "${LIB_INSTALLER}/state.sh"
 
 if ! load_states "$CANONICAL_ID"; then
-    log_warn "[$CANONICAL_ID] State not found, skipping cleanup"
+    tlog_warn "cleanup:$CANONICAL_ID" "State not found, skipping cleanup"
 
     exit 0
 fi
@@ -17,11 +17,11 @@ fi
 ARCHIVE_FILE="$(get_state "ARCHIVE_FILE")"
 
 if [[ -n "$ARCHIVE_FILE" && -f "$ARCHIVE_FILE" ]]; then
-    log_info "[$CANONICAL_ID] Removing archive file: $ARCHIVE_FILE"
+    tlog_info "cleanup:$CANONICAL_ID" "Removing archive file: $ARCHIVE_FILE"
     rm -f "$ARCHIVE_FILE"
 fi
 
-log_info "[$CANONICAL_ID] Deleting states"
+tlog_info "cleanup:$CANONICAL_ID" "Deleting states"
 delete_states "$CANONICAL_ID"
 
-log_info "[$CANONICAL_ID] Cleanup completed successfully"
+tlog_info "cleanup:$CANONICAL_ID" "Cleanup completed successfully"
