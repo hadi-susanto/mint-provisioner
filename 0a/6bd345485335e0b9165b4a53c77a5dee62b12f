@@ -1,0 +1,93 @@
+modules/gui/microsoft-edge/install.sh
+  935fc6c5e298791d 4-7,10,18,23
+modules/gui/brave-origin/cleanup.sh
+  935fc6c5e298791d 4-5,7
+modules/gui/keepass-xc/install.sh
+  935fc6c5e298791d 4,6
+modules/gui/sunflower/pre_install.sh
+  935fc6c5e298791d 4-5,7,10,19,28-32,40,50
+modules/gui/keepass-xc/pre_install.sh
+  935fc6c5e298791d 4,7,10,12
+modules/gui/deadbeef/pre_install.sh
+  935fc6c5e298791d 4-5,8,15,18,24,27
+modules/gui/flameshot/pre_install.sh
+  935fc6c5e298791d 4-6,8,11,24,33-37,45,53,56,63,74,81,85,93,108,115,127,133
+modules/gui/microsoft-edge/post_install.sh
+  935fc6c5e298791d 4-5,17-18,21-22
+modules/gui/fman/cleanup.sh
+  935fc6c5e298791d 4-5,8,16,20,23
+modules/gui/brave-browser/cleanup.sh
+  935fc6c5e298791d 4-5,7
+modules/gui/flameshot/install.sh
+  935fc6c5e298791d 15-17,22,28,35,40,54,59-60,65
+modules/gui/sunflower/cleanup.sh
+  935fc6c5e298791d 8-9,12,20,24,27
+modules/gui/brave-origin/install.sh
+  935fc6c5e298791d 4-6,9,17,22
+modules/gui/tlp-ui/install.sh
+  935fc6c5e298791d 4-6,8,26,34,36,42,48,56,64,67,75,85,94,105,111,119,122,130,133,154,160,169,172,177,180,184-187
+modules/gui/deadbeef/cleanup.sh
+  935fc6c5e298791d 4-5,8,16,20
+modules/gui/brave-browser/pre_install.sh
+  935fc6c5e298791d 4-5,8,32
+modules/gui/sunflower/install.sh
+  935fc6c5e298791d 4-5,11,16,18-19
+modules/gui/microsoft-edge/cleanup.sh
+  935fc6c5e298791d 4-5,7
+modules/gui/cryptomator/install.sh
+  935fc6c5e298791d 4,6
+modules/gui/mu-commander/cleanup.sh
+  935fc6c5e298791d 8-9,12,20,24,27
+modules/gui/tlp-ui/pre_install.sh
+  935fc6c5e298791d 4,7,13,19,25
+modules/gui/cryptomator/pre_install.sh
+  935fc6c5e298791d 4,7,10,12
+modules/gui/fman/install.sh
+  935fc6c5e298791d 4-5,15,22,27,29-30,35
+modules/gui/mu-commander/install.sh
+  935fc6c5e298791d 4-5,11,16,18-19
+modules/gui/fman/pre_install.sh
+  935fc6c5e298791d 4-5,7,10,19,28-32,44,59
+modules/gui/insync/install.sh
+  935fc6c5e298791d 4-5,7
+modules/gui/deadbeef/install.sh
+  935fc6c5e298791d 4-7,14,28,31,43,51,57,62,65,70,73,94,140,146,153,157-160
+modules/gui/flameshot/cleanup.sh
+  935fc6c5e298791d 19-20,23,31,35,38
+modules/gui/insync/pre_install.sh
+  935fc6c5e298791d 4-5
+modules/gui/microsoft-edge/pre_install.sh
+  935fc6c5e298791d 4
+modules/gui/double-commander/cleanup.sh
+  935fc6c5e298791d 4-5,7
+modules/gui/mu-commander/pre_install.sh
+  935fc6c5e298791d 4-5,7,10,19,28-32,40,50
+modules/gui/double-commander/install.sh
+  935fc6c5e298791d 4-6,9,17,22,24
+modules/gui/brave-browser/install.sh
+  935fc6c5e298791d 4-6,9,17,22
+modules/gui/brave-origin/pre_install.sh
+  935fc6c5e298791d 4-5,8,32
+modules/gui/double-commander/pre_install.sh
+  935fc6c5e298791d 4-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "0a6bd345485335e0b9165b4a53c77a5dee62b12f",
+  "prompts": {
+    "935fc6c5e298791d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fd528-83d8-7910-83ae-a58d5cebbe15",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 4169,
+      "total_deletions": 3664,
+      "accepted_lines": 4074,
+      "overriden_lines": 2
+    }
+  }
+}
