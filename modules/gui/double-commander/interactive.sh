@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/state.sh"
-source "${LIB_DIR}/ui-toolkit.sh"
+source "${LIB_COMMON}/common.sh"
+source "${LIB_INSTALLER}/state.sh"
+source "${LIB_INSTALLER}/ui-toolkit.sh"
 
 ##
 # Resolves a Double Commander UI toolkit to its package name.
@@ -27,7 +27,7 @@ __resolve_double_commander_package() {
     fi
 
     case "$toolkit" in
-        gtk4|gtk3|gtk2)
+        gtk4|gtk3|gtk2|gtk)
             package="doublecmd-gtk"
             ;;
 
@@ -40,23 +40,24 @@ __resolve_double_commander_package() {
             ;;
 
         *)
-            log_error \
-                "[$CANONICAL_ID] Invalid UI toolkit: $toolkit. Expected auto, gtk2, gtk3, gtk4, qt5, or qt6."
+            tlog_error "interactive:$CANONICAL_ID" \
+                "Invalid UI toolkit: %s. Expected auto, gtk2, gtk3, gtk4, qt5, or qt6." \
+                "$toolkit"
 
             return 1
             ;;
     esac
 
     set_state "DOUBLE_COMMANDER_PACKAGE" "$package"
-    log_info "[$CANONICAL_ID] Selected package: $package"
+    tlog_info "interactive:$CANONICAL_ID" "Selected package: $package"
 }
 
 if [[ "${DOUBLE_COMMANDER_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]; then
     if ! __resolve_double_commander_package \
         "${DOUBLE_COMMANDER_UI_TOOLKIT:-auto}"
     then
-        log_error \
-            "[$CANONICAL_ID] Failed to resolve the Double Commander package. Specify DOUBLE_COMMANDER_UI_TOOLKIT manually."
+        tlog_error "interactive:$CANONICAL_ID" \
+            "Failed to resolve the Double Commander package. Specify DOUBLE_COMMANDER_UI_TOOLKIT manually."
 
         exit 1
     fi
@@ -66,7 +67,7 @@ if [[ "${DOUBLE_COMMANDER_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true"
     exit 0
 fi
 
-source "${LIB_DIR}/prompt.sh"
+source "${LIB_INSTALLER}/prompt.sh"
 
 ##
 # Asks the user which Double Commander UI toolkit to install.
@@ -83,7 +84,7 @@ __ask_double_commander_ui_toolkit() {
     local selected_index
     local toolkit
 
-    if detected_toolkit="$(auto_detect_ui_toolkit)"; then
+    if detected_toolkit="$(detect_ui_toolkit)"; then
         message="Detected the '$detected_toolkit' UI toolkit on your system.
 
 Installing Double Commander with a matching UI toolkit can reduce additional dependencies.
@@ -114,8 +115,8 @@ Please choose the UI toolkit you want to use for Double Commander."
             toolkit="qt6"
             ;;
         *)
-            log_error \
-                "[$CANONICAL_ID] Unexpected UI toolkit selection index: $selected_index"
+            tlog_error "interactive:$CANONICAL_ID" \
+                "Unexpected UI toolkit selection index: $selected_index"
 
             return 1
             ;;

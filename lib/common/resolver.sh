@@ -234,7 +234,7 @@ __resolve_module_selector() {
 
     if [[ -v "__UNIQUE_MODULES[$selector]" ]]; then
         result_ref="${__UNIQUE_MODULES[$selector]}"
-        tlog_info "resolver:$result_ref" "Module selector resolved: %s -> %s" \
+        tlog_info "resolver" "Module selector resolved: %s -> %s" \
             "$selector" "${__UNIQUE_MODULES[$selector]}"
 
         return 0
@@ -256,13 +256,13 @@ __resolve_module_selector() {
     alias_target="${__MINT_PROVISIONER_MODULE_ALIASES[$selector]}"
     if [[ -v "__CANONICAL_MODULES[$alias_target]" ]]; then
         result_ref="$alias_target"
-        tlog_info "resolver:$result_ref" "Module alias resolved: %s -> %s" \
+        tlog_info "resolver" "Module alias resolved: %s -> %s" \
             "$selector" "$alias_target"
 
         return 0
     fi
 
-    tlog_error "resolver:$alias_target" \
+    tlog_error "resolver" \
         "Module alias %s points to an unavailable module: %s" "$selector" "$alias_target"
 
     return 1

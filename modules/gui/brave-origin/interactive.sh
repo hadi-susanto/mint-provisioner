@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/state.sh"
+source "${LIB_COMMON}/common.sh"
+source "${LIB_INSTALLER}/state.sh"
 
 __set_brave_origin_channel() {
     local channel="${1:-}"
@@ -21,8 +21,8 @@ __set_brave_origin_channel() {
             set_state "BRAVE_ORIGIN_PACKAGE" "brave-origin-nightly"
             ;;
         *)
-            log_error \
-                "[$CANONICAL_ID] Invalid BRAVE_ORIGIN_CHANNEL value: $channel. Expected release, stable, beta, or nightly."
+            tlog_error "interactive:$CANONICAL_ID" \
+                "Invalid BRAVE_ORIGIN_CHANNEL value: $channel. Expected release, stable, beta, or nightly."
 
             return 1
             ;;
@@ -40,7 +40,7 @@ if [[ "${BRAVE_ORIGIN_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]];
     exit 0
 fi
 
-source "${LIB_DIR}/prompt.sh"
+source "${LIB_INSTALLER}/prompt.sh"
 
 __ask_brave_origin_channel() {
     local selected_index
@@ -64,8 +64,8 @@ __ask_brave_origin_channel() {
             __set_brave_origin_channel "nightly"
             ;;
         *)
-            log_error \
-                "[$CANONICAL_ID] Unexpected Brave Origin channel index: $selected_index"
+            tlog_error "interactive:$CANONICAL_ID" \
+                "Unexpected Brave Origin channel index: $selected_index"
 
             return 1
             ;;

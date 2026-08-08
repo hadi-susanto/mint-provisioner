@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/state.sh"
+source "${LIB_COMMON}/common.sh"
+source "${LIB_INSTALLER}/state.sh"
 
 __resolve_microsoft_edge_channel() {
     local channel="${1:-}"
@@ -25,8 +25,8 @@ __resolve_microsoft_edge_channel() {
             set_state "MICROSOFT_EDGE_PACKAGE" "microsoft-edge-canary"
             ;;
         *)
-            log_error \
-                "[$CANONICAL_ID] Invalid MICROSOFT_EDGE_CHANNEL value: $channel. Expected stable, beta, dev, or canary."
+            tlog_error "interactive:$CANONICAL_ID" \
+                "Invalid MICROSOFT_EDGE_CHANNEL value: $channel. Expected stable, beta, dev, or canary."
 
             return 1
             ;;
@@ -44,7 +44,7 @@ if [[ "${MICROSOFT_EDGE_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]
     exit 0
 fi
 
-source "${LIB_DIR}/prompt.sh"
+source "${LIB_INSTALLER}/prompt.sh"
 
 __ask_microsoft_edge_channel() {
     local selected_index
@@ -72,8 +72,8 @@ __ask_microsoft_edge_channel() {
             __resolve_microsoft_edge_channel "canary"
             ;;
         *)
-            log_error \
-                "[$CANONICAL_ID] Unexpected Microsoft Edge channel index: $selected_index"
+            tlog_error "interactive:$CANONICAL_ID" \
+                "Unexpected Microsoft Edge channel index: $selected_index"
 
             return 1
             ;;

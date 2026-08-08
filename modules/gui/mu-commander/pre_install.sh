@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$LIB_DIR/installer_external.sh"
-source "$LIB_DIR/state.sh"
+source "$LIB_INSTALLER/external.sh"
+source "$LIB_INSTALLER/state.sh"
 
-log_info "[$CANONICAL_ID] Creating temporary download file"
+tlog_info "pre-install:$CANONICAL_ID" "Creating temporary download file"
 
 if ! download_temp_file="$(mktemp --suffix=.deb)"; then
-    log_error "[$CANONICAL_ID] Failed to create temporary file"
+    tlog_error "pre-install:$CANONICAL_ID" "Failed to create temporary file"
 
     exit 1
 fi
@@ -16,7 +16,7 @@ if [[ -z "${MUCOMMANDER_REGEX:-}" ]]; then
     MUCOMMANDER_REGEX="mucommander_.*_x86_64\\.deb"
 fi
 
-log_info "[$CANONICAL_ID] Finding github latest release using regex: $MUCOMMANDER_REGEX"
+tlog_info "pre-install:$CANONICAL_ID" "Finding github latest release using regex: $MUCOMMANDER_REGEX"
 
 if ! url="$(
     github_find_release \
@@ -25,11 +25,11 @@ if ! url="$(
         mucommander \
         "$MUCOMMANDER_REGEX"
 )"; then
-    log_error "[$CANONICAL_ID] Failed to resolve latest release"
-    log_error "[$CANONICAL_ID] No release asset matched regex: $MUCOMMANDER_REGEX"
-    log_error "[$CANONICAL_ID] This may indicate that muCommander may cease to exists or filename changed"
-    log_error "[$CANONICAL_ID] Please check https://github.com/mucommander/mucommander/releases"
-    log_error "[$CANONICAL_ID] Alternatively, set MUCOMMANDER_REGEX to manually select an asset"
+    tlog_error "pre-install:$CANONICAL_ID" "Failed to resolve latest release"
+    tlog_error "pre-install:$CANONICAL_ID" "No release asset matched regex: $MUCOMMANDER_REGEX"
+    tlog_error "pre-install:$CANONICAL_ID" "This may indicate that muCommander may cease to exists or filename changed"
+    tlog_error "pre-install:$CANONICAL_ID" "Please check https://github.com/mucommander/mucommander/releases"
+    tlog_error "pre-install:$CANONICAL_ID" "Alternatively, set MUCOMMANDER_REGEX to manually select an asset"
 
     rm -f "$download_temp_file"
 
@@ -37,7 +37,7 @@ if ! url="$(
 fi
 
 if ! download_file "$CANONICAL_ID" "$url" "$download_temp_file"; then
-    log_error "[$CANONICAL_ID] Download failed"
+    tlog_error "pre-install:$CANONICAL_ID" "Download failed"
 
     rm -f "$download_temp_file"
 
@@ -47,4 +47,4 @@ fi
 set_state "DEB_FILE" "$download_temp_file"
 save_states "$CANONICAL_ID" || exit 4
 
-log_info "[$CANONICAL_ID] Download completed successfully"
+tlog_info "pre-install:$CANONICAL_ID" "Download completed successfully"

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# muCommander didn't install to system PATH
+# muCommander does not install its launcher on the system PATH.
 BINARY="/opt/mucommander/bin/muCommander"
 [[ -f "$BINARY" ]]

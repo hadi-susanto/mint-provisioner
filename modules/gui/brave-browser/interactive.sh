@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/state.sh"
+source "${LIB_COMMON}/common.sh"
+source "${LIB_INSTALLER}/state.sh"
 
 __set_brave_browser_channel() {
     local channel="${1:-}"
@@ -21,8 +21,8 @@ __set_brave_browser_channel() {
             set_state "BRAVE_BROWSER_PACKAGE" "brave-browser-nightly"
             ;;
         *)
-            log_error \
-                "[$CANONICAL_ID] Invalid BRAVE_BROWSER_CHANNEL value: $channel. Expected release, stable, beta, or nightly."
+            tlog_error "interactive:$CANONICAL_ID" \
+                "Invalid BRAVE_BROWSER_CHANNEL value: $channel. Expected release, stable, beta, or nightly."
 
             return 1
             ;;
@@ -40,7 +40,7 @@ if [[ "${BRAVE_BROWSER_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]
     exit 0
 fi
 
-source "${LIB_DIR}/prompt.sh"
+source "${LIB_INSTALLER}/prompt.sh"
 
 __ask_brave_browser_channel() {
     local selected_index
@@ -64,8 +64,8 @@ __ask_brave_browser_channel() {
             __set_brave_browser_channel "nightly"
             ;;
         *)
-            log_error \
-                "[$CANONICAL_ID] Unexpected Brave Browser channel index: $selected_index"
+            tlog_error "interactive:$CANONICAL_ID" \
+                "Unexpected Brave Browser channel index: $selected_index"
 
             return 1
             ;;

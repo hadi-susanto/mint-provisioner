@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/installer_external.sh"
-source "${LIB_DIR}/distro.sh"
-source "${LIB_DIR}/state.sh"
+source "${LIB_INSTALLER}/external.sh"
+source "${LIB_INSTALLER}/distro.sh"
+source "${LIB_INSTALLER}/state.sh"
 
-log_info "[$CANONICAL_ID] Creating temporary download file"
+tlog_info "pre-install:$CANONICAL_ID" "Creating temporary download file"
 
 if ! download_temp_file="$(mktemp)"; then
-    log_error "[$CANONICAL_ID] Failed to create temporary file"
+    tlog_error "pre-install:$CANONICAL_ID" "Failed to create temporary file"
 
     exit 1
 fi
@@ -21,7 +21,7 @@ if [[ -z "${FLAMESHOT_REGEX:-}" ]]; then
     FLAMESHOT_REGEX="ubuntu-${ubuntu_version//./\\.}.?amd64\\.(zip|deb)$"
 fi
 
-log_info "[$CANONICAL_ID] Finding github latest release using regex: $FLAMESHOT_REGEX"
+tlog_info "pre-install:$CANONICAL_ID" "Finding github latest release using regex: $FLAMESHOT_REGEX"
 
 if ! url="$(
     github_find_release \
@@ -30,11 +30,11 @@ if ! url="$(
         flameshot \
         "$FLAMESHOT_REGEX"
 )"; then
-    log_error "[$CANONICAL_ID] Failed to resolve latest release"
-    log_error "[$CANONICAL_ID] No release asset matched regex: $FLAMESHOT_REGEX"
-    log_error "[$CANONICAL_ID] This may indicate that Flameshot no longer publishes packages for Ubuntu $ubuntu_version."
-    log_error "[$CANONICAL_ID] Please contact the framework maintainer to update the module."
-    log_error "[$CANONICAL_ID] Alternatively, set FLAMESHOT_REGEX to manually select an asset."
+    tlog_error "pre-install:$CANONICAL_ID" "Failed to resolve latest release"
+    tlog_error "pre-install:$CANONICAL_ID" "No release asset matched regex: $FLAMESHOT_REGEX"
+    tlog_error "pre-install:$CANONICAL_ID" "This may indicate that Flameshot no longer publishes packages for Ubuntu $ubuntu_version."
+    tlog_error "pre-install:$CANONICAL_ID" "Please contact the framework maintainer to update the module."
+    tlog_error "pre-install:$CANONICAL_ID" "Alternatively, set FLAMESHOT_REGEX to manually select an asset."
 
     rm -f "$download_temp_file"
 
@@ -42,7 +42,7 @@ if ! url="$(
 fi
 
 if ! download_file "$CANONICAL_ID" "$url" "$download_temp_file"; then
-    log_error "[$CANONICAL_ID] Download failed"
+    tlog_error "pre-install:$CANONICAL_ID" "Download failed"
 
     rm -f "$download_temp_file"
 
@@ -50,17 +50,17 @@ if ! download_file "$CANONICAL_ID" "$url" "$download_temp_file"; then
 fi
 
 if [[ "$url" == *.zip ]]; then
-    log_info "[$CANONICAL_ID] Payload is a ZIP file, extracting to find .deb"
+    tlog_info "pre-install:$CANONICAL_ID" "Payload is a ZIP file, extracting to find .deb"
     
     if ! extract_dir="$(mktemp -d)"; then
-        log_error "[$CANONICAL_ID] Failed to create temporary extraction directory"
+        tlog_error "pre-install:$CANONICAL_ID" "Failed to create temporary extraction directory"
         rm -f "$download_temp_file"
 
         exit 4
     fi
 
     if ! unzip -q "$download_temp_file" -d "$extract_dir"; then
-        log_error "[$CANONICAL_ID] Failed to extract ZIP file"
+        tlog_error "pre-install:$CANONICAL_ID" "Failed to extract ZIP file"
         rm -rf "$extract_dir"
         rm -f "$download_temp_file"
 
@@ -71,18 +71,18 @@ if [[ "$url" == *.zip ]]; then
     deb_file="$(find "$extract_dir" -name "*.deb" -print -quit)"
     
     if [[ -z "$deb_file" ]]; then
-        log_error "[$CANONICAL_ID] No .deb file found in extracted ZIP"
+        tlog_error "pre-install:$CANONICAL_ID" "No .deb file found in extracted ZIP"
         rm -rf "$extract_dir"
         rm -f "$download_temp_file"
 
         exit 5
     fi
 
-    log_info "[$CANONICAL_ID] Found .deb in ZIP: $deb_file"
+    tlog_info "pre-install:$CANONICAL_ID" "Found .deb in ZIP: $deb_file"
     
     # Move the .deb to a permanent temporary location
     if ! final_deb_file="$(mktemp --suffix=.deb)"; then
-        log_error "[$CANONICAL_ID] Failed to create final temporary package file"
+        tlog_error "pre-install:$CANONICAL_ID" "Failed to create final temporary package file"
         rm -rf "$extract_dir"
         rm -f "$download_temp_file"
 
@@ -90,7 +90,7 @@ if [[ "$url" == *.zip ]]; then
     fi
 
     if ! mv "$deb_file" "$final_deb_file"; then
-        log_error "[$CANONICAL_ID] Failed to move the extracted package"
+        tlog_error "pre-install:$CANONICAL_ID" "Failed to move the extracted package"
         rm -rf "$extract_dir"
         rm -f "$download_temp_file" "$final_deb_file"
 
@@ -105,14 +105,14 @@ if [[ "$url" == *.zip ]]; then
 else
     # It was already a .deb, just rename the temp file to have .deb suffix for clarity
     if ! final_deb_file="$(mktemp --suffix=.deb)"; then
-        log_error "[$CANONICAL_ID] Failed to create final temporary package file"
+        tlog_error "pre-install:$CANONICAL_ID" "Failed to create final temporary package file"
         rm -f "$download_temp_file"
 
         exit 6
     fi
 
     if ! mv "$download_temp_file" "$final_deb_file"; then
-        log_error "[$CANONICAL_ID] Failed to move the downloaded package"
+        tlog_error "pre-install:$CANONICAL_ID" "Failed to move the downloaded package"
         rm -f "$download_temp_file" "$final_deb_file"
 
         exit 7
@@ -124,10 +124,10 @@ fi
 set_state "DEB_FILE" "$download_file"
 
 if ! save_states "$CANONICAL_ID"; then
-    log_error "[$CANONICAL_ID] Failed to save installation state"
+    tlog_error "pre-install:$CANONICAL_ID" "Failed to save installation state"
     rm -f "$download_file"
 
     exit 8
 fi
 
-log_info "[$CANONICAL_ID] Download completed successfully"
+tlog_info "pre-install:$CANONICAL_ID" "Download completed successfully"

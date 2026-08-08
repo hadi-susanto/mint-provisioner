@@ -98,11 +98,15 @@ __filter_installed_modules() {
     local module_name
     local failed=0
     local status
+    local -a queued=()
+    local -a installed=()
+    local joined
 
     result_ref=()
     __MODULE_NAMES=()
     __MODULE_DESCRIPTIONS=()
 
+    tlog_info "installation" "Verifying module installation status..."
     for canonical_id in "$@"; do
         metadata=()
 
@@ -134,22 +138,46 @@ __filter_installed_modules() {
         fi
 
         if (( status != 0 )); then
-            tlog_info "installation:$canonical_id" "Module will be processed: %s" "$module_name"
             result_ref+=("$canonical_id")
+            queued+=("$module_name")
 
             continue
         fi
 
+        installed+=("$module_name")
         if (( force )); then
-            tlog_warn "installation:$canonical_id" \
-                "Already installed; forcing installation: %s" "$module_name"
             result_ref+=("$canonical_id")
-        else
-            tlog_info "installation:$canonical_id" "Already installed; skipping: %s" "$module_name"
         fi
     done
 
-    return "$failed"
+    if (( failed )); then
+        tlog_error "installation" \
+            "Installation was aborted. Please review the logs above for more details."
+
+        return "$failed"
+    fi
+
+    joined=$(printf '%s, ' "${queued[@]}")
+    joined=${joined%, }
+    tlog_info "installation" \
+        "Queued for installation: %s" "$joined"
+
+    if (( ${#installed[@]} == 0 )); then
+        return 0
+    fi
+
+
+    joined=$(printf '%s, ' "${installed[@]}")
+    joined=${joined%, }
+    if (( force )); then
+        tlog_warn "installation" \
+            "Also queued for reinstallation: %s" "$joined"
+    else
+        tlog_info "installation" \
+            "Skipped because already installed: %s" "$joined"
+    fi
+
+    return 0
 }
 
 __run_interactive_session() {

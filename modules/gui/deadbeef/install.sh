@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/installer_common.sh"
-source "${LIB_DIR}/state.sh"
+source "${LIB_INSTALLER}/path.sh"
+source "${LIB_INSTALLER}/symlink.sh"
+source "${LIB_INSTALLER}/registry.sh"
+source "${LIB_INSTALLER}/state.sh"
 
 load_states "$CANONICAL_ID" || exit 1
 
 ARCHIVE_FILE="$(get_state "ARCHIVE_FILE")" || exit 1
 
 if [[ ! -f "$ARCHIVE_FILE" ]]; then
-    log_error "[$CANONICAL_ID] Archive file not found: $ARCHIVE_FILE"
+    tlog_error "install:$CANONICAL_ID" "Archive file not found: $ARCHIVE_FILE"
 
     exit 2
 fi
@@ -23,10 +25,10 @@ if ! can_write "$DEADBEEF_INSTALL_DIR"; then
     SUDO_CMD="sudo"
 fi
 
-log_info "[$CANONICAL_ID] Extracting content to $DEADBEEF_INSTALL_DIR"
+tlog_info "install:$CANONICAL_ID" "Extracting content to $DEADBEEF_INSTALL_DIR"
 
 if ! $SUDO_CMD mkdir -p "$DEADBEEF_INSTALL_DIR"; then
-    log_error "[$CANONICAL_ID] Failed to create install directory: $DEADBEEF_INSTALL_DIR"
+    tlog_error "install:$CANONICAL_ID" "Failed to create install directory: $DEADBEEF_INSTALL_DIR"
 
     exit 3
 fi
@@ -38,7 +40,7 @@ if ! $SUDO_CMD tar \
     -C "$DEADBEEF_INSTALL_DIR" \
     --strip-components=1
 then
-    log_error "[$CANONICAL_ID] Extraction failed"
+    tlog_error "install:$CANONICAL_ID" "Extraction failed"
 
     exit 4
 fi
@@ -46,29 +48,29 @@ fi
 EXEC_PATH="$DEADBEEF_INSTALL_DIR/deadbeef"
 
 if ! $SUDO_CMD chmod +x "$EXEC_PATH"; then
-    log_error "[$CANONICAL_ID] Failed to make the application executable: $EXEC_PATH"
+    tlog_error "install:$CANONICAL_ID" "Failed to make the application executable: $EXEC_PATH"
 
     exit 5
 fi
 
 if [[ ! -x "$EXEC_PATH" ]]; then
-    log_error "[$CANONICAL_ID] Application executable is missing or not executable: $EXEC_PATH"
+    tlog_error "install:$CANONICAL_ID" "Application executable is missing or not executable: $EXEC_PATH"
 
     exit 6
 fi
 
-log_info "[$CANONICAL_ID] Creating symbolic links"
+tlog_info "install:$CANONICAL_ID" "Creating symbolic links"
 if [[ "$DEADBEEF_INSTALL_DIR" != "$(symlink_location)" ]]; then
     if ! symlink_binary "$CANONICAL_ID" "$EXEC_PATH"; then
-        log_error "[$CANONICAL_ID] Failed to create DeaDBeeF symbolic link"
+        tlog_error "install:$CANONICAL_ID" "Failed to create DeaDBeeF symbolic link"
 
         exit 7
     fi
 else
-    log_info "[$CANONICAL_ID] Install directory matches symlink location, skipping symlink creation"
+    tlog_info "install:$CANONICAL_ID" "Install directory matches symlink location, skipping symlink creation"
 fi
 
-log_info "[$CANONICAL_ID] Installing desktop file"
+tlog_info "install:$CANONICAL_ID" "Installing desktop file"
 
 APPLICATION_FOLDER="/usr/share/applications"
 DESKTOP_FILE="${APPLICATION_FOLDER}/deadbeef.desktop"
@@ -89,7 +91,7 @@ do
 done
 
 if ! sudo mkdir -p "$APPLICATION_FOLDER"; then
-    log_error "[$CANONICAL_ID] Failed to create desktop application directory: $APPLICATION_FOLDER"
+    tlog_error "install:$CANONICAL_ID" "Failed to create desktop application directory: $APPLICATION_FOLDER"
 
     exit 8
 fi
@@ -135,21 +137,24 @@ Name=Previous
 Exec="$EXEC_PATH" --prev
 EOF
 then
-    log_error "[$CANONICAL_ID] Failed to install desktop file"
+    tlog_error "install:$CANONICAL_ID" "Failed to install desktop file"
 
     exit 9
 fi
 
 if ! sudo chmod 0644 "$DESKTOP_FILE"; then
-    log_error "[$CANONICAL_ID] Failed to set desktop file permissions: $DESKTOP_FILE"
+    tlog_error "install:$CANONICAL_ID" "Failed to set desktop file permissions: $DESKTOP_FILE"
 
     exit 10
 fi
 
 if command -v update-desktop-database >/dev/null 2>&1; then
     if ! sudo update-desktop-database "$APPLICATION_FOLDER"; then
-        log_warn "[$CANONICAL_ID] Failed to refresh the desktop application database"
+        tlog_warn "install:$CANONICAL_ID" "Failed to refresh the desktop application database"
     fi
 fi
 
-log_info "[$CANONICAL_ID] Installation completed successfully"
+set_registry "INSTALL_PATH" "$DEADBEEF_INSTALL_DIR" || exit 11
+save_registry "$CANONICAL_ID" || exit 11
+
+tlog_info "install:$CANONICAL_ID" "Installation completed successfully"

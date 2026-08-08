@@ -5,11 +5,11 @@ set -euo pipefail
 # Performs post-install cleanup for mu-commander.
 #
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/state.sh"
+source "${LIB_COMMON}/common.sh"
+source "${LIB_INSTALLER}/state.sh"
 
 if ! load_states "$CANONICAL_ID"; then
-    log_warn "[$CANONICAL_ID] State not found, skipping cleanup"
+    tlog_warn "cleanup:$CANONICAL_ID" "State not found, skipping cleanup"
 
     exit 0
 fi
@@ -17,11 +17,11 @@ fi
 DEB_FILE="$(get_state "DEB_FILE")"
 
 if [[ -n "$DEB_FILE" && -f "$DEB_FILE" ]]; then
-    log_info "[$CANONICAL_ID] Removing package file: $DEB_FILE"
+    tlog_info "cleanup:$CANONICAL_ID" "Removing package file: $DEB_FILE"
     rm -f "$DEB_FILE"
 fi
 
-log_info "[$CANONICAL_ID] Deleting states"
+tlog_info "cleanup:$CANONICAL_ID" "Deleting states"
 delete_states "$CANONICAL_ID"
 
-log_info "[$CANONICAL_ID] Cleanup completed successfully"
+tlog_info "cleanup:$CANONICAL_ID" "Cleanup completed successfully"

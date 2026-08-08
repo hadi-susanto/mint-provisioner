@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/messages.sh"
+source "${LIB_COMMON}/common.sh"
+source "${LIB_INSTALLER}/messages.sh"
 
 updater_scripts=(
     "/opt/microsoft/msedge/cron/microsoft-edge"
@@ -14,12 +14,12 @@ updater_scripts=(
 for updater_script in "${updater_scripts[@]}"; do
     [[ -e "$updater_script" ]] || continue
 
-    log_info \
-        "[$CANONICAL_ID] Disabling Microsoft Edge repository updater: $updater_script"
+    tlog_info "post-install:$CANONICAL_ID" \
+        "Disabling Microsoft Edge repository updater: $updater_script"
 
     if ! sudo chmod -x "$updater_script"; then
-        log_error \
-            "[$CANONICAL_ID] Failed to disable updater: $updater_script"
+        tlog_error "post-install:$CANONICAL_ID" \
+            "Failed to disable updater: $updater_script"
 
         exit 1
     fi
