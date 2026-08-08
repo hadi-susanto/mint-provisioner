@@ -1,0 +1,98 @@
+modules/tui/lazy-git/pre_install.sh
+  935fc6c5e298791d 4-5,8,17,26,34,44
+modules/tui/du-analyzer/pre_install.sh
+  935fc6c5e298791d 4-5,8,17,26,34,44
+modules/tui/bottom/install.sh
+  935fc6c5e298791d 4-5,11,16,18-19
+modules/tui/lazy-git/cleanup.sh
+  935fc6c5e298791d 8-9,12,20,24,27
+modules/tui/lazy-git/install.sh
+  935fc6c5e298791d 4-8,14,29,35,41,46,50,53-54
+modules/tui/duf/pre_install.sh
+  935fc6c5e298791d 4-5,8,17,26,34,44
+modules/tui/git-ui/install.sh
+  935fc6c5e298791d 4-8,14,29,35,41,46,50,53-54
+modules/tui/git-ui/cleanup.sh
+  935fc6c5e298791d 8-9,12,20,24,27
+modules/tui/du-analyzer/cleanup.sh
+  935fc6c5e298791d 8-9,12,20,24,27
+command/install.sh
+  f58523bd4d710cae 406
+modules/tui/du-rust/install.sh
+  935fc6c5e298791d 4-7,13,28,34,40,45,49,52-55
+modules/tui/bottom/pre_install.sh
+  935fc6c5e298791d 4-5,7,10,19,28-32,40,50
+modules/tui/du-rust/pre_install.sh
+  935fc6c5e298791d 4-5,8,17,26,34,44
+modules/tui/du-analyzer/install.sh
+  935fc6c5e298791d 4-7,13,28,34,40,45,49,52-55
+modules/tui/git-ui/pre_install.sh
+  935fc6c5e298791d 4-5,8,17,26,34,44
+modules/tui/bottom/cleanup.sh
+  935fc6c5e298791d 8-9,12,20,24,27
+modules/tui/duf/install.sh
+  935fc6c5e298791d 4-7,13,28,34,40,45,49,52-55
+modules/tui/du-rust/cleanup.sh
+  935fc6c5e298791d 8-9,12,20,24,27
+modules/tui/duf/cleanup.sh
+  935fc6c5e298791d 8-9,12,20,24,27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "bd9add66240629e60bba814fcc7b2a8f6ed994ba",
+  "prompts": {
+    "2d24c87a6b37ed78": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fcd99-0d61-7e21-b466-cf46e8719454",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null,
+      "messages": [],
+      "total_additions": 1369,
+      "total_deletions": 510,
+      "accepted_lines": 18,
+      "overriden_lines": 0
+    },
+    "935fc6c5e298791d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fd528-83d8-7910-83ae-a58d5cebbe15",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 159,
+      "overriden_lines": 2
+    },
+    "98bd8c055b68c03f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb5e8-3263-73f3-be05-ef6d9292e38b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 19,
+      "overriden_lines": 0
+    },
+    "f58523bd4d710cae": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fc633-579c-7b70-b81e-4f5bdae1e5d2",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 527,
+      "total_deletions": 121,
+      "accepted_lines": 206,
+      "overriden_lines": 0
+    }
+  }
+}
