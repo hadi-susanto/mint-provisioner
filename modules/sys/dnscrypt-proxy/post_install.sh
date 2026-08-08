@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/messages.sh"
+source "${LIB_COMMON}/common.sh"
+source "${LIB_INSTALLER}/messages.sh"
 
 resolvconf_service="dnscrypt-proxy-resolvconf.service"
 
 if systemctl status "$resolvconf_service" 2>&1 |
     grep -Fq "ConditionFileIsExecutable=/sbin/resolvconf was not met"
 then
-    log_warn \
-        "[$CANONICAL_ID] $resolvconf_service cannot start because /sbin/resolvconf is unavailable"
+    tlog_warn "post-install:$CANONICAL_ID" \
+        "$resolvconf_service cannot start because /sbin/resolvconf is unavailable"
 
-    log_info \
-        "[$CANONICAL_ID] Disabling $resolvconf_service; DNSCrypt Proxy can still be used through its systemd socket"
+    tlog_info "post-install:$CANONICAL_ID" \
+        "Disabling $resolvconf_service; DNSCrypt Proxy can still be used through its systemd socket"
 
     if ! sudo systemctl disable "$resolvconf_service"; then
-        log_error "[$CANONICAL_ID] Failed to disable $resolvconf_service"
+        tlog_error "post-install:$CANONICAL_ID" "Failed to disable $resolvconf_service"
 
         exit 1
     fi

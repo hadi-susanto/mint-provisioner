@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/state.sh"
+source "${LIB_COMMON}/common.sh"
+source "${LIB_INSTALLER}/state.sh"
 
 __resolve_apt_fast_package_manager() {
     local package_manager="${1:-}"
@@ -13,12 +13,12 @@ __resolve_apt_fast_package_manager() {
                 "APT_FAST_PACKAGE_MANAGER" \
                 "$package_manager"
 
-            log_info \
-                "[$CANONICAL_ID] apt-fast package manager: $package_manager"
+            tlog_info "interactive:$CANONICAL_ID" \
+                "apt-fast package manager: $package_manager"
             ;;
         *)
-            log_error \
-                "[$CANONICAL_ID] Invalid apt-fast package manager: $package_manager. Expected apt-get, apt, or aptitude."
+            tlog_error "interactive:$CANONICAL_ID" \
+                "Invalid apt-fast package manager: $package_manager. Expected apt-get, apt, or aptitude."
 
             return 1
             ;;
@@ -32,8 +32,8 @@ __resolve_apt_fast_max_connection() {
     local normalized_value
 
     if [[ ! "$max_connection" =~ ^[0-9]+$ ]]; then
-        log_error \
-            "[$CANONICAL_ID] Maximum connections must be an integer from 1 to 10: $max_connection"
+        tlog_error "interactive:$CANONICAL_ID" \
+            "Maximum connections must be an integer from 1 to 10: $max_connection"
 
         return 1
     fi
@@ -41,8 +41,8 @@ __resolve_apt_fast_max_connection() {
     normalized_value="$((10#$max_connection))"
 
     if ((normalized_value < 1 || normalized_value > 10)); then
-        log_error \
-            "[$CANONICAL_ID] Maximum connections must be between 1 and 10: $max_connection"
+        tlog_error "interactive:$CANONICAL_ID" \
+            "Maximum connections must be between 1 and 10: $max_connection"
 
         return 1
     fi
@@ -51,8 +51,8 @@ __resolve_apt_fast_max_connection() {
         "APT_FAST_MAX_CONNECTION" \
         "$normalized_value"
 
-    log_info \
-        "[$CANONICAL_ID] apt-fast maximum connections: $normalized_value"
+    tlog_info "interactive:$CANONICAL_ID" \
+        "apt-fast maximum connections: $normalized_value"
 
     return 0
 }
@@ -68,12 +68,12 @@ __resolve_apt_fast_suppress_confirm_dialog() {
                 "APT_FAST_SUPPRESS_CONFIRM_DIALOG" \
                 "$suppress_confirm_dialog"
 
-            log_info \
-                "[$CANONICAL_ID] Suppress apt-fast confirmation dialog: $suppress_confirm_dialog"
+            tlog_info "interactive:$CANONICAL_ID" \
+                "Suppress apt-fast confirmation dialog: $suppress_confirm_dialog"
             ;;
         *)
-            log_error \
-                "[$CANONICAL_ID] Invalid APT_FAST_SUPPRESS_CONFIRM_DIALOG value: $1. Expected true or false."
+            tlog_error "interactive:$CANONICAL_ID" \
+                "Invalid APT_FAST_SUPPRESS_CONFIRM_DIALOG value: $1. Expected true or false."
 
             return 1
             ;;
@@ -97,7 +97,7 @@ if [[ "${APT_FAST_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]; the
     exit 0
 fi
 
-source "${LIB_DIR}/prompt.sh"
+source "${LIB_INSTALLER}/prompt.sh"
 
 __ask_apt_fast_package_manager() {
     local selected_index
@@ -121,8 +121,8 @@ __ask_apt_fast_package_manager() {
             __resolve_apt_fast_package_manager "aptitude"
             ;;
         *)
-            log_error \
-                "[$CANONICAL_ID] Unexpected package manager selection index: $selected_index"
+            tlog_error "interactive:$CANONICAL_ID" \
+                "Unexpected package manager selection index: $selected_index"
 
             return 1
             ;;
@@ -163,8 +163,8 @@ The package manager may still ask for confirmation before installation." \
             __resolve_apt_fast_suppress_confirm_dialog "false"
             ;;
         *)
-            log_error \
-                "[$CANONICAL_ID] Unexpected confirmation selection index: $selected_index"
+            tlog_error "interactive:$CANONICAL_ID" \
+                "Unexpected confirmation selection index: $selected_index"
 
             return 1
             ;;
