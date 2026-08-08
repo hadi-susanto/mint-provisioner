@@ -157,10 +157,12 @@ __filter_installed_modules() {
         return "$failed"
     fi
 
-    joined=$(printf '%s, ' "${queued[@]}")
-    joined=${joined%, }
-    tlog_info "installation" \
-        "Queued for installation: %s" "$joined"
+    if (( ${#queued[@]} > 0 )); then
+        joined=$(printf '%s, ' "${queued[@]}")
+        joined=${joined%, }
+        tlog_info "installation" \
+            "Queued for installation: %s" "$joined"
+    fi
 
     if (( ${#installed[@]} == 0 )); then
         return 0
