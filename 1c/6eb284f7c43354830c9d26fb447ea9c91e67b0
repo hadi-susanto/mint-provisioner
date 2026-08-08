@@ -1,0 +1,45 @@
+modules/misc/virtual-box/install.sh
+  935fc6c5e298791d 4-5,7
+modules/misc/any-desk/pre_install.sh
+  935fc6c5e298791d 4-5
+modules/misc/virtual-box/pre_install.sh
+  935fc6c5e298791d 4-6
+modules/misc/any-desk/install.sh
+  935fc6c5e298791d 4,6
+modules/sys/apt-fast/install.sh
+  935fc6c5e298791d 4-6,9,14,18,25,32,41,44
+modules/sys/nerd-font/cleanup.sh
+  935fc6c5e298791d 28
+modules/sys/dnscrypt-proxy/post_install.sh
+  935fc6c5e298791d 4-5,12-13,15-16,19
+modules/sys/system-toolkit/install.sh
+  935fc6c5e298791d 4-7,18-19,25-26,31,36,39,48,55,61,69-72
+modules/sys/apt-fast/cleanup.sh
+  935fc6c5e298791d 4-5,7
+modules/sys/apt-fast/pre_install.sh
+  935fc6c5e298791d 4,7,10,12
+modules/sys/dconf-editor/install.sh
+  935fc6c5e298791d 4-5,7
+modules/sys/dnscrypt-proxy/install.sh
+  935fc6c5e298791d 4,6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "1c6eb284f7c43354830c9d26fb447ea9c91e67b0",
+  "prompts": {
+    "935fc6c5e298791d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fd528-83d8-7910-83ae-a58d5cebbe15",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 346,
+      "overriden_lines": 0
+    }
+  }
+}
