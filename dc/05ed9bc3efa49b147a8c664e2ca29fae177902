@@ -1,0 +1,66 @@
+AGENTS.md
+  ef24de2b17972638 64-65,75-76
+README.md
+  d83d501d81bc7071 6-7,13,16-23,26,29-31,33,36,39-40,43-80,83-84,86-89,92,95,98-100,103,105-106,109,111-113,115-116,122-150
+modules/README.md
+  98bd8c055b68c03f 12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "dc05ed9bc3efa49b147a8c664e2ca29fae177902",
+  "prompts": {
+    "4a0f23f3c26de5a0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f8840-bc0a-7451-a58e-23654be29f13",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 1054,
+      "total_deletions": 1017,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    },
+    "98bd8c055b68c03f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb5e8-3263-73f3-be05-ef6d9292e38b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    },
+    "d83d501d81bc7071": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fe99c-dab3-78d2-8c68-ab7aa7d5835f",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 112,
+      "total_deletions": 465,
+      "accepted_lines": 106,
+      "overriden_lines": 0
+    },
+    "ef24de2b17972638": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fea30-a104-7763-8b01-117d7d1a860f",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 288,
+      "total_deletions": 287,
+      "accepted_lines": 4,
+      "overriden_lines": 0
+    }
+  }
+}
