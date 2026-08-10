@@ -7,17 +7,18 @@
   ```text
   modules/<category-name>/<module-name>/
   ├── metadata.conf      # Mandatory: NAME, DESCRIPTION, and SOURCE
-  ├── configuration.sh   # Optional: Collect and validate installation choices
-  ├── is_installed.sh    # Mandatory: Detect whether the software is installed
+  ├── installed.sh       # Optional: Detect whether the software is installed
+  ├── interactive.sh     # Optional: Collect and validate installation choices
   ├── pre_install.sh     # Optional: Configure prerequisites, repositories, or keys
   ├── install.sh         # Mandatory: Perform the core installation
   ├── post_install.sh    # Optional: Apply post-install system adjustments
   └── cleanup.sh         # Optional: Remove installation-only state or artifacts
   ```
 
-- Only `metadata.conf`, `is_installed.sh`, and `install.sh` are mandatory.
-- `configuration.sh` collects, resolves, validates, and stores choices required during installation.
-- The top-level `configure.sh` reruns a module's `post_install.sh`; it does not run `configuration.sh`.
+- Only `metadata.conf` and `install.sh` are mandatory.
+- `interactive.sh` collects, resolves, validates, and stores choices required before installation phases run.
+- `installed.sh` is optional. When absent, the framework falls back to metadata `CLI` commands and then the module basename command.
+- The top-level `configure.sh` reruns a module's `post_install.sh`; it does not run `interactive.sh`.
 - Add `cleanup.sh` when a module creates framework state, downloaded artifacts, temporary files or directories, or installation-only data.
 - In module phase scripts such as `pre_install.sh`, `install.sh`, and `post_install.sh`, use `exit` instead of `return` unless the statement is inside a function. The framework executes phase scripts directly.
 
@@ -27,12 +28,13 @@ When creating or updating `metadata.conf`, follow these rules:
 
 - `DESCRIPTION` should be fewer than 100 characters when possible. Describe what the module is best for and its main selling point without listing every feature.
 - `SOURCE` must use one of the following lowercase values:
-  - `native`: The package is provided by repositories configured by the operating system.
-  - `ppa`: The package is provided by a Launchpad PPA.
-  - `apt`: The package is provided by a third-party APT repository that is not a Launchpad PPA.
-  - `github`: The module downloads an artifact from GitHub or installs the software by cloning a GitHub repository.
-  - `external`: The module downloads an artifact directly from a vendor or another non-GitHub source.
-- In `modules/README.md` and category documentation, display source names in human-readable form: `Native`, `PPA`, `APT`, `GitHub`, and `External`.
+  - `native`: The package is supported directly by operating-system package sources without extra setup.
+  - `ppa`: The package is provided by a Launchpad PPA repository.
+  - `apt`: The package is provided by a third-party APT repository outside Launchpad PPA.
+  - `github`: The module downloads an artifact from GitHub or installs from a GitHub repository.
+  - `sourceforge`: The module downloads an artifact from SourceForge.
+  - `external`: The module downloads an artifact directly from a third-party vendor source.
+- In `modules/README.md` and category documentation, display source names in human-readable form: `Native`, `PPA`, `APT`, `GitHub`, `SourceForge`, and `External`.
 
 ### Module Documentation
 
@@ -45,13 +47,13 @@ When creating or updating `metadata.conf`, follow these rules:
 
 ## Installation Detection
 
-`is_installed.sh` must return:
+`installed.sh` must return:
 
 - `0` when the module is installed.
 - `1` when the module is not installed.
 - Any other value when installation detection encounters an error.
 
-`is_installed.sh` must remain read-only and must not modify the system.
+`installed.sh` must remain read-only and must not modify the system.
 
 ## Canonical ID and Logging
 
@@ -69,12 +71,12 @@ log_info "[$CANONICAL_ID] Starting installation"
 Use the following expression to resolve the current module directory:
 
 ```bash
-SCRIPT_DIR="${MODULES_DIR}/${CANONICAL_ID}"
+SCRIPT_DIR="${MP_MODULES}/${CANONICAL_ID}"
 ```
 
 Do not use `$(dirname "$0")`, `${BASH_SOURCE[0]}`, or similar alternatives in module phase scripts.
 
-## Interactive and Non-Interactive Configuration (`configuration.sh`)
+## Interactive and Non-Interactive Configuration (`interactive.sh`)
 
 - Provide a resolver function for each required or configurable environment variable so invalid values cannot be stored.
 - Resolver functions must validate values and store the resolved choices with `set_state`.
@@ -134,7 +136,7 @@ if [[ "${MODULE_NAME_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]; 
     exit 0
 fi
 
-source "${LIB_DIR}/prompt.sh"
+source "${LIB_INSTALLER}/prompt.sh"
 
 __ask_module_name_xxx() {
     local selected_index
@@ -199,7 +201,7 @@ if [[ "${MODULE_NAME_USE_APT_ADD_REPOSITORY:-${USE_APT_ADD_REPOSITORY:-false}}" 
     log_info "[$CANONICAL_ID] Configuring PPA with add-apt-repository"
     add_ppa "$CANONICAL_ID" "ppa:user/repo"
 else
-    source "${LIB_DIR}/distro.sh"
+    source "${LIB_INSTALLER}/distro.sh"
 
     log_info "[$CANONICAL_ID] Configuring PPA with install_asc_key"
     install_asc_key \
@@ -221,7 +223,7 @@ add_ppa "$CANONICAL_ID" "ppa:user/repo"
 Example for a third-party APT repository:
 
 ```bash
-source "${LIB_DIR}/distro.sh"
+source "${LIB_INSTALLER}/distro.sh"
 
 log_info "[$CANONICAL_ID] Configuring external APT repository"
 install_asc_key \
@@ -255,7 +257,7 @@ Example:
     PROCS_INSTALL_DIR="${PROCS_INSTALL_DIR:-$INSTALL_DIR/procs}"
 
 - Make the binary executable.
-- Use `symlink_binary` from `lib/installer_common.sh` to create its symbolic link.
+- Use `symlink_binary` from `lib/installer/symlink.sh` to create its symbolic link.
 - Do not call `sudo ln` directly.
 - `symlink_binary` validates that the source exists, is a regular file, and is
   executable before creating a link in the directory returned by
@@ -264,7 +266,7 @@ Example:
 Example for `install.sh`:
 
 ```bash
-source "${LIB_DIR}/installer_common.sh"
+source "${LIB_INSTALLER}/symlink.sh"
 
 if ! chmod +x "$MODULE_INSTALL_DIR/binary-name"; then
     log_error "[$CANONICAL_ID] Failed to make binary executable"
@@ -286,7 +288,7 @@ fi
 
 - Extract the complete directory structure into a dedicated subdirectory of
   `INSTALL_DIR`.
-- Use `add_to_path` from `lib/installer_common.sh` after extraction succeeds.
+- Use `add_to_path` from `lib/installer/path.sh` after extraction succeeds.
 - Pass the directory containing the executable files, not necessarily the
   installation root.
 - `add_to_path` validates that the directory exists and is not empty.
@@ -313,7 +315,7 @@ These rules apply to modules that download `.deb` packages or archives such as
 ### Download Phase (`pre_install.sh`)
 
 - Download installation assets during `pre_install.sh`.
-- Source `lib/installer_external.sh` and `lib/state.sh`.
+- Source `lib/installer/external.sh` and `lib/installer/state.sh`.
 - Create temporary download paths with `mktemp`.
 - For GitHub releases:
   - Use `github_find_release` to resolve the latest matching asset.
@@ -330,8 +332,8 @@ These rules apply to modules that download `.deb` packages or archives such as
 Example for a GitHub release:
 
 ```bash
-source "${LIB_DIR}/installer_external.sh"
-source "${LIB_DIR}/state.sh"
+source "${LIB_INSTALLER}/external.sh"
+source "${LIB_INSTALLER}/state.sh"
 
 if ! download_file="$(mktemp --suffix=.tar.gz)"; then
     log_error "[$CANONICAL_ID] Failed to create temporary file"
@@ -365,7 +367,7 @@ save_states "$CANONICAL_ID" || exit 4
 
 ### Installation Phase (`install.sh`)
 
-- Source `lib/state.sh`.
+- Source `lib/installer/state.sh`.
 - Load the saved state with `load_states`.
 - Retrieve the downloaded path with `get_state`.
 - Verify that the downloaded file exists before using it.
@@ -374,14 +376,14 @@ save_states "$CANONICAL_ID" || exit 4
 
 For `.deb` packages:
 
-- Source `lib/installer_apt.sh`.
+- Source `lib/installer/apt.sh`.
 - Call `apt_install` with the absolute path to the downloaded package.
 
 Example:
 
 ```bash
-source "${LIB_DIR}/installer_apt.sh"
-source "${LIB_DIR}/state.sh"
+source "${LIB_INSTALLER}/apt.sh"
+source "${LIB_INSTALLER}/state.sh"
 
 load_states "$CANONICAL_ID" || exit 1
 DEB_FILE="$(get_state "DEB_FILE")" || exit 1

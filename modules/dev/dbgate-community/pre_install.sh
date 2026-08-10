@@ -1,39 +1,38 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/installer_external.sh"
-source "${LIB_DIR}/state.sh"
+source "$LIB_INSTALLER/external.sh"
+source "$LIB_INSTALLER/state.sh"
 
-url="https://github.com/dbgate/dbgate/releases/latest/download/dbgate-latest.deb"
+main() {
+    local canonical_id="$1"
+    local url="$2"
+    local deb_file
+    local tag="pre-install:$canonical_id"
 
-log_info "[$CANONICAL_ID] Creating temporary download file"
+    if ! deb_file="$(mktemp --suffix=.deb)"; then
+        tlog_error "$tag" "Failed to create a temporary package file"
 
-if ! download_file_path="$(mktemp --suffix=.deb)"; then
-    log_error "[$CANONICAL_ID] Failed to create temporary file"
+        return 1
+    fi
 
-    exit 1
-fi
+    if ! download_file "$canonical_id" "$url" "$deb_file"; then
+        tlog_error "$tag" "Failed to download the DbGate Community package"
+        rm -f -- "$deb_file"
 
-log_info "[$CANONICAL_ID] Downloading latest DbGate Community package"
+        return 2
+    fi
 
-if ! download_file \
+    if ! set_state "DEB_FILE" "$deb_file" || ! save_states "$canonical_id"; then
+        tlog_error "$tag" "Failed to save installation state"
+        rm -f -- "$deb_file"
+
+        return 3
+    fi
+
+    tlog_info "$tag" "Pre-install phase completed successfully"
+}
+
+main \
     "$CANONICAL_ID" \
-    "$url" \
-    "$download_file_path"
-then
-    log_error "[$CANONICAL_ID] Download failed"
-    rm -f "$download_file_path"
-
-    exit 2
-fi
-
-set_state "DEB_FILE" "$download_file_path"
-
-if ! save_states "$CANONICAL_ID"; then
-    log_error "[$CANONICAL_ID] Failed to save installation state"
-    rm -f "$download_file_path"
-
-    exit 3
-fi
-
-log_info "[$CANONICAL_ID] Download completed successfully"
+    "https://github.com/dbgate/dbgate/releases/latest/download/dbgate-latest.deb"

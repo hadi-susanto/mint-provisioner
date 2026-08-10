@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$LIB_DIR/installer_apt.sh"
+source "$LIB_INSTALLER/apt.sh"
 
-apt_install alacritty
+apt_install "$CANONICAL_ID" alacritty

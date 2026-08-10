@@ -16,6 +16,16 @@
 - Preserve unrelated user changes in the working tree.
 - Prefer (( ... )) for arithmetic conditions and numeric boolean flags. Prefer [[ ... ]] for string comparisons, pattern matching, and filesystem tests.
 
+## Module Metadata Source Values
+
+- `SOURCE` in module metadata uses one of these lowercase values:
+  - `native`: Supported directly by operating-system package sources without extra setup.
+  - `ppa`: Uses a Launchpad PPA repository.
+  - `apt`: Uses a third-party APT repository outside Launchpad PPA.
+  - `github`: Artifact or installer obtained from GitHub.
+  - `sourceforge`: Artifact or installer obtained from SourceForge.
+  - `external`: Artifact or installer hosted by a third-party vendor directly.
+
 ## Safety
 
 - Do not run `sudo` unless explicitly requested.
@@ -51,7 +61,8 @@ Example:
 # Output:
 #   Prints the resolved package name.
 #
-# Returns:
+# Return:
+#   0 when it's successfully resolve to canonical ID
 #   1 when the toolkit is unsupported.
 #
 resolve_package() {

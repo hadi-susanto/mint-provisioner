@@ -1,26 +1,30 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/installer_apt.sh"
-source "${LIB_DIR}/messages.sh"
-source "${LIB_DIR}/state.sh"
+source "$LIB_COMMON/common.sh"
+source "$LIB_INSTALLER/apt.sh"
+source "$LIB_INSTALLER/messages.sh"
+source "$LIB_INSTALLER/state.sh"
 
 load_states "$CANONICAL_ID" ||
-    log_warn "[$CANONICAL_ID] Failed to load states. Falling back to default values."
+    tlog_warn "install:$CANONICAL_ID" \
+        "Failed to load states; falling back to the default package"
 
-PGADMIN_PACKAGE="$(
-    get_state "PGADMIN_PACKAGE" "pgadmin4-desktop"
-)"
+PGADMIN_PACKAGE="pgadmin4-desktop"
 
-log_info "[$CANONICAL_ID] Installing using $PGADMIN_PACKAGE package"
+if stored_package="$(get_state "PGADMIN_PACKAGE" 2>/dev/null)"; then
+    PGADMIN_PACKAGE="$stored_package"
+fi
 
-if ! apt_install "$PGADMIN_PACKAGE"; then
-    log_error "[$CANONICAL_ID] Package installation failed"
+tlog_info "install:$CANONICAL_ID" \
+    "Installing package: %s" "$PGADMIN_PACKAGE"
+
+if ! apt_install "$CANONICAL_ID" "$PGADMIN_PACKAGE"; then
+    tlog_error "install:$CANONICAL_ID" "Package installation failed"
     add_message "$CANONICAL_ID" "warn" "Installation failed: $PGADMIN_PACKAGE"
 
     exit 1
 fi
 
-log_info "[$CANONICAL_ID] Package installed successfully"
+tlog_info "install:$CANONICAL_ID" "Package installed successfully"
 add_message "$CANONICAL_ID" "info" "Installation success: $PGADMIN_PACKAGE"

@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/installer_apt.sh"
+source "${LIB_COMMON}/common.sh"
+source "${LIB_INSTALLER}/apt.sh"
+source "${LIB_INSTALLER}/registry.sh"
 
-SCRIPT_DIR="${MODULES_DIR}/${CANONICAL_ID}"
+SCRIPT_DIR="${MP_MODULES}/${CANONICAL_ID}"
 PAYLOAD_DIR="$SCRIPT_DIR/payload"
 
 if [[ -z "${TLP_UI_INSTALL_DIR:-}" ]]; then
@@ -22,7 +23,7 @@ APPLICATION_DIR="/usr/share/applications"
 DESKTOP_FILE="$APPLICATION_DIR/tlp-ui.desktop"
 
 if [[ ! -f "$ICON_SOURCE" ]]; then
-    log_error "[$CANONICAL_ID] Application icon not found: $ICON_SOURCE"
+    tlog_error "install:$CANONICAL_ID" "Application icon not found: $ICON_SOURCE"
 
     exit 1
 fi
@@ -30,21 +31,21 @@ fi
 #
 # Install runtime dependencies
 #
-log_info "[$CANONICAL_ID] Installing Python and GTK runtime dependencies"
+tlog_info "install:$CANONICAL_ID" "Installing Python and GTK runtime dependencies"
 
-if ! apt_install \
+if ! apt_install "$CANONICAL_ID" \
     python3-gi \
     python3-yaml \
     python3-toml \
     gir1.2-gtk-3.0
 then
-    log_error "[$CANONICAL_ID] Failed to install Python or GTK runtime dependencies"
+    tlog_error "install:$CANONICAL_ID" "Failed to install Python or GTK runtime dependencies"
 
     exit 2
 fi
 
 if ! python3 -c 'import gi, yaml, toml' >/dev/null 2>&1; then
-    log_error "[$CANONICAL_ID] Failed to load the required Python modules: gi, yaml and toml"
+    tlog_error "install:$CANONICAL_ID" "Failed to load the required Python modules: gi, yaml and toml"
 
     exit 3
 fi
@@ -52,7 +53,7 @@ fi
 #
 # Clone TLPUI
 #
-log_info "[$CANONICAL_ID] Installing to $TLP_UI_INSTALL_DIR"
+tlog_info "install:$CANONICAL_ID" "Installing to $TLP_UI_INSTALL_DIR"
 
 SUDO_CMD=""
 if ! can_write "$TLP_UI_INSTALL_DIR"; then
@@ -60,10 +61,10 @@ if ! can_write "$TLP_UI_INSTALL_DIR"; then
 fi
 
 if [[ -f "$TLP_UI_INSTALL_DIR/tlpui/__main__.py" ]]; then
-    log_warn "[$CANONICAL_ID] Target directory already contains TLPUI, skipping clone: $TLP_UI_INSTALL_DIR"
+    tlog_warn "install:$CANONICAL_ID" "Target directory already contains TLPUI, skipping clone: $TLP_UI_INSTALL_DIR"
 else
     if [[ -e "$TLP_UI_INSTALL_DIR" ]]; then
-        log_error "[$CANONICAL_ID] Target exists but does not contain a valid TLPUI checkout: $TLP_UI_INSTALL_DIR"
+        tlog_error "install:$CANONICAL_ID" "Target exists but does not contain a valid TLPUI checkout: $TLP_UI_INSTALL_DIR"
 
         exit 4
     fi
@@ -71,7 +72,7 @@ else
     INSTALL_PARENT_DIR="$(dirname -- "$TLP_UI_INSTALL_DIR")"
 
     if ! $SUDO_CMD mkdir -p "$INSTALL_PARENT_DIR"; then
-        log_error "[$CANONICAL_ID] Failed to create install directory: $INSTALL_PARENT_DIR"
+        tlog_error "install:$CANONICAL_ID" "Failed to create install directory: $INSTALL_PARENT_DIR"
 
         exit 5
     fi
@@ -81,7 +82,7 @@ else
         "$REPO_URL" \
         "$TLP_UI_INSTALL_DIR"
     then
-        log_error "[$CANONICAL_ID] Failed to clone repository: $REPO_URL"
+        tlog_error "install:$CANONICAL_ID" "Failed to clone repository: $REPO_URL"
 
         exit 6
     fi
@@ -90,7 +91,7 @@ fi
 #
 # Create command launcher
 #
-log_info "[$CANONICAL_ID] Creating launcher: $LAUNCHER_PATH"
+tlog_info "install:$CANONICAL_ID" "Creating launcher: $LAUNCHER_PATH"
 
 printf -v quoted_install_dir '%q' "$TLP_UI_INSTALL_DIR"
 
@@ -101,13 +102,13 @@ cd $quoted_install_dir || exit 1
 exec python3 -m tlpui "\$@"
 EOF
 then
-    log_error "[$CANONICAL_ID] Failed to create launcher: $LAUNCHER_PATH"
+    tlog_error "install:$CANONICAL_ID" "Failed to create launcher: $LAUNCHER_PATH"
 
     exit 7
 fi
 
 if ! sudo chmod 0755 "$LAUNCHER_PATH"; then
-    log_error "[$CANONICAL_ID] Failed to make launcher executable: $LAUNCHER_PATH"
+    tlog_error "install:$CANONICAL_ID" "Failed to make launcher executable: $LAUNCHER_PATH"
 
     exit 8
 fi
@@ -115,10 +116,10 @@ fi
 #
 # Install application icon
 #
-log_info "[$CANONICAL_ID] Installing application icon: $ICON_PATH"
+tlog_info "install:$CANONICAL_ID" "Installing application icon: $ICON_PATH"
 
 if ! sudo install -Dm0644 "$ICON_SOURCE" "$ICON_PATH"; then
-    log_error "[$CANONICAL_ID] Failed to install application icon: $ICON_PATH"
+    tlog_error "install:$CANONICAL_ID" "Failed to install application icon: $ICON_PATH"
 
     exit 9
 fi
@@ -126,10 +127,10 @@ fi
 #
 # Install desktop entry
 #
-log_info "[$CANONICAL_ID] Installing desktop file: $DESKTOP_FILE"
+tlog_info "install:$CANONICAL_ID" "Installing desktop file: $DESKTOP_FILE"
 
 if ! sudo mkdir -p "$APPLICATION_DIR"; then
-    log_error "[$CANONICAL_ID] Failed to create desktop application directory: $APPLICATION_DIR"
+    tlog_error "install:$CANONICAL_ID" "Failed to create desktop application directory: $APPLICATION_DIR"
 
     exit 10
 fi
@@ -150,13 +151,13 @@ Keywords=Battery;Power;Laptop;TLP;
 StartupWMClass=Tlp-UI
 EOF
 then
-    log_error "[$CANONICAL_ID] Failed to install desktop file: $DESKTOP_FILE"
+    tlog_error "install:$CANONICAL_ID" "Failed to install desktop file: $DESKTOP_FILE"
 
     exit 11
 fi
 
 if ! sudo chmod 0644 "$DESKTOP_FILE"; then
-    log_error "[$CANONICAL_ID] Failed to set desktop file permissions: $DESKTOP_FILE"
+    tlog_error "install:$CANONICAL_ID" "Failed to set desktop file permissions: $DESKTOP_FILE"
 
     exit 12
 fi
@@ -165,19 +166,22 @@ fi
 # Refresh desktop caches when supported
 #
 if command -v gtk-update-icon-cache >/dev/null 2>&1; then
-    log_info "[$CANONICAL_ID] Refreshing icon cache"
+    tlog_info "install:$CANONICAL_ID" "Refreshing icon cache"
 
     if ! sudo gtk-update-icon-cache -f -t "$ICON_THEME_DIR"; then
-        log_warn "[$CANONICAL_ID] Failed to refresh the icon cache"
+        tlog_warn "install:$CANONICAL_ID" "Failed to refresh the icon cache"
     fi
 fi
 
 if command -v update-desktop-database >/dev/null 2>&1; then
-    log_info "[$CANONICAL_ID] Refreshing desktop application database"
+    tlog_info "install:$CANONICAL_ID" "Refreshing desktop application database"
 
     if ! sudo update-desktop-database "$APPLICATION_DIR"; then
-        log_warn "[$CANONICAL_ID] Failed to refresh the desktop application database"
+        tlog_warn "install:$CANONICAL_ID" "Failed to refresh the desktop application database"
     fi
 fi
 
-log_info "[$CANONICAL_ID] Installation completed successfully"
+set_registry "INSTALL_PATH" "$TLP_UI_INSTALL_DIR" || exit 13
+save_registry "$CANONICAL_ID" || exit 13
+
+tlog_info "install:$CANONICAL_ID" "Installation completed successfully"

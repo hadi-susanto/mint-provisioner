@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/installer_apt.sh"
-source "${LIB_DIR}/messages.sh"
+source "${LIB_INSTALLER}/apt.sh"
+source "${LIB_INSTALLER}/messages.sh"
 
-apt_install dconf-editor
+apt_install "$CANONICAL_ID" dconf-editor
 
 message="Dconf Editor provides direct access to low-level desktop settings.
 Modify values carefully because invalid settings may cause unexpected desktop behavior.

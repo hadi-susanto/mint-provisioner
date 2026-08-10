@@ -33,6 +33,7 @@ Downloads the latest Android Platform Tools ZIP archive directly from Google's o
 - `ADB_INSTALL_DIR`
     - Installation directory.
     - Default: `${INSTALL_DIR}/adb`
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
 
 ### Official Website
 
@@ -86,6 +87,7 @@ Downloads the latest Linux x86_64 MUSL release archive from the official GitHub 
 - `DELTA_INSTALL_DIR`
     - Installation directory.
     - Default: `${INSTALL_DIR}/delta`
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
 
 - `DELTA_REGEX`
     - Regular expression used to locate the GitHub release asset.
@@ -165,9 +167,9 @@ The package installed depends on the selected configuration:
 * `MKVTOOLNIX_NON_INTERACTIVE`
 
     * Disables the MKVToolNix GUI-selection prompt.
-    * Falls back to the global `NON_INTERACTIVE` value.
+    * When unset, follows `mp install --non-interactive` or `--unattended`.
     * When enabled without `MKVTOOLNIX_GUI_ENABLED`, installs the command-line-only package.
-    * Default: `${NON_INTERACTIVE}`
+    * Default: prompts for a selection.
 
 * `MKVTOOLNIX_GUI_ENABLED`
 
@@ -179,33 +181,18 @@ The package installed depends on the selected configuration:
 
 ### Installation Detection
 
-The module always checks for the following command-line tools:
-
-- `mkvextract`
-- `mkvinfo`
-- `mkvmerge`
-- `mkvpropedit`
-
-When `MKVTOOLNIX_GUI_ENABLED=true`, the module additionally requires `mkvtoolnix-gui` to consider the installation
-complete.
-
-When the variable is unset or set to `false`, an existing command-line-only installation is considered complete. The
-configuration phase is therefore skipped, and the user is not prompted to install the GUI.
-
-To add the GUI to an existing command-line-only installation, explicitly enable it:
+The module is considered installed when any supported MKVToolNix Debian package is installed. Detection checks
+`mkvtoolnix` and `mkvtoolnix-gui` directly through the package database. An existing installation is filtered before the
+interactive phase, so use `--force` when changing the selected package:
 
 ```bash
-MKVTOOLNIX_GUI_ENABLED=true ./install.sh cli/mkvtoolnix
+MKVTOOLNIX_GUI_ENABLED=true mp install --force cli/mkvtoolnix
 ```
 
-Alternatively, force the configuration phase to run and select the GUI interactively:
+To select the package interactively instead:
 
 ```bash
-FORCE_INSTALL=true ./install.sh cli/mkvtoolnix
-```
-
-```bash
-./install.sh --force-install cli/mkvtoolnix
+mp install --force cli/mkvtoolnix
 ```
 
 ### System Toolkit Integration
@@ -242,6 +229,7 @@ a symbolic link for the executable.
     - Installation directory.
     - Default:
       `${INSTALL_DIR}/procs`
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
 
 ### Official Website
 
@@ -281,7 +269,7 @@ sudo nano /etc/tlp.conf
 The optional graphical configuration interface can be installed separately:
 
 ```bash
-./install.sh gui/tlp-ui
+mp install gui/tlp-ui
 ```
 
 ### Official Website

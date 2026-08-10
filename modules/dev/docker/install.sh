@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/installer_apt.sh"
-source "${LIB_DIR}/messages.sh"
-source "${LIB_DIR}/state.sh"
+source "$LIB_COMMON/common.sh"
+source "$LIB_INSTALLER/apt.sh"
+source "$LIB_INSTALLER/messages.sh"
+source "$LIB_INSTALLER/registry.sh"
+source "$LIB_INSTALLER/state.sh"
 
 load_states "$CANONICAL_ID" || exit 1
 
@@ -16,27 +17,29 @@ docker_source_dir="/var/lib/docker"
 docker_config_dir="/etc/docker"
 docker_config_file="${docker_config_dir}/daemon.json"
 target_user="${SUDO_USER:-${USER:-}}"
+__tag="install:$CANONICAL_ID"
 
 __restart_docker_after_failure() {
-    log_warn \
-        "[$CANONICAL_ID] Attempting to restart Docker after configuration failure"
+    tlog_warn "$__tag" \
+        "Attempting to restart Docker after configuration failure"
 
     if ! sudo systemctl start docker.service; then
-        log_error \
-            "[$CANONICAL_ID] Docker could not be restarted; check its service status manually"
+        tlog_error "$__tag" \
+            "Docker could not be restarted; check its service status manually"
     fi
 }
 
-log_info "[$CANONICAL_ID] Installing Docker Engine"
+tlog_info "$__tag" "Installing Docker Engine"
 
 if ! apt_install \
+    "$CANONICAL_ID" \
     docker-ce \
     docker-ce-cli \
     containerd.io \
     docker-buildx-plugin \
     docker-compose-plugin
 then
-    log_error "[$CANONICAL_ID] Docker package installation failed"
+    tlog_error "$__tag" "Docker package installation failed"
 
     exit 2
 fi
@@ -57,34 +60,34 @@ and did not create or modify the configured destination:
 
 Check the Docker service and data-root configuration manually."
 
-    log_warn \
-        "[$CANONICAL_ID] Docker source directory not found: $docker_source_dir; skipping data migration"
+    tlog_warn "$__tag" \
+        "Docker source directory not found: %s; skipping data migration" \
+        "$docker_source_dir"
 
     add_message "$CANONICAL_ID" "warn" "$message"
 
     exit 0
 fi
 
-log_info \
-    "[$CANONICAL_ID] Creating Docker library directory: $DOCKER_LIB_INSTALL_DIR"
+tlog_info "$__tag" \
+    "Creating Docker library directory: %s" "$DOCKER_LIB_INSTALL_DIR"
 
-if ! sudo mkdir -p "$DOCKER_LIB_INSTALL_DIR"; then
-    log_error \
-        "[$CANONICAL_ID] Failed to create Docker library directory"
+if ! mkdir -p "$DOCKER_LIB_INSTALL_DIR"; then
+    tlog_error "$__tag" "Failed to create Docker library directory"
 
     exit 3
 fi
 
-log_info "[$CANONICAL_ID] Stopping Docker service and socket"
+tlog_info "$__tag" "Stopping Docker service and socket"
 
 if ! sudo systemctl stop docker.service docker.socket; then
-    log_error "[$CANONICAL_ID] Failed to stop Docker"
+    tlog_error "$__tag" "Failed to stop Docker"
 
     exit 4
 fi
 
-log_info \
-    "[$CANONICAL_ID] Copying $docker_source_dir to $DOCKER_LIB_INSTALL_DIR"
+tlog_info "$__tag" \
+    "Copying %s to %s" "$docker_source_dir" "$DOCKER_LIB_INSTALL_DIR"
 
 if ! sudo rsync \
     --archive \
@@ -92,7 +95,7 @@ if ! sudo rsync \
     "${docker_source_dir}/" \
     "${DOCKER_LIB_INSTALL_DIR}/"
 then
-    log_error "[$CANONICAL_ID] Failed to copy Docker library data"
+    tlog_error "$__tag" "Failed to copy Docker library data"
 
     __restart_docker_after_failure
 
@@ -112,17 +115,15 @@ Ensure it contains the following data-root setting:
 Docker data was copied to the configured directory,
 but Docker will not use it unless daemon.json points to that location."
 
-    log_warn \
-        "[$CANONICAL_ID] Existing $docker_config_file found; leaving it unchanged"
+    tlog_warn "$__tag" \
+        "Existing %s found; leaving it unchanged" "$docker_config_file"
 
     add_message "$CANONICAL_ID" "warn" "$message"
 else
-    log_info \
-        "[$CANONICAL_ID] Writing Docker data-root configuration"
+    tlog_info "$__tag" "Writing Docker data-root configuration"
 
     if ! sudo mkdir -p "$docker_config_dir"; then
-        log_error \
-            "[$CANONICAL_ID] Failed to create Docker configuration directory"
+        tlog_error "$__tag" "Failed to create Docker configuration directory"
 
         __restart_docker_after_failure
 
@@ -135,8 +136,7 @@ else
 }
 EOF
     then
-        log_error \
-            "[$CANONICAL_ID] Failed to write Docker daemon configuration"
+        tlog_error "$__tag" "Failed to write Docker daemon configuration"
 
         __restart_docker_after_failure
 
@@ -144,10 +144,10 @@ EOF
     fi
 fi
 
-log_info "[$CANONICAL_ID] Starting Docker"
+tlog_info "$__tag" "Starting Docker"
 
 if ! sudo systemctl start docker.service; then
-    log_error "[$CANONICAL_ID] Failed to start Docker"
+    tlog_error "$__tag" "Failed to start Docker"
 
     exit 8
 fi
@@ -161,8 +161,8 @@ Check the Docker installation and create the group manually if required:
   sudo groupadd docker
   sudo usermod -aG docker <username>"
 
-    log_warn \
-        "[$CANONICAL_ID] Docker group does not exist; skipping user group configuration"
+    tlog_warn "$__tag" \
+        "Docker group does not exist; skipping user group configuration"
 
     add_message "$CANONICAL_ID" "warn" "$message"
 elif [[ -z "$target_user" || "$target_user" == "root" ]]; then
@@ -172,23 +172,22 @@ Add your user manually with:
 
   sudo usermod -aG docker <username>"
 
-    log_warn \
-        "[$CANONICAL_ID] Unable to determine a non-root user for Docker group membership"
+    tlog_warn "$__tag" \
+        "Unable to determine a non-root user for Docker group membership"
 
     add_message "$CANONICAL_ID" "warn" "$message"
 elif id -nG "$target_user" |
     tr ' ' '\n' |
     grep -Fxq docker
 then
-    log_info \
-        "[$CANONICAL_ID] User $target_user already belongs to the docker group"
+    tlog_info "$__tag" \
+        "User %s already belongs to the docker group" "$target_user"
 else
-    log_info \
-        "[$CANONICAL_ID] Adding user $target_user to the docker group"
+    tlog_info "$__tag" "Adding user %s to the docker group" "$target_user"
 
     if ! sudo usermod -aG docker "$target_user"; then
-        log_error \
-            "[$CANONICAL_ID] Failed to add $target_user to the docker group"
+        tlog_error "$__tag" \
+            "Failed to add %s to the docker group" "$target_user"
 
         exit 9
     fi
@@ -209,4 +208,11 @@ log out and sign in again before running Docker without sudo."
 
 add_message "$CANONICAL_ID" "info" "$message"
 
-log_info "[$CANONICAL_ID] Docker installation completed successfully"
+set_registry "INSTALL_PATH" "$DOCKER_LIB_INSTALL_DIR" || exit 10
+if ! save_registry "$CANONICAL_ID"; then
+    tlog_error "$__tag" "Failed to save the installation registry"
+
+    exit 10
+fi
+
+tlog_info "$__tag" "Docker installation completed successfully"

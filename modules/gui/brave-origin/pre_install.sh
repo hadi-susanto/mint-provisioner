@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/installer_apt.sh"
-source "${LIB_DIR}/state.sh"
+source "${LIB_INSTALLER}/apt.sh"
+source "${LIB_INSTALLER}/state.sh"
 
 if ! load_states "$CANONICAL_ID"; then
-    log_error "[$CANONICAL_ID] Brave Origin installation state was not found"
+    tlog_error "pre-install:$CANONICAL_ID" "Brave Origin installation state was not found"
 
     exit 1
 fi
@@ -29,7 +29,7 @@ case "$channel" in
         ;;
 
     *)
-        log_error "[$CANONICAL_ID] Invalid repository channel: $channel"
+        tlog_error "pre-install:$CANONICAL_ID" "Invalid repository channel: $channel"
 
         exit 3
         ;;

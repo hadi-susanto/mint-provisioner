@@ -25,6 +25,7 @@ main() {
     fi
 
     nerd_font_cleanup_downloads "$canonical_id" font_families || return $?
+    delete_states "$canonical_id" || return $?
     tlog_info "cleanup:$canonical_id" "Cleanup completed successfully"
 }
 

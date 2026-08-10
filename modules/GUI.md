@@ -38,7 +38,8 @@ Supports Release, Beta, and Nightly channels.
 
 - `BRAVE_BROWSER_NON_INTERACTIVE`
     - Disables channel selection.
-    - Default: `${NON_INTERACTIVE}`
+    - When unset, follows `mp install --non-interactive` or `--unattended`.
+    - Default: prompts for a selection.
 
 Multiple channels can be installed side by side. Use `--force` when another Brave Browser channel is already installed.
 
@@ -66,7 +67,8 @@ Supports Release, Beta, and Nightly channels.
 
 - `BRAVE_ORIGIN_NON_INTERACTIVE`
     - Disables channel selection.
-    - Default: `${NON_INTERACTIVE}`
+    - When unset, follows `mp install --non-interactive` or `--unattended`.
+    - Default: prompts for a selection.
 
 Multiple channels can be installed side by side. Use `--force` when another Brave Origin channel is already installed.
 
@@ -150,9 +152,9 @@ Configures the Double Commander repository from the openSUSE Build Service, then
 
 - `DOUBLE_COMMANDER_NON_INTERACTIVE`
     - Disables the UI toolkit selection prompt.
-    - Falls back to the global `NON_INTERACTIVE` value.
+    - When unset, follows `mp install --non-interactive` or `--unattended`.
     - When enabled with `DOUBLE_COMMANDER_UI_TOOLKIT=auto` or without an explicit toolkit, uses automatic detection.
-    - Default: `${NON_INTERACTIVE}`
+    - Default: prompts for a selection.
 
 - `DOUBLE_COMMANDER_UI_TOOLKIT`
     - Double Commander GUI package variant to install.
@@ -312,16 +314,16 @@ Configures Microsoft's Edge repository and installs the selected package:
 Multiple Microsoft Edge channels can be installed side by side. Use `MICROSOFT_EDGE_CHANNEL` to select a channel
 directly. If an Edge channel is already installed, add `--force` to run the module again and install another channel.
 
-Example for non-interactive:
+Example without prompts:
 
 ```bash
-MICROSOFT_EDGE_CHANNEL=dev ./install.sh gui/microsoft-edge
+MICROSOFT_EDGE_CHANNEL=dev mp install --non-interactive gui/microsoft-edge
 ```
 
-For interactive could use:
+To select a channel interactively when Edge is already installed:
 
 ```bash
-./install.sh --force gui/microsoft-edge
+mp install --force gui/microsoft-edge
 ```
 
 ### Supported ENV
@@ -332,17 +334,12 @@ For interactive could use:
 
 - `MICROSOFT_EDGE_NON_INTERACTIVE`
     - Disables the channel selection prompt.
-    - Default: `${NON_INTERACTIVE}`
+    - When unset, follows `mp install --non-interactive` or `--unattended`.
+    - Default: prompts for a selection.
 
 ### Post-install Configuration
 
-Disables Edge's repository updater that may conflict with the repository managed by Mint Provisioner.
-
-Reapply the configuration with:
-
-```bash
-./configure.sh gui/microsoft-edge
-```
+Disables Edge's repository updater that may conflict with the repository managed by Mint Provisioner. This adjustment runs as part of `mp install`; use `mp install --force gui/microsoft-edge` to run the module again.
 
 ### Official Website
 

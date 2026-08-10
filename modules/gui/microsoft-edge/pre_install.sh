@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/installer_apt.sh"
+source "${LIB_INSTALLER}/apt.sh"
 
 # Microsoft Edge uses a distribution-independent repository created before
 # May 2025. Its signing key does not depend on the Ubuntu version.

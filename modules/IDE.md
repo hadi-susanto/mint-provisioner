@@ -58,7 +58,7 @@ desktop entry and application icon. The JetBrains Runtime bundled with each IDE 
 
 - `JETBRAINS_NON_INTERACTIVE`
     - Disables the shared JetBrains dependency prompt.
-    - Falls back to `${NON_INTERACTIVE}`.
+    - When unset, follows `mp install --non-interactive` or `--unattended`.
     - A product-specific `*_NON_INTERACTIVE` variable takes precedence.
 
 ---
@@ -100,7 +100,7 @@ CudaText is a cross-platform text and code editor with a Python plugin system.
     - Supported values: `auto`, `gtk2`, `gtk3`, `qt5`, and `qt6`.
 - `CUDATEXT_NON_INTERACTIVE`
     - Disables the toolkit selection prompt and uses automatic detection when `CUDATEXT_UI_TOOLKIT` is unset.
-    - Falls back to `${NON_INTERACTIVE}`.
+    - When unset, follows `mp install --non-interactive` or `--unattended`.
 
 ### Official Website
 
@@ -326,7 +326,7 @@ Interactive installations prompt for the channel. Non-interactive installations 
     - Default in non-interactive mode: `stable`.
 - `VSCODE_NON_INTERACTIVE`
     - Disables the channel-selection prompt.
-    - Falls back to `${NON_INTERACTIVE}`.
+    - When unset, follows `mp install --non-interactive` or `--unattended`.
 
 ### Official Website
 

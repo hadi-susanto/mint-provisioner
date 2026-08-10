@@ -1,46 +1,61 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/installer_common.sh"
-source "${LIB_DIR}/messages.sh"
-source "${LIB_DIR}/state.sh"
+source "$LIB_COMMON/common.sh"
+source "$LIB_INSTALLER/messages.sh"
+source "$LIB_INSTALLER/path.sh"
+source "$LIB_INSTALLER/registry.sh"
+source "$LIB_INSTALLER/state.sh"
 
-load_states "$CANONICAL_ID" || exit 1
-ARCHIVE_FILE="$(get_state "ARCHIVE_FILE")" || exit 1
+main() {
+    local canonical_id="$1"
+    local raw_install_path="$2"
+    local archive_file
+    local install_path
+    local message
+    local tag="install:$canonical_id"
 
-if [[ ! -f "$ARCHIVE_FILE" ]]; then
-    log_error "[$CANONICAL_ID] Archive file $ARCHIVE_FILE not found"
+    load_states "$canonical_id" || return 1
+    archive_file="$(get_state "ARCHIVE_FILE")" || return 1
 
-    exit 2
-fi
+    if [[ ! -f "$archive_file" ]]; then
+        tlog_error "$tag" "Archive file not found: %s" "$archive_file"
 
-if [[ -z "${APACHE_MAVEN_INSTALL_DIR:-}" ]]; then
-    APACHE_MAVEN_INSTALL_DIR="$INSTALL_DIR/apache-maven"
-fi
+        return 2
+    fi
 
-SUDO_CMD=""
-if ! can_write "$APACHE_MAVEN_INSTALL_DIR"; then
-    SUDO_CMD="sudo"
-fi
+    install_path="$(expand_path "$raw_install_path")" || return $?
+    if ! mkdir -p -- "$install_path"; then
+        tlog_error "$tag" "Failed to create install directory: %s" "$install_path"
 
-log_info "[$CANONICAL_ID] Extracting $ARCHIVE_FILE to $APACHE_MAVEN_INSTALL_DIR"
-$SUDO_CMD mkdir -p "$APACHE_MAVEN_INSTALL_DIR"
+        return 3
+    fi
 
-# Extract while stripping the top-level directory (e.g., apache-maven-3.9.16/)
-if ! $SUDO_CMD tar --overwrite -xzf "$ARCHIVE_FILE" -C "$APACHE_MAVEN_INSTALL_DIR" --strip-components=1; then
-    log_error "[$CANONICAL_ID] Extraction failed"
+    if ! tar --overwrite -xzf "$archive_file" -C "$install_path" --strip-components=1; then
+        tlog_error "$tag" "Failed to extract Apache Maven into: %s" "$install_path"
 
-    exit 3
-fi
+        return 4
+    fi
 
-# add_to_path takes the directory containing binaries (bin/)
-add_to_path "$CANONICAL_ID" "${APACHE_MAVEN_INSTALL_DIR}/bin"
+    if [[ ! -x "$install_path/bin/mvn" ]]; then
+        tlog_error "$tag" "Maven executable was not installed: %s" "$install_path/bin/mvn"
 
-if command -v java >/dev/null 2>&1; then
-  exit 0
-fi
+        return 5
+    fi
 
-msg="Java was not found on your system. You can install it using the SDKMAN! module: './install.sh dev/sdkman'"
+    add_to_path "$canonical_id" "$install_path/bin" || return 6
+    set_registry "INSTALL_PATH" "$install_path" || return 7
+    save_registry "$canonical_id" || return 7
 
-log_warn "[$CANONICAL_ID] $msg"
-add_message "$CANONICAL_ID" "warn" "$msg"
+    if ! command -v java >/dev/null 2>&1; then
+        message="Java was not found. Install it with SDKMAN!: 'mp install dev/sdkman'"
+        tlog_warn "$tag" "%s" "$message"
+        if ! add_message "$canonical_id" warn "$message"; then
+            tlog_warn "$tag" "Failed to persist the missing-Java warning"
+        fi
+    fi
+
+    tlog_info "$tag" "Installation completed successfully"
+}
+
+main "$CANONICAL_ID" "${APACHE_MAVEN_INSTALL_DIR:-$INSTALL_DIR/apache-maven}"

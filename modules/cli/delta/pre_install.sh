@@ -1,44 +1,55 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$LIB_DIR/installer_external.sh"
-source "$LIB_DIR/state.sh"
+source "$LIB_INSTALLER/external.sh"
+source "$LIB_INSTALLER/install-target.sh"
+source "$LIB_INSTALLER/state.sh"
 
-if ! download_file="$(mktemp --suffix=.tar.gz)"; then
-    log_error "[$CANONICAL_ID] Failed to create temporary file"
+main() {
+    local canonical_id="$1"
+    local raw_install_path="$2"
+    local release_regex="$3"
+    local archive_file
+    local install_path
+    local tag="pre-install:$canonical_id"
+    local url
 
-    exit 1
-fi
+    install_path="$(resolve_install_target "$canonical_id" "$raw_install_path")" || return $?
 
-if [[ -z "${DELTA_REGEX:-}" ]]; then
-    DELTA_REGEX='delta-.*-x86_64-unknown-linux-musl\.tar\.gz$'
-fi
+    if ! archive_file="$(mktemp --suffix=.tar.gz)"; then
+        tlog_error "$tag" "Failed to create a temporary archive"
 
-log_info "[$CANONICAL_ID] Finding github latest release using regex: $DELTA_REGEX"
+        return 2
+    fi
 
-if ! url="$(
-    github_find_release \
-        "$CANONICAL_ID" \
-        dandavison \
-        delta \
-        "$DELTA_REGEX"
-)"; then
-    log_error "[$CANONICAL_ID] Failed to resolve latest release"
+    if ! url="$(
+        github_find_release "$canonical_id" dandavison delta "$release_regex"
+    )"; then
+        tlog_error "$tag" "Failed to resolve the latest delta release"
+        rm -f -- "$archive_file"
 
-    rm -f "$download_file"
+        return 3
+    fi
 
-    exit 2
-fi
+    if ! download_file "$canonical_id" "$url" "$archive_file"; then
+        tlog_error "$tag" "Failed to download the delta archive"
+        rm -f -- "$archive_file"
 
-if ! download_file "$CANONICAL_ID" "$url" "$download_file"; then
-    log_error "[$CANONICAL_ID] Download failed"
+        return 4
+    fi
 
-    rm -f "$download_file"
+    if ! set_state "ARCHIVE_FILE" "$archive_file" ||
+        ! save_states "$canonical_id"; then
+        tlog_error "$tag" "Failed to save installation state"
+        rm -f -- "$archive_file"
 
-    exit 3
-fi
+        return 5
+    fi
 
-set_state "ARCHIVE_FILE" "$download_file"
-save_states "$CANONICAL_ID" || exit 4
+    tlog_info "$tag" "Pre-install phase completed successfully"
+}
 
-log_info "[$CANONICAL_ID] Download completed successfully"
+main \
+    "$CANONICAL_ID" \
+    "${DELTA_INSTALL_DIR:-$INSTALL_DIR/delta}" \
+    "${DELTA_REGEX:-delta-.*-x86_64-unknown-linux-musl[.]tar[.]gz$}"

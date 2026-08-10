@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/state.sh"
+source "${LIB_COMMON}/common.sh"
+source "${LIB_INSTALLER}/state.sh"
 
 if ! load_states "$CANONICAL_ID"; then
     log_warn "[$CANONICAL_ID] State not found, skipping cleanup"

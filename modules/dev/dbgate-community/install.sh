@@ -1,23 +1,30 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/installer_apt.sh"
-source "${LIB_DIR}/state.sh"
+source "$LIB_INSTALLER/apt.sh"
+source "$LIB_INSTALLER/state.sh"
 
-load_states "$CANONICAL_ID" || exit 1
+main() {
+    local canonical_id="$1"
+    local deb_file
+    local tag="install:$canonical_id"
 
-DEB_FILE="$(get_state "DEB_FILE")" || exit 1
+    load_states "$canonical_id" || return 1
+    deb_file="$(get_state "DEB_FILE")" || return 1
 
-if [[ ! -f "$DEB_FILE" ]]; then
-    log_error "[$CANONICAL_ID] Package file not found: $DEB_FILE"
+    if [[ ! -f "$deb_file" ]]; then
+        tlog_error "$tag" "Package file not found: %s" "$deb_file"
 
-    exit 2
-fi
+        return 2
+    fi
 
-if ! apt_install "$DEB_FILE"; then
-    log_error "[$CANONICAL_ID] Package installation failed"
+    if ! apt_install "$canonical_id" "$deb_file"; then
+        tlog_error "$tag" "Package installation failed"
 
-    exit 3
-fi
+        return 3
+    fi
 
-log_info "[$CANONICAL_ID] DbGate Community installed successfully"
+    tlog_info "$tag" "DbGate Community installed successfully"
+}
+
+main "$CANONICAL_ID"

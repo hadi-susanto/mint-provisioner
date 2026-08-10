@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/installer_apt.sh"
+source "${LIB_INSTALLER}/apt.sh"
 
-apt_install anydesk
+apt_install "$CANONICAL_ID" anydesk

@@ -1,56 +1,47 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/installer_external.sh"
-source "${LIB_DIR}/state.sh"
+source "$LIB_INSTALLER/external.sh"
+source "$LIB_INSTALLER/state.sh"
 
-log_info "[$CANONICAL_ID] Creating temporary download file"
+main() {
+    local canonical_id="$1"
+    local release_regex="$2"
+    local deb_file
+    local tag="pre-install:$canonical_id"
+    local url
 
-if ! deb_file="$(mktemp --suffix=.deb)"; then
-    log_error "[$CANONICAL_ID] Failed to create temporary file"
+    if ! deb_file="$(mktemp --suffix=.deb)"; then
+        tlog_error "$tag" "Failed to create a temporary package file"
 
-    exit 1
-fi
+        return 1
+    fi
 
-if [[ -z "${HTTPTOOLKIT_REGEX:-}" ]]; then
-    HTTPTOOLKIT_REGEX='HttpToolkit-.*-x64\.deb$'
-fi
+    if ! url="$(
+        github_find_release \
+            "$canonical_id" httptoolkit httptoolkit-desktop "$release_regex"
+    )"; then
+        tlog_error "$tag" "Failed to resolve the latest HTTP Toolkit release"
+        rm -f -- "$deb_file"
 
-log_info \
-    "[$CANONICAL_ID] Finding GitHub latest release using regex: $HTTPTOOLKIT_REGEX"
+        return 2
+    fi
 
-if ! url="$(
-    github_find_release \
-        "$CANONICAL_ID" \
-        httptoolkit \
-        httptoolkit-desktop \
-        "$HTTPTOOLKIT_REGEX"
-)"; then
-    log_error "[$CANONICAL_ID] Failed to resolve latest release"
-    rm -f "$deb_file"
+    if ! download_file "$canonical_id" "$url" "$deb_file"; then
+        tlog_error "$tag" "Failed to download the HTTP Toolkit package"
+        rm -f -- "$deb_file"
 
-    exit 2
-fi
+        return 3
+    fi
 
-if ! download_file "$CANONICAL_ID" "$url" "$deb_file"; then
-    log_error "[$CANONICAL_ID] Download failed"
-    rm -f "$deb_file"
+    if ! set_state "DEB_FILE" "$deb_file" || ! save_states "$canonical_id"; then
+        tlog_error "$tag" "Failed to save installation state"
+        rm -f -- "$deb_file"
 
-    exit 3
-fi
+        return 4
+    fi
 
-if ! set_state "DEB_FILE" "$deb_file"; then
-    log_error "[$CANONICAL_ID] Failed to store installation state"
-    rm -f "$deb_file"
+    tlog_info "$tag" "Pre-install phase completed successfully"
+}
 
-    exit 4
-fi
-
-if ! save_states "$CANONICAL_ID"; then
-    log_error "[$CANONICAL_ID] Failed to save installation state"
-    rm -f "$deb_file"
-
-    exit 5
-fi
-
-log_info "[$CANONICAL_ID] Download completed successfully"
+main "$CANONICAL_ID" "${HTTPTOOLKIT_REGEX:-HttpToolkit-.*-x64[.]deb$}"

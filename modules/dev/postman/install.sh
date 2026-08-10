@@ -1,113 +1,116 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/installer_common.sh"
-source "${LIB_DIR}/state.sh"
+source "$LIB_COMMON/common.sh"
+source "$LIB_INSTALLER/path.sh"
+source "$LIB_INSTALLER/registry.sh"
+source "$LIB_INSTALLER/state.sh"
+source "$LIB_INSTALLER/symlink.sh"
 
-load_states "$CANONICAL_ID" || exit 1
-archive_file="$(get_state "ARCHIVE_FILE")" || exit 1
+__install_desktop_entry() {
+    local canonical_id="$1"
+    local executable="$2"
+    local icon="$3"
+    local launcher="$4"
+    local application_dir="/usr/share/applications"
+    local desktop_file="$application_dir/postman.desktop"
+    local tag="install:$canonical_id"
 
-if [[ ! -f "$archive_file" ]]; then
-    log_error "[$CANONICAL_ID] Archive file not found: $archive_file"
+    if ! sudo mkdir -p "$application_dir"; then
+        tlog_error "$tag" "Failed to create desktop application directory"
 
-    exit 2
-fi
+        return 9
+    fi
 
-postman_install_dir="${POSTMAN_INSTALL_DIR:-$INSTALL_DIR/postman}"
-exec_path="${postman_install_dir}/app/Postman"
-icon_path="${postman_install_dir}/app/resources/app/assets/icon.png"
-application_dir="/usr/share/applications"
-desktop_file="${application_dir}/postman.desktop"
-launcher_path="$(symlink_location)/postman"
-declare -a privilege=()
-
-if ! can_write "$postman_install_dir"; then
-    privilege=(sudo)
-fi
-
-log_info "[$CANONICAL_ID] Extracting Postman to $postman_install_dir"
-
-if ! "${privilege[@]}" mkdir -p "$postman_install_dir"; then
-    log_error "[$CANONICAL_ID] Failed to create install directory: $postman_install_dir"
-
-    exit 3
-fi
-
-if ! "${privilege[@]}" tar \
-    --overwrite \
-    -xzf "$archive_file" \
-    -C "$postman_install_dir" \
-    --strip-components=1
-then
-    log_error "[$CANONICAL_ID] Failed to extract Postman"
-
-    exit 4
-fi
-
-if ! "${privilege[@]}" chmod 0755 "$exec_path"; then
-    log_error "[$CANONICAL_ID] Failed to make Postman executable: $exec_path"
-
-    exit 5
-fi
-
-if [[ ! -x "$exec_path" ]]; then
-    log_error "[$CANONICAL_ID] Postman executable not found: $exec_path"
-
-    exit 6
-fi
-
-if [[ ! -f "$icon_path" ]]; then
-    log_error "[$CANONICAL_ID] Postman application icon not found: $icon_path"
-
-    exit 7
-fi
-
-log_info "[$CANONICAL_ID] Creating global Postman command: $launcher_path"
-
-if ! symlink_binary "$CANONICAL_ID" "$exec_path" "postman"; then
-    log_error "[$CANONICAL_ID] Failed to create global Postman command"
-
-    exit 8
-fi
-
-log_info "[$CANONICAL_ID] Installing desktop file: $desktop_file"
-
-if ! sudo mkdir -p "$application_dir"; then
-    log_error "[$CANONICAL_ID] Failed to create desktop application directory: $application_dir"
-
-    exit 9
-fi
-
-if ! sudo tee "$desktop_file" >/dev/null <<EOF
+    if ! sudo tee "$desktop_file" >/dev/null <<EOF
 [Desktop Entry]
 Type=Application
 Version=1.0
 Name=Postman
 Comment=Build, test, and document APIs
-Exec=$launcher_path %U
-TryExec=$launcher_path
-Icon=$icon_path
+Exec=$launcher %U
+TryExec=$executable
+Icon=$icon
 Terminal=false
 Categories=Development;
 Keywords=API;HTTP;REST;GraphQL;Testing;
 StartupWMClass=Postman
 EOF
-then
-    log_error "[$CANONICAL_ID] Failed to install desktop file: $desktop_file"
+    then
+        tlog_error "$tag" "Failed to install desktop file: %s" "$desktop_file"
 
-    exit 10
-fi
-
-if ! sudo chmod 0644 "$desktop_file"; then
-    log_error "[$CANONICAL_ID] Failed to set desktop file permissions: $desktop_file"
-
-    exit 11
-fi
-
-if command -v update-desktop-database >/dev/null 2>&1; then
-    if ! sudo update-desktop-database "$application_dir"; then
-        log_warn "[$CANONICAL_ID] Failed to refresh the desktop application database"
+        return 10
     fi
-fi
 
-log_info "[$CANONICAL_ID] Postman installed successfully"
+    if ! sudo chmod 0644 "$desktop_file"; then
+        tlog_error "$tag" "Failed to set desktop file permissions: %s" "$desktop_file"
+
+        return 11
+    fi
+
+    if command -v update-desktop-database >/dev/null 2>&1; then
+        if ! sudo update-desktop-database "$application_dir"; then
+            tlog_warn "$tag" "Failed to refresh the desktop application database"
+        fi
+    fi
+}
+
+main() {
+    local canonical_id="$1"
+    local raw_install_path="$2"
+    local archive_file
+    local executable
+    local icon
+    local install_path
+    local launcher
+    local tag="install:$canonical_id"
+
+    load_states "$canonical_id" || return 1
+    archive_file="$(get_state "ARCHIVE_FILE")" || return 1
+
+    if [[ ! -f "$archive_file" ]]; then
+        tlog_error "$tag" "Archive file not found: %s" "$archive_file"
+
+        return 2
+    fi
+
+    install_path="$(expand_path "$raw_install_path")" || return $?
+    executable="$install_path/app/Postman"
+    icon="$install_path/app/resources/app/assets/icon.png"
+    launcher="$(symlink_location)/postman"
+
+    if ! mkdir -p -- "$install_path"; then
+        tlog_error "$tag" "Failed to create install directory: %s" "$install_path"
+
+        return 3
+    fi
+
+    if ! tar --overwrite -xzf "$archive_file" -C "$install_path" --strip-components=1; then
+        tlog_error "$tag" "Failed to extract Postman into: %s" "$install_path"
+
+        return 4
+    fi
+
+    if ! chmod 0755 "$executable"; then
+        tlog_error "$tag" "Failed to make Postman executable: %s" "$executable"
+
+        return 5
+    fi
+
+    if [[ ! -x "$executable" || ! -f "$icon" ]]; then
+        tlog_error "$tag" "Postman archive is missing its executable or icon"
+
+        return 6
+    fi
+
+    symlink_binary "$canonical_id" "$executable" postman || return 8
+    __install_desktop_entry \
+        "$canonical_id" "$executable" "$icon" "$launcher" || return $?
+
+    set_registry "INSTALL_PATH" "$install_path" || return 12
+    save_registry "$canonical_id" || return 12
+
+    tlog_info "$tag" "Postman installed successfully"
+}
+
+main "$CANONICAL_ID" "${POSTMAN_INSTALL_DIR:-$INSTALL_DIR/postman}"

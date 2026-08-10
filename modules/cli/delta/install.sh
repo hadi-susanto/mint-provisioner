@@ -1,53 +1,57 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_DIR}/installer_common.sh"
-source "${LIB_DIR}/messages.sh"
-source "${LIB_DIR}/state.sh"
+source "$LIB_COMMON/common.sh"
+source "$LIB_INSTALLER/messages.sh"
+source "$LIB_INSTALLER/path.sh"
+source "$LIB_INSTALLER/registry.sh"
+source "$LIB_INSTALLER/state.sh"
+source "$LIB_INSTALLER/symlink.sh"
 
-load_states "$CANONICAL_ID" || exit 1
-ARCHIVE_FILE="$(get_state "ARCHIVE_FILE")" || exit 1
+main() {
+    local canonical_id="$1"
+    local raw_install_path="$2"
+    local archive_file
+    local install_path
+    local tag="install:$canonical_id"
 
-if [[ ! -f "$ARCHIVE_FILE" ]]; then
-    log_error "[$CANONICAL_ID] Archive file not found: ${ARCHIVE_FILE}"
+    load_states "$canonical_id" || return 1
+    archive_file="$(get_state "ARCHIVE_FILE")" || return 1
 
-    exit 2
-fi
+    if [[ ! -f "$archive_file" ]]; then
+        tlog_error "$tag" "Archive file not found: %s" "$archive_file"
 
-if [[ -z "${DELTA_INSTALL_DIR:-}" ]]; then
-    DELTA_INSTALL_DIR="$INSTALL_DIR/delta"
-fi
+        return 2
+    fi
 
-SUDO_CMD=""
-if ! can_write "$DELTA_INSTALL_DIR"; then
-    SUDO_CMD="sudo"
-fi
+    install_path="$(expand_path "$raw_install_path")" || return $?
+    if ! mkdir -p -- "$install_path"; then
+        tlog_error "$tag" "Failed to create install directory: %s" "$install_path"
 
-if ! $SUDO_CMD mkdir -p "$DELTA_INSTALL_DIR"; then
-    log_error "[$CANONICAL_ID] Failed to create install directory: $DELTA_INSTALL_DIR"
+        return 3
+    fi
 
-    exit 3
-fi
+    if ! tar --overwrite -xzf "$archive_file" -C "$install_path" --strip-components=1; then
+        tlog_error "$tag" "Failed to extract delta into: %s" "$install_path"
 
-if ! $SUDO_CMD tar --overwrite -xzf "$ARCHIVE_FILE" -C "$DELTA_INSTALL_DIR" --strip-components=1; then
-    log_error "[$CANONICAL_ID] Extraction failed"
+        return 4
+    fi
 
-    exit 4
-fi
+    if ! chmod +x "$install_path/delta"; then
+        tlog_error "$tag" "Failed to make delta executable"
 
-if ! $SUDO_CMD chmod +x "$DELTA_INSTALL_DIR/delta"; then
-    log_error "[$CANONICAL_ID] Failed to make binary executable"
+        return 5
+    fi
 
-    exit 5
-fi
+    if [[ "$install_path" != "$(symlink_location)" ]]; then
+        symlink_binary "$canonical_id" "$install_path/delta" || return 6
+    fi
 
-log_info "[$CANONICAL_ID] Creating symbolic links"
-if [[ "$DELTA_INSTALL_DIR" != "$(symlink_location)" ]]; then
-    symlink_binary "$CANONICAL_ID" "$DELTA_INSTALL_DIR/delta"
-else
-    log_info "[$CANONICAL_ID] Install directory matches symlink location, skipping symlink creation"
-fi
+    set_registry "INSTALL_PATH" "$install_path" || return 7
+    save_registry "$canonical_id" || return 7
+    add_system_toolkit_message "$canonical_id"
 
-log_info "[$CANONICAL_ID] Installation completed successfully"
+    tlog_info "$tag" "Installation completed successfully"
+}
 
-add_system_toolkit_message "$CANONICAL_ID"
+main "$CANONICAL_ID" "${DELTA_INSTALL_DIR:-$INSTALL_DIR/delta}"

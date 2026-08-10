@@ -74,10 +74,10 @@ add_ppa() {
 #   1 - Validation, repository setup, or package-index refresh failed.
 #
 install_asc_key() {
-    local canonical_id="${1:-}"
-    local key_url="${2:-}"
-    local uri="${3:-}"
-    local suite="${4:-}"
+    local canonical_id="$1"
+    local key_url="$2"
+    local uri="$3"
+    local suite="$4"
     local components="${5:-}"
     local filename="${6:-$canonical_id}"
     local tag="asc"
@@ -86,9 +86,9 @@ install_asc_key() {
         tag+=":$canonical_id"
     fi
 
-    if (( $# < 5 || $# > 6 )) ||
+    if (( $# < 4 || $# > 6 )) ||
         [[ -z "$canonical_id" || -z "$key_url" || -z "$uri" ||
-            -z "$suite" || -z "$components" || -z "$filename" ]]; then
+            -z "$suite" || -z "$filename" ]]; then
         tlog_error "$tag" "Invalid APT repository arguments"
 
         return 1

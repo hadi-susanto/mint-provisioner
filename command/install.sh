@@ -98,11 +98,15 @@ __filter_installed_modules() {
     local module_name
     local failed=0
     local status
+    local -a queued=()
+    local -a installed=()
+    local joined
 
     result_ref=()
     __MODULE_NAMES=()
     __MODULE_DESCRIPTIONS=()
 
+    tlog_info "installation" "Verifying module installation status..."
     for canonical_id in "$@"; do
         metadata=()
 
@@ -134,22 +138,48 @@ __filter_installed_modules() {
         fi
 
         if (( status != 0 )); then
-            tlog_info "installation:$canonical_id" "Module will be processed: %s" "$module_name"
             result_ref+=("$canonical_id")
+            queued+=("$module_name")
 
             continue
         fi
 
+        installed+=("$module_name")
         if (( force )); then
-            tlog_warn "installation:$canonical_id" \
-                "Already installed; forcing installation: %s" "$module_name"
             result_ref+=("$canonical_id")
-        else
-            tlog_info "installation:$canonical_id" "Already installed; skipping: %s" "$module_name"
         fi
     done
 
-    return "$failed"
+    if (( failed )); then
+        tlog_error "installation" \
+            "Installation was aborted. Please review the logs above for more details."
+
+        return "$failed"
+    fi
+
+    if (( ${#queued[@]} > 0 )); then
+        joined=$(printf '%s, ' "${queued[@]}")
+        joined=${joined%, }
+        tlog_info "installation" \
+            "Queued for installation: %s" "$joined"
+    fi
+
+    if (( ${#installed[@]} == 0 )); then
+        return 0
+    fi
+
+
+    joined=$(printf '%s, ' "${installed[@]}")
+    joined=${joined%, }
+    if (( force )); then
+        tlog_warn "installation" \
+            "Queued for reinstallation: %s" "$joined"
+    else
+        tlog_info "installation" \
+            "Skipped because already installed: %s" "$joined"
+    fi
+
+    return 0
 }
 
 __run_interactive_session() {
@@ -263,7 +293,7 @@ __format_module_duration() {
     local result_name="$2"
     local -n result_ref="$result_name"
 
-    printf -v result_ref '%d seconds %03d milliseconds' \
+    printf -v result_ref '%d.%03d second(s)' \
         "$((duration_ms / 1000))" "$((duration_ms % 1000))"
 }
 
@@ -273,7 +303,7 @@ __format_total_duration() {
     local -n result_ref="$result_name"
     local total_seconds=$((duration_ms / 1000))
 
-    printf -v result_ref '%d minutes %02d seconds %03d milliseconds' \
+    printf -v result_ref '%02d:%02d.%03d' \
         "$((total_seconds / 60))" \
         "$((total_seconds % 60))" \
         "$((duration_ms % 1000))"
@@ -286,7 +316,7 @@ __print_module_header() {
 
     printf '%s\n' \
         '----------------------------------------------------------------------'
-    printf 'Installing: %b%s%b\n' "$COLOR_CYAN" "$name" "$COLOR_RESET"
+    printf 'Installing: %b%s%b\n' "$COLOR_BLUE" "$name" "$COLOR_RESET"
     printf 'Module ID : %b%s%b\n' "$COLOR_YELLOW" "$canonical_id" "$COLOR_RESET"
     if [[ -n "$description" ]]; then
         printf '%s\n' "$description"
@@ -373,7 +403,7 @@ __run_installation() {
     __format_total_duration "$total_duration_ms" total_duration
 
     printf 'Installation Results [time: %s]\n' "$total_duration"
-    printf '%s\n' '================================'
+    printf '%s\n' '=================================================='
 
     for (( index = 0; index < ${#canonical_ids[@]}; index += 1 )); do
         if [[ "${results[$index]}" == "SUCCESS" ]]; then
@@ -385,7 +415,7 @@ __run_installation() {
         canonical_id="${canonical_ids[$index]}"
         printf '%2d. %b%s%b %b[id: %s]%b %b[%s: %s]%b\n' \
             "$((index + 1))" \
-            "$COLOR_CYAN" "${__MODULE_NAMES[$canonical_id]:-$canonical_id}" "$COLOR_RESET" \
+            "$COLOR_BLUE" "${__MODULE_NAMES[$canonical_id]:-$canonical_id}" "$COLOR_RESET" \
             "$COLOR_YELLOW" "$canonical_id" "$COLOR_RESET" \
             "$result_color" "${results[$index]}" "${durations[$index]}" "$COLOR_RESET"
 

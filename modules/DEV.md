@@ -35,6 +35,7 @@ Automatically downloads the latest binary TAR.GZ release from the Apache Maven p
 - `APACHE_MAVEN_INSTALL_DIR`
     - Installation directory.
     - Default: `${INSTALL_DIR}/apache-maven`
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
 
 ### Official Website
 
@@ -142,13 +143,14 @@ directory. The pre-installation phase fails when `rsync` is unavailable.
 - `DOCKER_LIB_INSTALL_DIR`
     - Directory used to store Docker images, containers, volumes, and other daemon data.
     - Must be an absolute path.
+    - Must be writable by the current user before installation begins.
     - Must not be `/`, `/var/lib/docker`, a parent of `/var/lib/docker`, or a directory inside it.
     - Default: `${INSTALL_DIR}/docker-lib`
 
 - `DOCKER_NON_INTERACTIVE`
     - Disables the Docker-specific installation prompt.
-    - Falls back to `${NON_INTERACTIVE}`.
-    - Default: `${NON_INTERACTIVE}`
+    - When unset, follows `mp install --non-interactive` or `--unattended`.
+    - Default: prompts for a selection.
 
 ### Installation Configuration
 
@@ -160,6 +162,7 @@ During installation, the module:
 - Stops the Docker service and socket before migrating existing data.
 - Copies `/var/lib/docker` into `DOCKER_LIB_INSTALL_DIR` using `rsync`.
 - Preserves numeric user and group IDs during migration.
+- Records the resolved data destination in the module registry after a successful migration.
 - Configures Docker's `data-root` in `/etc/docker/daemon.json`.
 - Preserves an existing `daemon.json` and asks the user to verify it manually.
 - Restarts Docker after migration.
@@ -292,9 +295,9 @@ During a non-interactive installation, an unset `PGADMIN_UI` defaults to desktop
 
 - `PGADMIN_NON_INTERACTIVE`
     - Disables the pgAdmin package-selection prompt.
-    - Falls back to `${NON_INTERACTIVE}`.
+    - When unset, follows `mp install --non-interactive` or `--unattended`.
     - When enabled without `PGADMIN_UI`, installs `pgadmin4-desktop`.
-    - Default: `${NON_INTERACTIVE}`
+    - Default: prompts for a selection.
 
 ### Installation Detection
 
@@ -345,6 +348,7 @@ the global `postman` command, and installs a system-wide desktop entry using the
 - `POSTMAN_INSTALL_DIR`
     - Installation directory.
     - Default: `${INSTALL_DIR}/postman`
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
 
 ### Desktop Integration
 
