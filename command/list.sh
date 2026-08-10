@@ -6,6 +6,15 @@ source "$LIB_COMMON/metadata.sh"
 source "$LIB_COMMON/resolver.sh"
 source "$LIB_INSTALLER/detection.sh"
 
+# Global Variable to help store category metadata
+declare -A __CATEGORY_NAMES=()
+declare -A __CATEGORY_DESCRIPTIONS=()
+# Global Variable to help store module metadata
+declare -A __MODULE_NAMES=()
+declare -A __MODULE_DESCRIPTIONS=()
+declare -A __MODULE_SOURCES=()
+declare -A __MODULE_STATUSES=()
+
 __parse_args() {
     local options_name="$1"
     local categories_name="$2"
@@ -160,36 +169,28 @@ __resolve_categories() {
 }
 
 __load_category_metadata() {
-    local names_name="$1"
-    local descriptions_name="$2"
-    shift 2
-
-    local -n names_ref="$names_name"
-    local -n descriptions_ref="$descriptions_name"
     local -A metadata=()
     local category_id
 
-    names_ref=()
-    descriptions_ref=()
+    __CATEGORY_NAMES=()
+    __CATEGORY_DESCRIPTIONS=()
 
     for category_id in "$@"; do
         parse_category_metadata "$MP_MODULES/$category_id" metadata || return $?
 
-        names_ref["$category_id"]="${metadata[NAME]}"
-        descriptions_ref["$category_id"]="${metadata[DESCRIPTION]}"
+        __CATEGORY_NAMES["$category_id"]="${metadata[NAME]}"
+        __CATEGORY_DESCRIPTIONS["$category_id"]="${metadata[DESCRIPTION]}"
     done
 
     return 0
 }
 
 __print_categories() {
-    local -A names=()
-    local -A descriptions=()
     local category_id
     local index=1
 
     # Preload metadata so invalid entries fail before output begins.
-    __load_category_metadata names descriptions "$@" || return $?
+    __load_category_metadata "$@" || return $?
 
     printf 'Mint Provisioner Supported Categories\n'
     printf '%s\n' '====================================='
@@ -203,9 +204,9 @@ __print_categories() {
     for category_id in "$@"; do
         printf '%2d. %b%s%b %b[id: %s]%b\n' \
             "$index" \
-            "$COLOR_CYAN" "${names[$category_id]}" "$COLOR_RESET" \
+            "$COLOR_BLUE" "${__CATEGORY_NAMES[$category_id]}" "$COLOR_RESET" \
             "$COLOR_YELLOW" "$category_id" "$COLOR_RESET"
-        printf '    %s\n' "${descriptions[$category_id]}"
+        printf '    %s\n' "${__CATEGORY_DESCRIPTIONS[$category_id]}"
 
         ((index += 1))
     done
@@ -214,27 +215,21 @@ __print_categories() {
 }
 
 __inspect_modules() {
-    local names_name="$1"
-    local descriptions_name="$2"
-    local statuses_name="$3"
-    shift 3
-
-    local -n names_ref="$names_name"
-    local -n descriptions_ref="$descriptions_name"
-    local -n statuses_ref="$statuses_name"
     local -A metadata=()
     local canonical_id
     local status
 
-    names_ref=()
-    descriptions_ref=()
-    statuses_ref=()
+    __MODULE_NAMES=()
+    __MODULE_DESCRIPTIONS=()
+    __MODULE_SOURCES=()
+    __MODULE_STATUSES=()
 
     for canonical_id in "$@"; do
         parse_module_metadata "$MP_MODULES/$canonical_id" metadata || return $?
 
-        names_ref["$canonical_id"]="${metadata[NAME]}"
-        descriptions_ref["$canonical_id"]="${metadata[DESCRIPTION]}"
+        __MODULE_NAMES["$canonical_id"]="${metadata[NAME]}"
+        __MODULE_DESCRIPTIONS["$canonical_id"]="${metadata[DESCRIPTION]}"
+        __MODULE_SOURCES["$canonical_id"]="${metadata[SOURCE]}"
 
         if module_installed "$canonical_id" metadata >/dev/null; then
             status=0
@@ -242,7 +237,7 @@ __inspect_modules() {
             status=$?
         fi
 
-        statuses_ref["$canonical_id"]="$status"
+        __MODULE_STATUSES["$canonical_id"]="$status"
     done
 
     return 0
@@ -265,6 +260,30 @@ __module_matches_status() {
     esac
 }
 
+__print_module_aliases() {
+    local canonical_id="$1"
+    local -a aliases=()
+    local alias
+
+    resolve_module_aliases "$canonical_id" aliases
+    for alias in "${aliases[@]}"; do
+        printf ' %b[alias: %s]%b' "$COLOR_CYAN" "$alias" "$COLOR_RESET"
+    done
+}
+
+__print_module_features() {
+    local canonical_id="$1"
+    local script="$MP_MODULES/$canonical_id/interactive.sh"
+    if [[ -f "$script" && ! -L "$script" ]]; then
+        printf ' %b[interactive]%b' "$COLOR_CYAN" "$COLOR_RESET"
+    fi
+
+    script="$MP_MODULES/$canonical_id/post_install.sh"
+    if [[ -f "$script" && ! -L "$script" ]]; then
+        printf ' %b[post-install]%b' "$COLOR_CYAN" "$COLOR_RESET"
+    fi
+}
+
 __print_installation_status() {
     local module_status="$1"
     local color
@@ -285,15 +304,14 @@ __print_installation_status() {
             ;;
     esac
 
-    printf '[installed: %b%s%b]' "$color" "$icon" "$COLOR_RESET"
+    printf ' %b[%s]%b' "$color" "$icon" "$COLOR_RESET"
 }
 
 __print_module_category_header() {
     local category_id="$1"
-    local category_name="$2"
 
     printf '\n%b%s%b %b[id: %s]%b\n' \
-        "$COLOR_GREEN" "$category_name" "$COLOR_RESET" \
+        "$COLOR_GREEN" "${__CATEGORY_NAMES[$category_id]}" "$COLOR_RESET" \
         "$COLOR_YELLOW" "$category_id" "$COLOR_RESET"
     printf '%s\n' '-----------------------------------'
 }
@@ -317,11 +335,6 @@ __print_modules() {
     shift
 
     local -a modules=()
-    local -A category_names=()
-    local -A category_descriptions=()
-    local -A module_names=()
-    local -A module_descriptions=()
-    local -A module_statuses=()
     local canonical_id
     local category_id
     local category
@@ -334,10 +347,8 @@ __print_modules() {
     local index
 
     list_modules modules "$@" || return $?
-    __load_category_metadata \
-        category_names category_descriptions "$@" || return $?
-    __inspect_modules \
-        module_names module_descriptions module_statuses "${modules[@]}" || return $?
+    __load_category_metadata "$@" || return $?
+    __inspect_modules "${modules[@]}" || return $?
 
     printf 'Mint Provisioner Supported Modules\n'
     printf '==================================='
@@ -349,7 +360,7 @@ __print_modules() {
     fi
 
     for category in "$@"; do
-        __print_module_category_header "$category" "${category_names[$category]}"
+        __print_module_category_header "$category"
 
         category_has_modules=0
         matched_count=0
@@ -365,7 +376,7 @@ __print_modules() {
             fi
 
             category_has_modules=1
-            module_status="${module_statuses[$canonical_id]}"
+            module_status="${__MODULE_STATUSES[$canonical_id]}"
 
             if (( module_status > 1 )); then
                 ((unknown_count += 1))
@@ -378,13 +389,15 @@ __print_modules() {
                 continue
             fi
 
-            printf '%2d. %b%s%b %b[id: %s]%b ' \
-                "$index" \
-                "$COLOR_CYAN" "${module_names[$canonical_id]}" "$COLOR_RESET" \
-                "$COLOR_YELLOW" "$canonical_id" "$COLOR_RESET"
+            printf '%2s.' "$index"
             __print_installation_status "$module_status"
+            printf ' %b%s%b' "$COLOR_BLUE" "${__MODULE_NAMES[$canonical_id]}" "$COLOR_RESET"
+            printf ' %b[id: %s]%b' "$COLOR_YELLOW" "$canonical_id" "$COLOR_RESET"
+            __print_module_aliases "$canonical_id"
+            __print_module_features "$canonical_id"
+            printf ' %b[src: %s]%b' "$COLOR_GRAY" "${__MODULE_SOURCES[$canonical_id]}" "$COLOR_RESET"
             printf '\n'
-            printf '    %s\n' "${module_descriptions[$canonical_id]}"
+            printf '    %s\n' "${__MODULE_DESCRIPTIONS[$canonical_id]}"
 
             ((index += 1))
             ((matched_count += 1))
@@ -405,6 +418,11 @@ __print_modules() {
             __warn_unknown_modules "$category" "$unknown_count"
         fi
     done
+
+    printf '\nLegend:\n'
+    printf '  %b[✓]%b: Module installed\n' "$COLOR_GREEN" "$COLOR_RESET"
+    printf '  %b[✗]%b: Module not-installed, use id or alias(es) to install\n' "$COLOR_RED" "$COLOR_RESET"
+    printf '  %b[⚠]%b: Detection failed\n' "$COLOR_YELLOW" "$COLOR_RESET"
 
     return "$detection_failed"
 }

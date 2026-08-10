@@ -316,7 +316,7 @@ __print_module_header() {
 
     printf '%s\n' \
         '----------------------------------------------------------------------'
-    printf 'Installing: %b%s%b\n' "$COLOR_CYAN" "$name" "$COLOR_RESET"
+    printf 'Installing: %b%s%b\n' "$COLOR_BLUE" "$name" "$COLOR_RESET"
     printf 'Module ID : %b%s%b\n' "$COLOR_YELLOW" "$canonical_id" "$COLOR_RESET"
     if [[ -n "$description" ]]; then
         printf '%s\n' "$description"
@@ -415,7 +415,7 @@ __run_installation() {
         canonical_id="${canonical_ids[$index]}"
         printf '%2d. %b%s%b %b[id: %s]%b %b[%s: %s]%b\n' \
             "$((index + 1))" \
-            "$COLOR_CYAN" "${__MODULE_NAMES[$canonical_id]:-$canonical_id}" "$COLOR_RESET" \
+            "$COLOR_BLUE" "${__MODULE_NAMES[$canonical_id]:-$canonical_id}" "$COLOR_RESET" \
             "$COLOR_YELLOW" "$canonical_id" "$COLOR_RESET" \
             "$result_color" "${results[$index]}" "${durations[$index]}" "$COLOR_RESET"
 

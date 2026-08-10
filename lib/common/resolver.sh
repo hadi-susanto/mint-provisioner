@@ -40,10 +40,11 @@ declare -A __CANONICAL_MODULES=()
 declare -A __UNIQUE_MODULES=()
 declare -A __DUPLICATE_MODULES=()
 
-__valid_catalog_id() {
-    local catalog_id="$1"
+__REVERSE_LOOKUP_PRELOADED=0
+declare -A __MINT_PROVISIONER_MODULE_REVERSE_ALIASES=()
 
-    [[ "$catalog_id" =~ ^[a-z0-9][a-z0-9-]*$ ]]
+__valid_catalog_id() {
+    [[ "$1" =~ ^[a-z0-9][a-z0-9-]*$ ]]
 }
 
 ##
@@ -311,6 +312,70 @@ resolve_module_selectors() {
         modules_ref=()
         return 1
     fi
+
+    return 0
+}
+
+__preload_alias_reverse_lookup() {
+    if (( __REVERSE_LOOKUP_PRELOADED )); then
+        return 0
+    fi
+
+    local alias
+    local canonical_id
+
+    __MINT_PROVISIONER_MODULE_REVERSE_ALIASES=()
+    for alias in "${!__MINT_PROVISIONER_MODULE_ALIASES[@]}"; do
+        canonical_id="${__MINT_PROVISIONER_MODULE_ALIASES[$alias]}"
+
+        if [[ -v "__MINT_PROVISIONER_MODULE_REVERSE_ALIASES[$canonical_id]" ]]; then
+            __MINT_PROVISIONER_MODULE_REVERSE_ALIASES["$canonical_id"]+=" $alias"
+        else
+            __MINT_PROVISIONER_MODULE_REVERSE_ALIASES["$canonical_id"]="$alias"
+        fi
+    done
+
+    __REVERSE_LOOKUP_PRELOADED=1
+}
+
+valid_canonical_id() {
+    [[ "$1" =~ ^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$ ]]
+}
+
+##
+# resolve_module_aliases
+#
+# Resolve current canonical id into their alisases
+#
+# Prarameters:
+#   canonical_id - module canonical ID
+#   aliases_name - Name of indexed array that receives alias(es)
+#
+# Return:
+#   0 - when canonical ID valid
+#   1 - when canonical ID not exists
+#
+resolve_module_aliases() {
+    local canonical_id="$1"
+    local aliases_name="$2"
+    local -n aliases_ref="$aliases_name"
+    local alias
+
+    aliases_ref=()
+    if ! valid_canonical_id "$canonical_id"; then
+        tlog_error "aliases" "Invalid canonical ID: %s" "$canonical_id"
+
+        return 1
+    fi
+
+    __preload_alias_reverse_lookup || return $?
+    if [[ ! -v "__MINT_PROVISIONER_MODULE_REVERSE_ALIASES[$canonical_id]" ]]; then
+        return 0
+    fi
+
+    for alias in ${__MINT_PROVISIONER_MODULE_REVERSE_ALIASES[$canonical_id]}; do
+        aliases_ref+=("$alias")
+    done
 
     return 0
 }
