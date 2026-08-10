@@ -149,8 +149,8 @@ directory. The pre-installation phase fails when `rsync` is unavailable.
 
 - `DOCKER_NON_INTERACTIVE`
     - Disables the Docker-specific installation prompt.
-    - Falls back to `${NON_INTERACTIVE}`.
-    - Default: `${NON_INTERACTIVE}`
+    - When unset, follows `mp install --non-interactive` or `--unattended`.
+    - Default: prompts for a selection.
 
 ### Installation Configuration
 
@@ -295,9 +295,9 @@ During a non-interactive installation, an unset `PGADMIN_UI` defaults to desktop
 
 - `PGADMIN_NON_INTERACTIVE`
     - Disables the pgAdmin package-selection prompt.
-    - Falls back to `${NON_INTERACTIVE}`.
+    - When unset, follows `mp install --non-interactive` or `--unattended`.
     - When enabled without `PGADMIN_UI`, installs `pgadmin4-desktop`.
-    - Default: `${NON_INTERACTIVE}`
+    - Default: prompts for a selection.
 
 ### Installation Detection
 

@@ -1,17 +1,15 @@
 # 📦 Mint Provisioner Modules
 
-This directory contains the software modules supported by Mint Provisioner.
+This directory contains the software modules supported by Mint Provisioner. Each module is a self-contained installation
+unit that declares its metadata and owns the scripts needed to detect, prepare, install, and clean up one application or
+system component.
 
-Each module is a self-contained installation unit responsible for detecting, installing, configuring, and cleaning up a
-specific application or system component.
-
-For an overview of the complete framework, see the [main project README](../README.md).
+For the framework command interface, see the [main project README](../README.md). For instructions on adding or changing
+modules, see the [module contributor guide](CONTRIBUTING.md).
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **67 modules** across **8 categories**.
-
-Categories organize the module catalog, provide metadata for module listings, and form part of each module's canonical
+Mint Provisioner currently provides **67 modules** across **8 categories**. A category is part of a module's canonical
 ID:
 
 ```text
@@ -27,14 +25,8 @@ term/kitty
 tui/lazy-git
 ```
 
-Each category document contains detailed information about its modules, including:
-
-- Module overview.
-- Installation method.
-- Supported environment variables.
-- Post-install configuration.
-- Shell integration, aliases, and helper functions.
-- Official project website.
+Each category page documents its modules' installation method, supported environment variables, shell integration, and
+official project links.
 
 | Category                        | ID     | Modules                                                                                                                                                                              |
 |---------------------------------|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -49,552 +41,189 @@ Each category document contains detailed information about its modules, includin
 
 ## 📁 Directory Structure
 
-Categories and modules use the following structure:
-
 ```text
 modules/
-├── README.md
-├── CLI.md
-├── DEV.md
-├── GUI.md
-├── IDE.md
-├── SYS.md
-├── TERM.md
-├── TUI.md
-├── MISC.md
+├── README.md                           # Module catalog and lifecycle reference
+├── CONTRIBUTING.md                     # Adding categories and modules
+├── CLI.md, DEV.md, GUI.md, ...         # Category documentation
 └── <category>/
-    ├── metadata.conf
+    ├── metadata.conf                   # Required category name and description
+    ├── shared-helper.sh                # Optional helpers shared by this category
     └── <module>/
-        ├── metadata.conf
-        ├── configuration.sh
-        ├── is_installed.sh
-        ├── pre_install.sh
-        ├── install.sh
-        ├── post_install.sh
-        ├── cleanup.sh
-        ├── helper.sh
-        └── resources/
+        ├── metadata.conf               # Required module metadata and optional CLI commands
+        ├── installed.sh                # Optional installed-state detector
+        ├── interactive.sh              # Optional pre-install questions or customization
+        ├── pre_install.sh              # Optional installation preparation
+        ├── install.sh                  # Required software installation
+        ├── post_install.sh             # Optional post-install adjustment
+        ├── cleanup.sh                  # Optional temporary-resource cleanup
+        ├── helper.sh                   # Optional module-local helpers
+        └── resources/                  # Optional templates and payloads
 ```
 
-Only the following module files are mandatory:
-
-```text
-<module>/
-├── metadata.conf
-├── is_installed.sh
-└── install.sh
-```
-
-All other phase scripts, helpers, resources, templates, and payloads are optional.
+Only `install.sh` is required. All other module scripts and resources are optional.
 
 ## 🔄 Module Lifecycle
 
-Module processing is divided into configuration and installation stages.
+`mp install` resolves the requested module selectors, checks their installed state, and queues only modules that need
+installation. Use `--force` to queue a module even when it is already detected as installed.
 
-### Configuration stage
-
-Before installation begins, the framework scans every selected module for an optional `configuration.sh`.
-
-During this scan, `configure_module` first executes the module's `is_installed.sh`:
-
-- If the application is already installed and `FORCE_INSTALL` is not enabled, `configuration.sh` is skipped.
-- If the application is not installed, `configuration.sh` is executed.
-- If `FORCE_INSTALL=true`, `configuration.sh` is executed even when the application is already installed.
-
-This prevents users from being prompted for installation choices when the requested application is already available and
-will not be reinstalled.
-
-When several modules are selected, the complete configuration scan finishes before the installation stage begins.
-
-If a required configuration phase fails, installation is aborted.
-
-### Installation stage
-
-After the configuration scan succeeds, each selected module follows this lifecycle:
+Before any module installation begins, every queued module runs its optional `interactive.sh`. If an interactive script
+fails, the command stops before any installation phase is run. After the complete interactive session succeeds, the
+framework processes each queued module in order:
 
 ```text
-is_installed.sh
+Resolve module selectors
         ↓
-pre_install.sh
+Check installed state and filter modules
         ↓
-install.sh
+interactive.sh for every queued module
         ↓
-post_install.sh
-        ↓
-cleanup.sh
+pre_install.sh → install.sh → post_install.sh → cleanup.sh
 ```
 
-Missing optional phases are skipped automatically.
+Missing optional scripts are skipped. A failure in a normal installation phase stops that module's remaining normal
+phases, then runs `cleanup.sh` when present. The framework records the result, continues with later selected modules,
+prints a summary, and exits non-zero if any module failed.
 
-A module's lifecycle stops immediately when one of its phases fails. The framework records that module as failed,
-continues with the remaining selected modules, prints the complete summary, and then exits non-zero.
+### Installed-state detection
+
+`installed.sh` is optional. When `mp install` or `mp list modules` needs a module's status, the framework uses the first
+applicable method:
+
+1. Run `<module>/installed.sh` when it exists. Its exit status is used directly.
+2. Check every command named by the module metadata's `CLI` value.
+3. Check the module-ID basename as a command; for example, `gui/example-app` falls back to `example-app`.
+
+`CLI` is a comma-separated command list. Every listed command must resolve on `PATH` for the module to be considered
+installed. The framework treats malformed or indeterminate detection as an error rather than assuming the module is
+absent.
+
+An `installed.sh` script must not change system state and should return:
+
+|     Exit status | Meaning                           |
+|----------------:|-----------------------------------|
+|             `0` | The module is installed.          |
+|             `1` | The module is not installed.      |
+| Any other value | Installed-state detection failed. |
+
+Use `installed.sh` when a command check cannot accurately represent the installed component, such as when validating
+registry data, files, package variants, or multiple application artifacts.
 
 ### Phase responsibilities
 
-| Phase              | Required | Responsibility                                                          |
-|--------------------|:--------:|-------------------------------------------------------------------------|
-| `configuration.sh` |    No    | Collect, detect, validate, and save choices required by installation    |
-| `is_installed.sh`  |   Yes    | Determine whether the module is already installed                       |
-| `pre_install.sh`   |    No    | Prepare repositories, dependencies, downloads, keys, or temporary files |
-| `install.sh`       |   Yes    | Perform the software installation                                       |
-| `post_install.sh`  |    No    | Apply rerunnable installation-adjacent system adjustments               |
-| `cleanup.sh`       |    No    | Remove temporary state, downloads, and intermediate files               |
+| Phase             | Required | Responsibility                                                                                         |
+|-------------------|:--------:|--------------------------------------------------------------------------------------------------------|
+| `installed.sh`    |    No    | Determine installed state when the default command detection is insufficient.                          |
+| `interactive.sh`  |    No    | Collect required answers or apply user-selected installation customization before installation starts. |
+| `pre_install.sh`  |    No    | Prepare repositories, dependencies, downloads, keys, or temporary files.                               |
+| `install.sh`      |   Yes    | Perform the software installation and save durable installation facts when needed.                     |
+| `post_install.sh` |    No    | Apply an installation-adjacent adjustment after a successful installation.                             |
+| `cleanup.sh`      |    No    | Remove temporary state, downloads, and intermediate files.                                             |
 
-### `configuration.sh`
+### Interactive setup
 
-Use `configuration.sh` when installation requires information before other installation phases can proceed.
+Use `interactive.sh` for questions or customization that must be resolved before installation, such as selecting a
+package variant, enabling an optional component, detecting a suitable toolkit, or validating an installation target.
+Save values that later phases need through the state library.
 
-Typical responsibilities include:
+`mp install --non-interactive` and its `--unattended` alias still run every queued `interactive.sh`, but pass
+`NON_INTERACTIVE=true` only to that child script. This internal value is not a public invocation method. Interactive
+scripts must avoid prompts in that mode and choose supplied values, current-configuration detection, or documented
+defaults; those choices may be opinionated when no neutral automatic choice exists.
 
-- Asking which package variant should be installed.
-- Enabling or disabling an optional GUI.
-- Detecting GTK, Qt 5, or Qt 6.
-- Reading configuration from an external source.
-- Validating installation settings.
-- Saving selected values through the state library.
+### Installation registry
 
-When `NON_INTERACTIVE=true`, the phase must not prompt the user. It should use:
-
-1. Existing saved state.
-2. Automatic detection.
-3. Documented default values.
-
-Example:
-
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/state.sh"
-
-if [[ "${NON_INTERACTIVE:-false}" == "true" ]]; then
-    package="example-default"
-else
-    # Collect the user's selection.
-    package="example-selected"
-fi
-
-set_state "EXAMPLE_PACKAGE" "$package"
-save_states "$CANONICAL_ID" || exit $?
-```
-
-### `is_installed.sh`
-
-`is_installed.sh` must not modify the system.
-
-Its exit status is part of the framework contract:
-
-|     Exit status | Meaning                       |
-|----------------:|-------------------------------|
-|             `0` | The module is installed       |
-|             `1` | The module is not installed   |
-| Any other value | The installation check failed |
-
-Framework status helpers preserve these exit codes so callers can distinguish a missing installation from a failed
-status check. The check should verify every component promised by the module.
-
-For example, a module that installs several commands should verify all required commands instead of checking only the
-primary executable.
-
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-command -v example >/dev/null 2>&1 &&
-    command -v example-helper >/dev/null 2>&1
-```
-
-### `pre_install.sh`
-
-Use `pre_install.sh` for preparation that must happen before the application is installed.
-
-Typical responsibilities include:
-
-- Adding an external APT repository.
-- Installing repository signing keys.
-- Resolving the latest available release.
-- Downloading an archive or Debian package.
-- Creating a temporary working directory.
-- Installing prerequisites.
-
-When an artifact is downloaded manually, save its path in module state so that `install.sh` and `cleanup.sh` can access
-the same file.
-
-### `install.sh`
-
-`install.sh` performs the actual software installation.
-
-Keep this phase focused on installing the application, including configuration required for the installed software to
-function.
-
-### `post_install.sh`
-
-Use `post_install.sh` only for a rerunnable system adjustment that depends on the completed installation.
-
-Typical responsibilities include:
-
-- Resolving service compatibility issues discovered after installation.
-- Disabling vendor maintenance behavior that conflicts with repositories managed by Mint Provisioner.
-- Adding information to the installation summary.
-
-User preferences and shell integrations—including aliases, prompts, themes, and application defaults—belong in
-[System Toolkit](https://github.com/hadi-susanto/system-toolkit).
-
-The top-level `configure.sh` command executes `post_install.sh` independently for installed modules. It does not execute
-`configuration.sh`, `pre_install.sh`, `install.sh`, or `cleanup.sh`.
-
-Because `configure.sh` may reapply this phase later, `post_install.sh` should not depend on temporary installation
-artifacts.
-
-### `cleanup.sh`
-
-`cleanup.sh` is optional but highly recommended whenever a module creates temporary resources.
-
-Add this phase when the module:
-
-- Saves installation-only state.
-- Downloads a package, archive, or installer manually.
-- Creates a temporary working directory.
-- Creates intermediate files.
-- Stores module-local artifacts that should not remain after installation.
-
-Example:
-
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/state.sh"
-
-load_states "$CANONICAL_ID" || {
-    log_warn "[$CANONICAL_ID] No cleanup state was found."
-    exit 0
-}
-
-artifact="$(get_state "DOWNLOADED_ARTIFACT" "")"
-
-if [[ -n "$artifact" && -f "$artifact" ]]; then
-    log_info "[$CANONICAL_ID] Removing downloaded artifact: $artifact"
-    rm -f "$artifact"
-fi
-
-delete_states "$CANONICAL_ID" || exit $?
-```
-
-Messages intended for the final installation summary must remain available until the summary is printed.
-Framework-managed messages are deleted automatically afterward.
-
-Lifecycle execution stops normal phases when one fails, then runs `cleanup.sh` when it exists. If cleanup also fails,
-the original phase status is preserved. A phase must still remove temporary artifacts created before their paths are
-saved in module state, because cleanup cannot discover them.
-
-## 🏷️ Module Metadata
-
-Every module must provide a `metadata.conf` file containing:
-
-```ini
-NAME="Application Name"
-DESCRIPTION="A short description of what the module installs."
-SOURCE="github"
-```
-
-`SOURCE` must be one of the lowercase values `native`, `ppa`, `apt`, `github`, or `external`. User-facing module
-documentation uses the corresponding names Native, PPA, APT, GitHub, and External.
-
-Example:
-
-```ini
-NAME="MyTool"
-DESCRIPTION="A command-line utility for processing example files."
-SOURCE="github"
-```
-
-Metadata is used when:
-
-- Listing available modules.
-- Resolving module selectors.
-- Printing installation headers.
-- Displaying installation summaries.
-- Generating user-facing descriptions.
-
-Keep `DESCRIPTION` concise and describe the result provided to the user rather than low-level implementation details.
-
-## ➕ Adding a Category
-
-Create the category directory:
-
-```bash
-mkdir -p modules/<category>
-```
-
-Then add:
+Module state is temporary data shared between lifecycle phases. The installation registry is durable, module-owned data
+stored per user at:
 
 ```text
-modules/<category>/metadata.conf
+$HOME/.local/state/mint-provisioner/registry/<category>/<module>.registry
 ```
 
-Example:
+When a module needs durable facts such as an installation path, version, or managed component list, its installation
+code should save them with the registry library only after the required installation succeeds. An `installed.sh`
+detector can load and validate those values later. A registry file alone does not prove that software is still
+installed, and ordinary cleanup must not remove it.
+
+Registry files are written atomically with owner-only permissions. The registry library reserves `SCHEMA_VERSION`;
+module keys must be uppercase and values must be single-line.
+
+## 🏷️ Metadata
+
+Each category and module has its own `metadata.conf` file. Metadata uses uppercase `KEY=value` assignments; values may
+be double quoted.
+
+### Category metadata
+
+Every category directory requires:
 
 ```ini
 NAME="Command Line"
-DESCRIPTION="Command-line utilities for everyday productivity and developer workflows."
+DESCRIPTION="Command-line applications and utilities for everyday use."
 ```
 
-Category conventions:
+| Key           | Required | Purpose                                        |
+|---------------|:--------:|------------------------------------------------|
+| `NAME`        |   Yes    | Human-readable category name.                  |
+| `DESCRIPTION` |   Yes    | Concise category description used by listings. |
 
-- Use lowercase directory names.
-- Use hyphens instead of spaces.
-- Keep the category ID short and descriptive.
-- Use a readable display name in `NAME`.
-- Keep `DESCRIPTION` to one clear sentence.
-- Avoid creating a new category when an existing category already fits.
+### Module metadata
 
-Create a corresponding uppercase documentation file in `modules/`:
+Every module directory requires:
 
-```text
-modules/<CATEGORY>.md
+```ini
+NAME="Example App"
+DESCRIPTION="A concise explanation of what the module installs."
+SOURCE="github"
+CLI="example,example-helper"
 ```
 
-For example:
+| Key           | Required | Purpose                                                                                                       |
+|---------------|:--------:|---------------------------------------------------------------------------------------------------------------|
+| `NAME`        |   Yes    | Human-readable module name.                                                                                   |
+| `DESCRIPTION` |   Yes    | Concise user-facing description.                                                                              |
+| `SOURCE`      |   Yes    | Installation source: `native`, `ppa`, `apt`, `github`, `external`, or `sourceforge`.                          |
+| `CLI`         |    No    | Comma-separated executable names used for default installed-state detection. Every command must be non-empty. |
 
-```text
-modules/CLI.md
-```
+Omit `CLI` when the module ID basename is the executable name. Add it when the executable differs from that basename or
+when all of several commands must be present. Use `installed.sh` instead when command availability alone is not an
+accurate installed-state check.
 
-Finally, add the new category to the catalog table in this file.
+## ⚙️ Commands and Environment
 
-## 🧩 Adding a Module
-
-Create a module under the appropriate category:
+Use command options rather than the deprecated global `NON_INTERACTIVE` and `FORCE_INSTALL` environment variables:
 
 ```bash
-mkdir -p modules/<category>/<module>
+mp install --non-interactive gui/double-commander
+mp install --unattended gui/double-commander
+mp install --force cli/git
 ```
 
-Then:
+Module-specific environment variables remain supported when their category documentation lists them. A module-specific
+`*_NON_INTERACTIVE` setting can control that module's interactive behavior, but `mp install --non-interactive` is the
+standard way to run the whole installation without prompts.
 
-1. Add `metadata.conf`.
-2. Implement `is_installed.sh`.
-3. Implement `install.sh`.
-4. Add `configuration.sh` when installation requires choices or automatic detection.
-5. Add `pre_install.sh` when preparation or manual downloads are required.
-6. Add `post_install.sh` only for a rerunnable system adjustment that depends on the completed installation.
-7. Add `cleanup.sh` when state, downloads, or temporary files are created.
-8. Add module-specific helpers, templates, or resources when necessary.
-9. Document the module in the corresponding category Markdown file.
-10. Add the module to the catalog table in this file.
+`USE_APT_ADD_REPOSITORY` remains a framework environment variable for modules that support alternate repository setup. A
+module may expose a corresponding `*_USE_APT_ADD_REPOSITORY` override.
 
-Example:
+## 🧰 Framework Libraries
 
-```text
-modules/
-└── gui/
-    └── example-app/
-        ├── metadata.conf
-        ├── configuration.sh
-        ├── is_installed.sh
-        ├── pre_install.sh
-        ├── install.sh
-        ├── post_install.sh
-        └── cleanup.sh
-```
+Phase scripts receive `CANONICAL_ID` and can use the framework paths exported by `mp`, including `MP_MODULES`,
+`LIB_COMMON`, and `LIB_INSTALLER`. Source only the helpers a phase needs.
 
-## 🧰 Using Framework Libraries
-
-Module scripts may load the framework libraries they require:
+Executable phase files run directly and may select another interpreter through their shebang. Non-executable phase files
+run through Bash, so Bash phase scripts must declare their own strict mode:
 
 ```bash
-source "${LIB_DIR}/common.sh"
-source "${LIB_DIR}/state.sh"
-source "${LIB_DIR}/messages.sh"
+#!/usr/bin/env bash
+set -euo pipefail
 ```
 
-Important exported paths include:
+## 📝 Module Documentation
 
-| Variable       | Purpose                                               |
-|----------------|-------------------------------------------------------|
-| `ROOT_DIR`     | Mint Provisioner repository root                      |
-| `INSTALL_DIR`  | Default parent directory for standalone installations |
-| `LIB_DIR`      | Framework library directory                           |
-| `MODULES_DIR`  | Module directory                                      |
-| `CANONICAL_ID` | Current module ID in `<category>/<module>` format     |
+Document every module in its category page. Include a concise overview, installation method, every supported environment
+variable, relevant installation or registry behavior, System Toolkit integration when applicable, and the official
+project link. Omit headings that do not apply.
 
-Only source libraries that the phase actually needs.
-
-### Script execution
-
-If a phase file is executable, the framework executes it directly. Its shebang may therefore select Bash or another
-suitable interpreter.
-
-If the phase file is not executable, the framework executes it using:
-
-```bash
-bash -euo pipefail
-```
-
-Bash phase scripts should remain compatible with strict mode.
-
-## ⚙️ Global Environment Variables
-
-Global environment variables affect the framework or all supported modules.
-
-### `NON_INTERACTIVE`
-
-Disables interactive questions.
-
-Modules should use saved values, automatic detection, or documented defaults instead.
-
-Default:
-
-```text
-false
-```
-
-Example:
-
-```bash
-NON_INTERACTIVE=true ./install.sh gui/double-commander
-```
-
-### `FORCE_INSTALL`
-
-Forces installation even when `is_installed.sh` reports that the module is already installed.
-
-This also allows the module's `configuration.sh` to run during the configuration scan.
-
-Default:
-
-```text
-false
-```
-
-Example:
-
-```bash
-FORCE_INSTALL=true ./install.sh cli/git
-```
-
-### `USE_APT_ADD_REPOSITORY`
-
-Controls how modules add external APT repositories.
-
-When enabled, modules use `add-apt-repository` where supported. When disabled, repository configuration is performed
-manually through APT source files.
-
-Default:
-
-```text
-false
-```
-
-## 🔧 Common Module Environment Variables
-
-Module-specific environment variables use an uppercase prefix derived from the module ID.
-
-For example:
-
-```text
-example-module → EXAMPLE_MODULE_*
-lazy-git       → LAZY_GIT_*
-```
-
-### `*_USE_APT_ADD_REPOSITORY`
-
-Overrides `USE_APT_ADD_REPOSITORY` for an individual module.
-
-Example:
-
-```bash
-TERMINATOR_USE_APT_ADD_REPOSITORY=true
-```
-
-### `*_REGEX`
-
-Specifies the regular expression used to locate a downloadable release artifact.
-
-Example:
-
-```bash
-LAZY_GIT_REGEX='lazygit_.*_linux_x86_64\.tar\.gz$'
-```
-
-### `*_SUFFIX`
-
-Specifies an optional filename suffix used to select a release artifact.
-
-This is useful when a project publishes several architecture-specific or distribution-specific files.
-
-Not every module supports this variable.
-
-### `*_INSTALL_DIR`
-
-Overrides the default installation directory for a module installed from a standalone archive.
-
-Example:
-
-```bash
-DELTA_INSTALL_DIR=/opt/tools/delta
-```
-
-## 📝 Module Documentation Requirements
-
-Each module must be documented under its corresponding category page.
-
-Use the following structure:
-
-```markdown
-## Application Name (`module-id`)
-
-A concise explanation of the application and its purpose.
-
-### Installation Method
-
-**Installation source or method**
-
-Explain how the module installs the application.
-
-### Supported ENV
-
-- `MODULE_VARIABLE`
-    - Explain what the variable controls.
-    - Default: `value`
-
-### Post-install System Adjustment
-
-Describe any rerunnable installation-adjacent system adjustment.
-
-### System Toolkit Integration
-
-When additional user preferences or integrations are available, link to the
-[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
-
-### Official Website
-
-https://example.com/
-```
-
-If a section does not apply, omit it instead of adding an empty heading.
-
-## 🛡️ Module Development Guidelines
-
-New and updated modules should:
-
-- Quote variable expansions unless word splitting is intentional.
-- Remain compatible with `set -euo pipefail`.
-- Use `CANONICAL_ID` with state and message helpers.
-- Use framework logging helpers for diagnostic output.
-- Keep `is_installed.sh` free of side effects.
-- Return `1` only when the application is not installed.
-- Return another non-zero status when detection itself fails.
-- Keep `install.sh` focused on installation.
-- Keep required application configuration in `install.sh`.
-- Keep user preferences and shell integrations in System Toolkit.
-- Use `post_install.sh` only for rerunnable installation-adjacent system adjustments.
-- Avoid prompts when `NON_INTERACTIVE=true`.
-- Use state instead of unrelated global variables to share values between phases.
-- Add cleanup whenever temporary resources are created.
-- Use shared framework helpers before duplicating installation logic.
-- Support repeated execution safely whenever practical.
-- Document every supported environment variable.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete category and module creation workflow.

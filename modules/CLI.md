@@ -167,9 +167,9 @@ The package installed depends on the selected configuration:
 * `MKVTOOLNIX_NON_INTERACTIVE`
 
     * Disables the MKVToolNix GUI-selection prompt.
-    * Falls back to the global `NON_INTERACTIVE` value.
+    * When unset, follows `mp install --non-interactive` or `--unattended`.
     * When enabled without `MKVTOOLNIX_GUI_ENABLED`, installs the command-line-only package.
-    * Default: `${NON_INTERACTIVE}`
+    * Default: prompts for a selection.
 
 * `MKVTOOLNIX_GUI_ENABLED`
 

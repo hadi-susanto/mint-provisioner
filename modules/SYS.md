@@ -43,9 +43,9 @@ The installer configures the official Apt Fast Launchpad PPA before installing t
 
 - `APT_FAST_NON_INTERACTIVE`
     - Disables apt-fast configuration prompts.
-    - Falls back to the global `NON_INTERACTIVE` value.
+    - When unset, follows `mp install --non-interactive` or `--unattended`.
     - Missing configuration values use their documented defaults.
-    - Default: `${NON_INTERACTIVE}`
+    - Default: prompts for configuration.
 
 - `APT_FAST_USE_APT_ADD_REPOSITORY`
     - Controls whether the Launchpad repository is added using `add-apt-repository`.
