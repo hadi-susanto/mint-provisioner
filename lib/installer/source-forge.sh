@@ -1,96 +1,12 @@
 #!/usr/bin/env bash
 
-if [[ -n "${__MINT_PROVISIONER_EXTERNAL_LOADED:-}" ]]; then
+if [[ -n "${__MINT_PROVISIONER_SOURCE_FORGE_LOADED:-}" ]]; then
     return 0
 fi
 
-readonly __MINT_PROVISIONER_EXTERNAL_LOADED=1
+readonly __MINT_PROVISIONER_SOURCE_FORGE_LOADED=1
 
 source "$LIB_COMMON/common.sh"
-
-##
-# github_find_release
-#
-# Finds one matching asset in the latest GitHub release.
-#
-# Parameters:
-#   canonical_id - Canonical module ID used for logging.
-#   owner - GitHub repository owner.
-#   repository - GitHub repository name.
-#   pattern - Extended regular expression matched against asset URLs.
-#
-# Output:
-#   Prints the matching asset URL to standard output.
-#
-# Return:
-#   0 - Exactly one matching asset was found.
-#   1 - The supplied arguments are invalid.
-#   2 - The GitHub release API request failed.
-#   3 - No release asset matched the pattern.
-#   4 - Multiple release assets matched the pattern.
-#   5 - The GitHub response could not be parsed.
-#
-github_find_release() {
-    local canonical_id="${1:-}"
-    local owner="${2:-}"
-    local repository="${3:-}"
-    local pattern="${4:-}"
-    local tag="external"
-
-    if [[ -n "$canonical_id" ]]; then
-        tag+=":$canonical_id"
-    fi
-
-    if (( $# != 4 )) ||
-        [[ -z "$canonical_id" || -z "$owner" || -z "$repository" ||
-            -z "$pattern" ]]; then
-        tlog_error "$tag" "Invalid GitHub release arguments"
-
-        return 1
-    fi
-
-    local api_url="https://api.github.com/repos/$owner/$repository/releases/latest"
-    local body
-    local urls
-    local matches
-    local count
-
-    tlog_info "$tag" "Finding latest GitHub release: %s" "$api_url"
-
-    if ! body="$(curl -fsSL "$api_url")"; then
-        tlog_error "$tag" "Failed to fetch the GitHub release API"
-
-        return 2
-    fi
-
-    if command -v jq >/dev/null 2>&1; then
-        if ! urls="$(printf '%s\n' "$body" | jq -r '.assets[].browser_download_url')"; then
-            tlog_error "$tag" "Failed to parse the GitHub release response"
-
-            return 5
-        fi
-    else
-        urls="$(printf '%s\n' "$body" | grep -o 'https://[^\"]*' || true)"
-    fi
-
-    matches="$(printf '%s\n' "$urls" | grep -E "$pattern" || true)"
-    count="$(printf '%s\n' "$matches" | sed '/^$/d' | wc -l)"
-
-    if (( count == 0 )); then
-        tlog_error "$tag" "No GitHub release asset matched: %s" "$pattern"
-
-        return 3
-    fi
-
-    if (( count > 1 )); then
-        tlog_error "$tag" "Multiple GitHub release assets matched: %s" "$pattern"
-        printf '%s\n' "$matches" >&2
-
-        return 4
-    fi
-
-    printf '%s\n' "$matches"
-}
 
 __sourceforge_find_latest_version() {
     local canonical_id="$1"
@@ -258,47 +174,4 @@ sourceforge_find_release() {
 
     __sourceforge_find_artifact \
         "$canonical_id" "$release_url/$version" "$artifact_regex"
-}
-
-##
-# download_file
-#
-# Downloads a URL to a destination file.
-#
-# Parameters:
-#   canonical_id - Canonical module ID used for logging.
-#   download_url - URL of the file to download.
-#   output_file - Destination path for the downloaded file.
-#
-# Return:
-#   0 - The file was downloaded successfully.
-#   1 - The supplied arguments are invalid.
-#   2 - The download failed.
-#
-download_file() {
-    local canonical_id="${1:-}"
-    local download_url="${2:-}"
-    local output_file="${3:-}"
-    local tag="external"
-
-    if [[ -n "$canonical_id" ]]; then
-        tag+=":$canonical_id"
-    fi
-
-    if (( $# != 3 )) ||
-        [[ -z "$canonical_id" || -z "$download_url" || -z "$output_file" ]]; then
-        tlog_error "$tag" "A canonical ID, URL, and output file are required"
-
-        return 1
-    fi
-
-    tlog_info "$tag" "Downloading %s to %s" "$download_url" "$output_file"
-
-    if ! curl -fL -o "$output_file" "$download_url"; then
-        tlog_error "$tag" "Download failed: %s" "$download_url"
-
-        return 2
-    fi
-
-    return 0
 }

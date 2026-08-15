@@ -420,7 +420,7 @@ __run_installation() {
             "$result_color" "${results[$index]}" "${durations[$index]}" "$COLOR_RESET"
 
         if has_messages "$canonical_id"; then
-            if ! print_messages "$canonical_id" 4; then
+            if ! print_messages "$canonical_id" 2; then
                 tlog_error "installation:$canonical_id" "Failed to print stored messages"
             fi
         else
