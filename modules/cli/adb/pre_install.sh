@@ -1,42 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$LIB_INSTALLER/external.sh"
-source "$LIB_INSTALLER/install-target.sh"
-source "$LIB_INSTALLER/state.sh"
+source "$LIB_WORKFLOW/install-target.sh"
+source "$LIB_WORKFLOW/stateful-downloader.sh"
 
-main() {
-    local canonical_id="$1"
-    local raw_install_path="$2"
-    local url="https://dl.google.com/android/repository/platform-tools-latest-linux.zip"
-    local archive_file
-    local install_path
-    local tag="pre-install:$canonical_id"
+url="https://dl.google.com/android/repository/platform-tools-latest-linux.zip"
+install_dir="${ADB_INSTALL_DIR:-$INSTALL_DIR/adb}"
 
-    install_path="$(resolve_install_target "$canonical_id" "$raw_install_path")" || return $?
-
-    if ! archive_file="$(mktemp --suffix=.zip)"; then
-        tlog_error "$tag" "Failed to create a temporary archive"
-
-        return 2
-    fi
-
-    if ! download_file "$canonical_id" "$url" "$archive_file"; then
-        tlog_error "$tag" "Failed to download Android platform-tools"
-        rm -f -- "$archive_file"
-
-        return 3
-    fi
-
-    if ! set_state "ARCHIVE_FILE" "$archive_file" ||
-        ! save_states "$canonical_id"; then
-        tlog_error "$tag" "Failed to save installation state"
-        rm -f -- "$archive_file"
-
-        return 4
-    fi
-
-    tlog_info "$tag" "Pre-install phase completed successfully"
-}
-
-main "$CANONICAL_ID" "${ADB_INSTALL_DIR:-$INSTALL_DIR/adb}"
+valid_install_target "$CANONICAL_ID" "$install_dir" "ADB_INSTALL_DIR" || exit $?
+stateful_download "$CANONICAL_ID" "ARCHIVE_FILE" "$url" ".zip"
