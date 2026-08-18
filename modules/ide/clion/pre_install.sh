@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${MP_MODULES}/ide/jetbrains_pre_install.sh"
+source "$LIB_WORKFLOW/jetbrains-pre-install.sh"
 
-main "$CANONICAL_ID" "CL" "CLion" "${CLION_INSTALL_DIR:-${INSTALL_DIR}/clion}"
+main "$CANONICAL_ID" "CL" "CLion" "${CLION_INSTALL_DIR:-${INSTALL_DIR}/clion}" "CLION_INSTALL_DIR"

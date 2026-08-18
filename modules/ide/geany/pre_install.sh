@@ -9,14 +9,8 @@ if [[ "${GEANY_USE_APT_ADD_REPOSITORY:-${USE_APT_ADD_REPOSITORY:-false}}" == "tr
 else
     source "$LIB_INSTALLER/distro.sh"
 
-    if ! ubuntu_codename="$(get_ubuntu_codename)"; then
-        tlog_error "pre-install:$CANONICAL_ID" \
-            "Failed to determine the upstream Ubuntu codename"
-
-        exit 1
-    fi
-
     tlog_info "pre-install:$CANONICAL_ID" "Configuring PPA with install_asc_key"
+    ubuntu_codename="$(get_ubuntu_codename)" || exit $?
     install_asc_key \
         "$CANONICAL_ID" \
         "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xDE52D7C0594C5BDBF940922B361331969CA95183" \
