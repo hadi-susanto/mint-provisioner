@@ -1,55 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$LIB_INSTALLER/external.sh"
-source "$LIB_INSTALLER/install-target.sh"
-source "$LIB_INSTALLER/state.sh"
+source "$LIB_INSTALLER/github.sh"
+source "$LIB_WORKFLOW/install-target.sh"
+source "$LIB_WORKFLOW/stateful-downloader.sh"
 
-main() {
-    local canonical_id="$1"
-    local raw_install_path="$2"
-    local release_regex="$3"
-    local archive_file
-    local install_path
-    local tag="pre-install:$canonical_id"
-    local url
+regex="procs-.*-x86_64-linux[.]zip$"
+install_dir="${PROCS_INSTALL_DIR:-$INSTALL_DIR/procs}"
 
-    install_path="$(resolve_install_target "$canonical_id" "$raw_install_path")" || return $?
-
-    if ! archive_file="$(mktemp --suffix=.zip)"; then
-        tlog_error "$tag" "Failed to create a temporary archive"
-
-        return 2
-    fi
-
-    if ! url="$(
-        github_find_release "$canonical_id" dalance procs "$release_regex"
-    )"; then
-        tlog_error "$tag" "Failed to resolve the latest procs release"
-        rm -f -- "$archive_file"
-
-        return 3
-    fi
-
-    if ! download_file "$canonical_id" "$url" "$archive_file"; then
-        tlog_error "$tag" "Failed to download the procs archive"
-        rm -f -- "$archive_file"
-
-        return 4
-    fi
-
-    if ! set_state "ARCHIVE_FILE" "$archive_file" ||
-        ! save_states "$canonical_id"; then
-        tlog_error "$tag" "Failed to save installation state"
-        rm -f -- "$archive_file"
-
-        return 5
-    fi
-
-    tlog_info "$tag" "Pre-install phase completed successfully"
-}
-
-main \
-    "$CANONICAL_ID" \
-    "${PROCS_INSTALL_DIR:-$INSTALL_DIR/procs}" \
-    "${PROCS_REGEX:-procs-.*-x86_64-linux[.]zip$}"
+valid_install_target "$CANONICAL_ID" "$install_dir" "PROCS_INSTALL_DIR" || exit $?
+url="$(github_find_release "$CANONICAL_ID" "dalance" "procs" "$regex")" || exit $?
+stateful_download "$CANONICAL_ID" "ARCHIVE_FILE" "$url" ".zip"
