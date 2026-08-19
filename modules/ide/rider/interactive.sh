@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${MP_MODULES}/ide/jetbrains_interactive.sh"
+source "$LIB_WORKFLOW/jetbrains-interactive.sh"
 
 main "$CANONICAL_ID" \
     "${RIDER_NON_INTERACTIVE:-${JETBRAINS_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}}" \

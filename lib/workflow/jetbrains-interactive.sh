@@ -20,7 +20,7 @@ __resolve() {
 
         return 0
     fi
-    
+
     case "$env_value" in
         true)
             tlog_info "$tag" "Proceeding with %s installation" "$cli"
@@ -35,7 +35,7 @@ __resolve() {
             printf "false\n"
             ;;
         *)
-            tlog_error "$tag" "Invalid %s value: %s. Expected true or false." 
+            tlog_error "$tag" "Invalid %s value: %s. Expected true or false."
 
             return 1
             ;;
@@ -53,7 +53,7 @@ __interactive() {
 
         return 0
     fi
-    
+
     source "$LIB_INSTALLER/prompt.sh"
     local selected_index
 
@@ -90,7 +90,7 @@ main() {
     local tag="interactive:$canonical_id"
     local resolved_auto_jq
     local resolved_auto_aria2c
-    
+
     if [[ "$non_interactive" == "true" ]]; then
         resolved_auto_jq="$(__resolve "$tag" "jq" "$auto_jq_env")" || return $?
         resolved_auto_aria2c="$(__resolve "$tag" "aria2c" "$auto_aria2c_env")" || return $?
@@ -103,7 +103,7 @@ main() {
         question="aria2 can accelerate JetBrains archive downloads. May Mint Provisioner install aria2 automatically if it is missing?"
         resolved_auto_aria2c="$(__interactive "$tag" "aria2c" "$auto_aria2c_env" "$question")" || return $?
     fi
-    
+
     set_state "JETBRAINS_AUTO_INSTALL_JQ" "$resolved_auto_jq"
     set_state "JETBRAINS_AUTO_INSTALL_ARIA2" "$resolved_auto_aria2c"
     save_states "$canonical_id"

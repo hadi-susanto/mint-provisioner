@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${MP_MODULES}/ide/jetbrains_pre_install.sh"
+source "$LIB_WORKFLOW/jetbrains-pre-install.sh"
 
-main "$CANONICAL_ID" "IIU" "IntelliJ IDEA" "${IDEA_INSTALL_DIR:-${INSTALL_DIR}/idea}"
+main "$CANONICAL_ID" "IIU" "IntelliJ IDEA" "${IDEA_INSTALL_DIR:-${INSTALL_DIR}/idea}" "IDEA_INSTALL_DIR"
