@@ -1,44 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$LIB_INSTALLER/external.sh"
-source "$LIB_INSTALLER/state.sh"
+source "$LIB_INSTALLER/github.sh"
+source "$LIB_WORKFLOW/install-target.sh"
+source "$LIB_WORKFLOW/stateful-downloader.sh"
 
-if ! download_file="$(mktemp --suffix=.tar.gz)"; then
-    tlog_error "pre-install:$CANONICAL_ID" "Failed to create temporary file"
+regex="gitui-linux-x86_64\.tar\.gz$"
+install_dir="${GIT_UI_INSTALL_DIR:-$INSTALL_DIR/git-ui}"
 
-    exit 1
-fi
-
-if [[ -z "${GIT_UI_REGEX:-}" ]]; then
-    GIT_UI_REGEX='gitui-linux-x86_64\.tar\.gz$'
-fi
-
-tlog_info "pre-install:$CANONICAL_ID" "Finding github latest release using regex: $GIT_UI_REGEX"
-
-if ! url="$(
-    github_find_release \
-        "$CANONICAL_ID" \
-        gitui-org \
-        gitui \
-        "$GIT_UI_REGEX"
-)"; then
-    tlog_error "pre-install:$CANONICAL_ID" "Failed to resolve latest release"
-
-    rm -f "$download_file"
-
-    exit 2
-fi
-
-if ! download_file "$CANONICAL_ID" "$url" "$download_file"; then
-    tlog_error "pre-install:$CANONICAL_ID" "Download failed"
-
-    rm -f "$download_file"
-
-    exit 3
-fi
-
-set_state "ARCHIVE_FILE" "$download_file"
-save_states "$CANONICAL_ID" || exit 4
-
-tlog_info "pre-install:$CANONICAL_ID" "Download completed successfully"
+valid_install_target "$CANONICAL_ID" "$install_dir" "GIT_UI_INSTALL_DIR" || exit $?
+url="$(github_find_release "$CANONICAL_ID" "gitui-org" "gitui" "$regex")" || exit $?
+stateful_download "$CANONICAL_ID" "ARCHIVE_FILE" "$url" ".tar.gz"
