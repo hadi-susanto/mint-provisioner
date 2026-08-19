@@ -3,9 +3,6 @@ set -euo pipefail
 
 source "$LIB_INSTALLER/apt.sh"
 
-tlog_info "pre-install:$CANONICAL_ID" \
-    "Configuring the official Bruno APT repository"
-
 install_asc_key \
     "$CANONICAL_ID" \
     "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x9FA6017ECABE0266" \

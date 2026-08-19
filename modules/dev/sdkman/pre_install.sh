@@ -1,221 +1,91 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$LIB_INSTALLER/external.sh"
-source "$LIB_INSTALLER/install-target.sh"
-source "$LIB_INSTALLER/state.sh"
+source "$LIB_WORKFLOW/install-target.sh"
+source "$LIB_WORKFLOW/stateful-downloader.sh"
 
-__download_bootstrap_script() {
+declare -r SDKMAN_API="https://api.sdkman.io/2"
+
+__resolve_sdkman_latest_version() {
     local canonical_id="$1"
-    local tag="pre-install:$canonical_id"
-    local bootstrap_url="https://get.sdkman.io"
-    local script_file
+    local type="$2"
+    local tag="sdk-version:$canonical_id"
+    local version
+    local status
 
-    if ! script_file="$(mktemp --suffix=.sh)"; then
-        tlog_error "$tag" "Failed to create a temporary bootstrap file"
+    tlog_info "$tag" "Querying SDKMAN! %s version" "$type"
+    if version="$(curl -fsSL "$SDKMAN_API/broker/version/sdkman/$type/stable")"; then
+        tlog_info "$tag" "Resolved SDKMAN! %s version: %s" "$type" "$version"
+        printf '%s\n' "$version"
 
-        return 2
+        return 0
+    else
+        status=$?
+        tlog_error "$tag" "Fail to obtain SDKMAN! %s latest version" "$type"
+
+        return "$status"
     fi
-
-    if ! download_file "$canonical_id" "$bootstrap_url" "$script_file"; then
-        tlog_error "$tag" "Failed to download %s" "$bootstrap_url"
-        rm -f -- "$script_file"
-
-        return 3
-    fi
-
-    printf '%s\n' "$script_file"
 }
 
-__extract_metadata() {
+__download_artifacts() {
     local canonical_id="$1"
-    local script_file="$2"
-    local env_name="$3"
-    local tag="pre-install:$canonical_id"
-    local value
+    local url
 
-    if [[ ! "$env_name" =~ ^[A-Z][A-Z0-9_]*$ ]]; then
-        tlog_error "$tag" "Invalid SDKMAN! metadata variable: %s" "$env_name"
+    url="${SDKMAN_API}/broker/download/sdkman/install/${sdkman_version}/linuxx64"
+    stateful_download "$canonical_id" "STANDARD_FILE" "$url" ".zip" 0 || return $?
+    url="${SDKMAN_API}/broker/download/native/install/${sdkman_native_version}/linuxx64"
+    stateful_download "$canonical_id" "NATIVE_FILE" "$url" ".zip" 0 || return $?
+    url="${SDKMAN_API}/candidates/all"
+    stateful_download "$canonical_id" "CANDIDATES_FILE" "$url" ".txt" 0 || return $?
 
-        return 4
-    fi
-
-    if ! value="$(
-        awk -F'"' -v env_name="$env_name" \
-            '$0 ~ "^export " env_name "=" { print $2; exit }' \
-            "$script_file"
-    )"; then
-        tlog_error "$tag" "Failed to extract SDKMAN! metadata: %s" "$env_name"
-
-        return 5
-    fi
-
-    if [[ -z "$value" ]]; then
-        tlog_error "$tag" "SDKMAN! metadata is empty or missing: %s" "$env_name"
-
-        return 6
-    fi
-
-    printf '%s\n' "$value"
+    save_states "$canonical_id" || $return $?
+    tlog_info "pre-install:$canonical_id" "SDKMAN! states saved"
 }
 
-__download_sdkman_artifact() {
+__cleanup_artifacts() {
     local canonical_id="$1"
-    local url="$2"
-    local suffix="$3"
-    local state_name="$4"
-    local tag="pre-install:$canonical_id"
-    local artifact_file
+    local tag="artifact-cleanup:$canonical_id"
+    local key
+    local file
 
-    if ! artifact_file="$(mktemp --suffix="$suffix")"; then
-        tlog_error "$tag" "Failed to create a temporary SDKMAN! artifact: %s" "$state_name"
-
-        return 2
-    fi
-
-    if ! download_file "$canonical_id" "$url" "$artifact_file"; then
-        tlog_error "$tag" "Failed to download SDKMAN! artifact: %s" "$state_name"
-        rm -f -- "$artifact_file"
-
-        return 3
-    fi
-
-    printf '%s\n' "$artifact_file"
-}
-
-__cleanup_and_return() {
-    local rc="$1"
-    shift
-
-    if (( $# > 0 )); then
-        rm -f -- "$@" || true
-    fi
-
-    return "$rc"
-}
-
-__save_sdkman_states() {
-    local canonical_id="$1"
-    local sdkman_service="$2"
-    local sdkman_version="$3"
-    local sdkman_native_version="$4"
-    local standard_file="$5"
-    local native_file="$6"
-    local candidates_file="$7"
-    local tag="pre-install:$canonical_id"
-
-    if ! set_state "SDKMAN_SERVICE" "$sdkman_service"; then
-        tlog_error "$tag" "Failed to save state: SDKMAN_SERVICE"
-
-        return 11
-    fi
-
-    if ! set_state "SDKMAN_VERSION" "$sdkman_version"; then
-        tlog_error "$tag" "Failed to save state: SDKMAN_VERSION"
-
-        return 12
-    fi
-
-    if ! set_state "SDKMAN_NATIVE_VERSION" "$sdkman_native_version"; then
-        tlog_error "$tag" "Failed to save state: SDKMAN_NATIVE_VERSION"
-
-        return 13
-    fi
-
-    if ! set_state "STANDARD_FILE" "$standard_file"; then
-        tlog_error "$tag" "Failed to save state: STANDARD_FILE"
-
-        return 14
-    fi
-
-    if ! set_state "NATIVE_FILE" "$native_file"; then
-        tlog_error "$tag" "Failed to save state: NATIVE_FILE"
-
-        return 15
-    fi
-
-    if ! set_state "CANDIDATES_FILE" "$candidates_file"; then
-        tlog_error "$tag" "Failed to save state: CANDIDATES_FILE"
-
-        return 16
-    fi
-
-    if ! save_states "$canonical_id"; then
-        tlog_error "$tag" "Failed to persist installation state"
-
-        return 17
-    fi
+    for key in "STANDARD_FILE" "NATIVE_FILE" "CANDIDATES_FILE"; do
+        if file="$(get_state "$key")"; then
+            tlog_info "$tag" "Deleting previously downloaded file: %s" "$file"
+            rm -f -- "$file"
+        else
+            tlog_info "$tag" "%s state not exists" "$key"
+        fi
+    done
 }
 
 main() {
     local canonical_id="$1"
     local raw_install_path="$2"
-    local tag="pre-install:$canonical_id"
-    local sdkman_platform="linuxx64"
-    local candidates_file
-    local -a files=()
-    local install_path
-    local native_file
-    local script_file
-    local sdkman_native_version
-    local sdkman_service
     local sdkman_version
-    local standard_file
-    local url
+    local sdkman_native_version
+    local status
 
-    install_path="$(resolve_install_target "$canonical_id" "$raw_install_path")" || return $?
+    valid_install_target "$canonical_id" "$raw_install_path" "SDKMAN_INSTALL_DIR" || return $?
+    sdkman_version="$(__resolve_sdkman_latest_version "$canonical_id" "script")" || return $?
+    if ! set_state "SDKMAN_VERSION" "$sdkman_version"; then
+        tlog_error "$tag" "Failed to save state: SDKMAN_VERSION"
 
-    tlog_info "$tag" "Downloading the SDKMAN! bootstrap script to resolve versions"
-    script_file="$(__download_bootstrap_script "$canonical_id")" || return $?
-    files+=("$script_file")
-
-    sdkman_service="$(
-        __extract_metadata "$canonical_id" "$script_file" "SDKMAN_SERVICE"
-    )" || __cleanup_and_return "$?" "${files[@]}" || return $?
-
-    sdkman_version="$(
-        __extract_metadata "$canonical_id" "$script_file" "SDKMAN_VERSION"
-    )" || __cleanup_and_return "$?" "${files[@]}" || return $?
-
-    sdkman_native_version="$(
-        __extract_metadata "$canonical_id" "$script_file" "SDKMAN_NATIVE_VERSION"
-    )" || __cleanup_and_return "$?" "${files[@]}" || return $?
-
-    tlog_info "$tag" "Resolved SDKMAN! version: %s" "$sdkman_version"
-    tlog_info "$tag" "Resolved SDKMAN! native version: %s" "$sdkman_native_version"
-
-    url="${sdkman_service}/broker/download/sdkman/install/${sdkman_version}/${sdkman_platform}"
-    standard_file="$(
-        __download_sdkman_artifact "$canonical_id" "$url" ".zip" "STANDARD_FILE"
-    )" || __cleanup_and_return "$?" "${files[@]}" || return $?
-    files+=("$standard_file")
-
-    url="${sdkman_service}/broker/download/native/install/${sdkman_native_version}/${sdkman_platform}"
-    native_file="$(
-        __download_sdkman_artifact "$canonical_id" "$url" ".zip" "NATIVE_FILE"
-    )" || __cleanup_and_return "$?" "${files[@]}" || return $?
-    files+=("$native_file")
-
-    url="${sdkman_service}/candidates/all"
-    candidates_file="$(
-        __download_sdkman_artifact "$canonical_id" "$url" ".txt" "CANDIDATES_FILE"
-    )" || __cleanup_and_return "$?" "${files[@]}" || return $?
-    files+=("$candidates_file")
-
-    __save_sdkman_states \
-        "$canonical_id" \
-        "$sdkman_service" \
-        "$sdkman_version" \
-        "$sdkman_native_version" \
-        "$standard_file" \
-        "$native_file" \
-        "$candidates_file" || __cleanup_and_return "$?" "${files[@]}" || return $?
-
-    if ! rm -f -- "$script_file"; then
-        tlog_warn "$tag" "Failed to remove the temporary bootstrap script: %s" "$script_file"
+        return 1
     fi
+    sdkman_native_version="$(__resolve_sdkman_latest_version "$canonical_id" "native")" || return $?
+     if ! set_state "SDKMAN_NATIVE_VERSION" "$sdkman_native_version"; then
+        tlog_error "$tag" "Failed to save state: SDKMAN_NATIVE_VERSION"
 
-    tlog_info "$tag" "Pre-install phase completed successfully"
+        return 1
+    fi
+    if __download_artifacts "$canonical_id"; then
+        :
+    else
+        status=$?
+        __cleanup_artifacts "$canonical_id"
+
+        return "$status"
+    fi
 }
 
 main "$CANONICAL_ID" "${SDKMAN_INSTALL_DIR:-$INSTALL_DIR/sdkman}"

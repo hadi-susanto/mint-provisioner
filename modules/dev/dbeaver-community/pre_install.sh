@@ -10,13 +10,7 @@ if [[ "${DBEAVER_COMMUNITY_USE_APT_ADD_REPOSITORY:-${USE_APT_ADD_REPOSITORY:-fal
 else
     source "$LIB_INSTALLER/distro.sh"
 
-    if ! ubuntu_codename="$(get_ubuntu_codename)"; then
-        tlog_error "pre-install:$CANONICAL_ID" \
-            "Failed to determine the upstream Ubuntu codename"
-
-        exit 1
-    fi
-
+    ubuntu_codename="$(get_ubuntu_codename)" || exit $?
     tlog_info "pre-install:$CANONICAL_ID" \
         "Configuring PPA with install_asc_key"
     install_asc_key \
