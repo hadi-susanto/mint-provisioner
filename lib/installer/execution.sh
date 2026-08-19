@@ -31,14 +31,10 @@ readonly __EXECUTION_CLEANUP_PHASE="cleanup"
 #   Other - The interactive script's non-zero status is preserved.
 #
 exec_interactive() {
-    local canonical_id="${1:-}"
-    local non_interactive="${2:-}"
-    local tag="exec-interactive"
+    local canonical_id="$1"
+    local non_interactive="$2"
+    local tag="interactive:$canonical_id"
     local -a env_args
-
-    if [[ -n "$canonical_id" ]]; then
-        tag+=":$canonical_id"
-    fi
 
     if (( $# != 2 )) || [[ -z "$canonical_id" ]] ||
         [[ "$non_interactive" != "0" && "$non_interactive" != "1" ]]; then
@@ -106,19 +102,8 @@ exec_interactive() {
 #           status is returned when it is the only failed phase.
 #
 exec_install() {
-    local canonical_id="${1:-}"
-    local tag="exec-install"
-
-    if [[ -n "$canonical_id" ]]; then
-        tag+=":$canonical_id"
-    fi
-
-    if (( $# != 1 )) || [[ -z "$canonical_id" ]]; then
-        tlog_error "$tag" "A canonical ID is required"
-
-        return 1
-    fi
-
+    local canonical_id="$1"
+    local tag="installer:$canonical_id"
     local module_dir="$MP_MODULES/$canonical_id"
     local install_script="$module_dir/install.sh"
     local cleanup_script="$module_dir/$__EXECUTION_CLEANUP_PHASE.sh"
