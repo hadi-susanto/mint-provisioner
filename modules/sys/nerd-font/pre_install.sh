@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$LIB_INSTALLER/external.sh"
+source "$LIB_INSTALLER/downloader.sh"
+source "$LIB_INSTALLER/github.sh"
 source "$LIB_INSTALLER/state.sh"
 source "$MP_MODULES/$CANONICAL_ID/font.sh"
 

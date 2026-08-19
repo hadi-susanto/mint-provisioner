@@ -4,7 +4,7 @@ set -euo pipefail
 source "${LIB_INSTALLER}/apt.sh"
 source "${LIB_INSTALLER}/messages.sh"
 
-apt_install "$CANONICAL_ID" virtualbox-7.2
+apt_install "$CANONICAL_ID" "virtualbox-7.2" || exit $?
 
 message="Oracle VirtualBox 7.2 has been installed successfully.
 
