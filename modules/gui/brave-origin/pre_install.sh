@@ -4,13 +4,8 @@ set -euo pipefail
 source "${LIB_INSTALLER}/apt.sh"
 source "${LIB_INSTALLER}/state.sh"
 
-if ! load_states "$CANONICAL_ID"; then
-    tlog_error "pre-install:$CANONICAL_ID" "Brave Origin installation state was not found"
-
-    exit 1
-fi
-
-channel="$(get_state "BRAVE_ORIGIN_CHANNEL")" || exit 2
+load_states "$CANONICAL_ID" || exit $?
+channel="$(get_state "BRAVE_ORIGIN_CHANNEL")" || exit $?
 
 case "$channel" in
     release)
@@ -31,12 +26,11 @@ case "$channel" in
     *)
         tlog_error "pre-install:$CANONICAL_ID" "Invalid repository channel: $channel"
 
-        exit 3
+        exit 1
         ;;
 esac
 
 filename="brave-${channel}"
-
 install_asc_key \
     "$CANONICAL_ID" \
     "$key_url" \
