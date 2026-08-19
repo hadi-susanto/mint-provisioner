@@ -183,14 +183,7 @@ __filter_installed_modules() {
 }
 
 __run_interactive_session() {
-    local non_interactive="${1:-}"
-
-    if (( $# < 1 )) ||
-        [[ "$non_interactive" != "0" && "$non_interactive" != "1" ]]; then
-        log_error "Interactive setup requires a non-interactive value of 0 or 1"
-
-        return 1
-    fi
+    local non_interactive="$1"
 
     shift
 
@@ -198,13 +191,21 @@ __run_interactive_session() {
     local status
 
     for canonical_id in "$@"; do
-        if exec_interactive "$canonical_id" "$non_interactive"; then
-            continue
+        status=0
+        if (( non_interactive )); then
+            exec_non_interactive "$canonical_id" || status=$?
         else
-            status=$?
+            exec_interactive "$canonical_id" || status=$?
         fi
 
-        log_error "Interactive setup failed; installation aborted"
+        if (( status == 0 )); then
+            continue
+        fi
+
+        log_error "Interactive/Non-Interactive setup failed; installation aborted"
+        if (( status == 2 )); then
+            add_message "$canonical_id" "error" "Module does not support non-interactive sessions yet"
+        fi
 
         return "$status"
     done
@@ -343,7 +344,7 @@ __print_module_footer() {
         '----------------------------------------------------------------------'
     printf -- '-= %b%s%b =- [duration: %b%s%b]\n' \
         "$status_color" "$status_text" "$COLOR_RESET" \
-        "$COLOR_YELLOW" "$duration" "$COLOR_RESET"
+        "$COLOR_CYAN" "$duration" "$COLOR_RESET"
     printf '%s\n' \
         '----------------------------------------------------------------------'
 }

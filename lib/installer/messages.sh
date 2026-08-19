@@ -17,7 +17,7 @@ fi
 readonly __MESSAGES_DIR="$HOME/.cache/mint-provisioner/messages"
 
 __validate_message_level() {
-    local level="${1:-}"
+    local level="$1"
 
     case "$level" in
         info | warn | error) return 0 ;;
@@ -30,19 +30,8 @@ __validate_message_level() {
 }
 
 __resolve_message_file() {
-    local canonical_id="${1:-}"
-    local level="${2:-}"
-    local tag="messages"
-
-    if [[ -n "$canonical_id" ]]; then
-        tag+=":$canonical_id"
-    fi
-
-    if [[ ! "$canonical_id" =~ ^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$ ]]; then
-        tlog_error "$tag" "Invalid canonical ID: %s" "${canonical_id:-<empty>}"
-
-        return 1
-    fi
+    local canonical_id="$1"
+    local level="$2"
 
     __validate_message_level "$level" || return $?
     printf '%s/%s/%s\n' "$__MESSAGES_DIR" "$canonical_id" "$level"
@@ -63,17 +52,11 @@ __resolve_message_file() {
 #   1 - Validation, directory creation, or writing failed.
 #
 add_message() {
-    local canonical_id="${1:-}"
-    local level="${2:-}"
-    local message="${3:-}"
+    local canonical_id="$1"
+    local level="$2"
+    local message="$3"
     local message_file
     local message_dir
-
-    if (( $# != 3 )) || [[ -z "canonical_id" || -z "$level" || -z "$message" ]]; then
-        tlog_error "messages" "add_message requires Canonical ID, Level, and Message"
-
-        return 1
-    fi
 
     message_file="$(__resolve_message_file "$canonical_id" "$level")" || return $?
     message_dir="${message_file%/*}"
@@ -105,19 +88,9 @@ add_message() {
 # Parameters:
 #   canonical_id - Canonical module ID selecting the message directory.
 #
-# Return:
-#   0 - The System Toolkit message was stored.
-#   1 - Validation or message storage failed.
-#
 add_system_toolkit_message() {
-    local canonical_id="${1:-}"
+    local canonical_id="$1"
     local message
-
-    if (( $# != 1 )); then
-        tlog_error "messages" "add_system_toolkit_message requires one canonical ID"
-
-        return 1
-    fi
 
     message="Enhance this module with additional integrations and functionality
 by installing System Toolkit and enabling its integrations."
@@ -136,22 +109,15 @@ by installing System Toolkit and enabling its integrations."
 # Return:
 #   0 - At least one stored message exists.
 #   1 - No stored messages exist.
-#   2 - The canonical ID or argument count is invalid.
 #
 has_messages() {
-    local canonical_id="${1:-}"
+    local canonical_id="$1"
     local level
     local message_file
 
-    if (( $# != 1 )); then
-        tlog_error "messages" "has_messages requires one canonical ID"
-
-        return 2
-    fi
-
     for level in info warn error; do
         if ! message_file="$(__resolve_message_file "$canonical_id" "$level")"; then
-            return 2
+            return 1
         fi
 
         if [[ -s "$message_file" ]]; then
@@ -179,19 +145,13 @@ has_messages() {
 #   1 - No messages exist, input is invalid, or reading failed.
 #
 print_messages() {
-    local canonical_id="${1:-}"
-    local padding="${2:-0}"
+    local canonical_id="$1"
+    local padding="$2"
     local level
     local message_file
     local title
     local title_color
     local messages_found=0
-
-    if (( $# < 1 || $# > 2 )) || [[ -z "$canonical_id" || ! "$padding" =~ ^[0-9]+$ ]]; then
-        tlog_error "messages" "print_messages requires a Canonical ID and optional Padding (must be a non-negative integer)"
-
-        return 1
-    fi
 
     for level in info warn error; do
         message_file="$(__resolve_message_file "$canonical_id" "$level")" || return $?
@@ -254,15 +214,9 @@ print_messages() {
 #   1 - Validation or deletion failed.
 #
 delete_messages() {
-    local canonical_id="${1:-}"
+    local canonical_id="$1"
     local message_file
     local message_dir
-
-    if (( $# != 1 )); then
-        tlog_error "messages" "delete_messages requires one canonical ID"
-
-        return 1
-    fi
 
     message_file="$(__resolve_message_file "$canonical_id" info)" || return $?
     message_dir="${message_file%/*}"

@@ -23,66 +23,100 @@ readonly __EXECUTION_CLEANUP_PHASE="cleanup"
 #
 # Parameters:
 #   canonical_id - Resolved canonical module ID.
-#   non_interactive - 1 to disable prompts or 0 to allow them.
 #
 # Return:
 #   0 - The interactive script completed or no script exists.
-#   1 - An argument or the interactive-script path is invalid.
+#   1 - The interactive-script path is invalid.
 #   Other - The interactive script's non-zero status is preserved.
 #
 exec_interactive() {
     local canonical_id="$1"
-    local non_interactive="$2"
     local tag="interactive:$canonical_id"
-    local -a env_args
-
-    if (( $# != 2 )) || [[ -z "$canonical_id" ]] ||
-        [[ "$non_interactive" != "0" && "$non_interactive" != "1" ]]; then
-        tlog_error "$tag" \
-            "A canonical ID and non-interactive value of 0 or 1 are required"
-
-        return 1
-    fi
-
     local interactive_script="$MP_MODULES/$canonical_id/interactive.sh"
-    local non_interactive_value="false"
     local status
-
-    if (( non_interactive )); then
-        non_interactive_value="true"
-    fi
 
     if [[ ! -e "$interactive_script" ]]; then
         return 0
     fi
 
-    if [[ -L "$interactive_script" ]]; then
-        tlog_error "$tag" "Interactive script must not be a symbolic link: %s" "$interactive_script"
+    if [[ -L "$interactive_script" || ! -f "$interactive_script" ]]; then
+        tlog_error "$tag" "Interactive script must be a regular file: %s" "$interactive_script"
 
         return 1
     fi
 
-    if [[ ! -f "$interactive_script" ]]; then
-        tlog_error "$tag" "Invalid interactive script: %s" "$interactive_script"
-
-        return 1
-    fi
-
-    env_args=("CANONICAL_ID" "$canonical_id")
-    if [[ "$non_interactive_value" == "true" ]]; then
-        tlog_warn "$tag" "Non-interactive mode enabled; passing NON_INTERACTIVE=true to each interactive.sh"
-        env_args+=("NON_INTERACTIVE" "$non_interactive_value")
-    else
-        tlog_info "$tag" "Running interactive setup"
-    fi
-
-    if run_script "$interactive_script" "${env_args[@]}"; then
+    tlog_info "$tag" "Running interactive setup"
+    if run_script "$interactive_script" "CANONICAL_ID" "$canonical_id"; then
         return 0
     else
         status=$?
     fi
 
     tlog_error "$tag" "Interactive setup failed (status: %d)" "$status"
+
+    return "$status"
+}
+
+##
+# exec_non_interactive
+#
+# Runs a module's optional non-interactive setup.
+#
+# A non-interactive setup is only valid when the module also provides
+# an interactive setup. Modules that only provide a non-interactive
+# setup should use pre-install instead.
+#
+# Parameters:
+#   canonical_id - Resolved canonical module ID.
+#
+# Return:
+#   0 - The non-interactive setup completed successfully.
+#       Also returned when no setup scripts exist.
+#   1 - The module setup is invalid, or the non-interactive script
+#       is not a regular file.
+#   2 - The module does not support non-interactive setup yet.
+#   Other - The non-interactive script's non-zero status is preserved.
+#
+exec_non_interactive() {
+    local canonical_id="$1"
+    local tag="non-interactive:$canonical_id"
+    local interactive_script="$MP_MODULES/$canonical_id/interactive.sh"
+    local non_interactive_script="$MP_MODULES/$canonical_id/non-interactive.sh"
+    local status
+
+    # Non interactive session should have an interactive session, otherwise setup is invalid
+    # Non interactive only session should be use pre-install
+    if [[ ! -e "$interactive_script" ]]; then
+        if [[ ! -e "$non_interactive_script" ]]; then
+            return 0
+        fi
+
+        tlog_error "$tag" "Invalid module; non-interactive session found without a corresponding interactive session"
+
+        return 1
+    fi
+
+    # Both interactive and non interactive found, valid module we can proceed with non-interactive one
+    if [[ ! -e "$non_interactive_script" ]]; then
+        tlog_error "$tag" "Invalid module; non-interactive sessions are not supported yet"
+
+        return 2
+    fi
+
+    if [[ -L "$non_interactive_script" || ! -f "$non_interactive_script" ]]; then
+        tlog_error "$tag" "Non interactive script must be a regular file: %s" "$non_interactive_script"
+
+        return 1
+    fi
+
+    tlog_info "$tag" "Running non interactive setup (user prompt will be disabled...)"
+    if run_script "$non_interactive_script" "CANONICAL_ID" "$canonical_id" "NON_INTERACTIVE" "true"; then
+        return 0
+    else
+        status=$?
+    fi
+
+    tlog_error "$tag" "Non interactive setup failed (status: %d)" "$status"
 
     return "$status"
 }
