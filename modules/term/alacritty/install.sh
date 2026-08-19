@@ -3,4 +3,4 @@ set -euo pipefail
 
 source "$LIB_INSTALLER/apt.sh"
 
-apt_install "$CANONICAL_ID" alacritty
+apt_install "$CANONICAL_ID" "alacritty"
