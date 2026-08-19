@@ -1,0 +1,9 @@
+modules/sys/system-toolkit/install.sh
+  935fc6c5e298791d 4-5,7,19,25-26,31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "b1f2568b476b8461da2491156bca7ac4379084f9",
+  "prompts": {}
+}
