@@ -10,10 +10,11 @@ else
     source "${LIB_INSTALLER}/distro.sh"
 
     tlog_info "pre-install:$CANONICAL_ID" "Configuring PPA with install_asc_key"
+    ubuntu_codename="$(get_ubuntu_codename)" || exit $?
     install_asc_key \
         "$CANONICAL_ID" \
         "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xBC5934FD3DEBD4DAEA544F791E2824A7F22B44BD" \
         "https://ppa.launchpadcontent.net/apt-fast/stable/ubuntu" \
-        "$(get_ubuntu_codename)" \
+        "$ubuntu_codename" \
         "main"
 fi
