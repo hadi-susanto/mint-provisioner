@@ -1,44 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$LIB_INSTALLER/external.sh"
-source "$LIB_INSTALLER/state.sh"
+source "$LIB_INSTALLER/github.sh"
+source "$LIB_WORKFLOW/install-target.sh"
+source "$LIB_WORKFLOW/stateful-downloader.sh"
 
-if ! download_file="$(mktemp --suffix=.tar.gz)"; then
-    tlog_error "pre-install:$CANONICAL_ID" "Failed to create temporary file"
+regex="lazygit_.*_linux_x86_64\.tar\.gz$"
+install_dir="${LAZY_GIT_INSTALL_DIR:-$INSTALL_DIR/lazy-git}"
 
-    exit 1
-fi
-
-if [[ -z "${LAZY_GIT_REGEX:-}" ]]; then
-    LAZY_GIT_REGEX='lazygit_.*_linux_x86_64\.tar\.gz$'
-fi
-
-tlog_info "pre-install:$CANONICAL_ID" "Finding github latest release using regex: $LAZY_GIT_REGEX"
-
-if ! url="$(
-    github_find_release \
-        "$CANONICAL_ID" \
-        jesseduffield \
-        lazygit \
-        "$LAZY_GIT_REGEX"
-)"; then
-    tlog_error "pre-install:$CANONICAL_ID" "Failed to resolve latest release"
-
-    rm -f "$download_file"
-
-    exit 2
-fi
-
-if ! download_file "$CANONICAL_ID" "$url" "$download_file"; then
-    tlog_error "pre-install:$CANONICAL_ID" "Download failed"
-
-    rm -f "$download_file"
-
-    exit 3
-fi
-
-set_state "ARCHIVE_FILE" "$download_file"
-save_states "$CANONICAL_ID" || exit 4
-
-tlog_info "pre-install:$CANONICAL_ID" "Download completed successfully"
+valid_install_target "$CANONICAL_ID" "$install_dir" "LAZY_GIT_INSTALL_DIR" || exit $?
+url="$(github_find_release "$CANONICAL_ID" "jesseduffield" "lazygit" "$regex")" || exit $?
+stateful_download "$CANONICAL_ID" "ARCHIVE_FILE" "$url" ".tar.gz"

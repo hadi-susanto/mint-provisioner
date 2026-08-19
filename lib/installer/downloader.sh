@@ -6,6 +6,8 @@ fi
 
 readonly __MINT_PROVISIONER_DOWNLOADER_LOADED=1
 
+source "$LIB_COMMON/common.sh"
+
 ##
 # curl_download
 #
@@ -25,11 +27,7 @@ curl_download() {
     local canonical_id="$1"
     local download_url="$2"
     local output_file="$3"
-    local tag="curl"
-
-    if [[ -n "$canonical_id" ]]; then
-        tag+=":$canonical_id"
-    fi
+    local tag="curl:$canonical_id"
 
     if [[ -z "$canonical_id" || -z "$download_url" || -z "$output_file" ]]; then
         tlog_error "$tag" "A canonical ID, URL, and output file are required"
@@ -38,8 +36,8 @@ curl_download() {
     fi
 
     tlog_info "$tag" "Using curl with single connection"
-    tlog_info "$tag" "Source: $download_url"
-    tlog_info "$tag" "Destination: $output_file"
+    tlog_info "$tag" "Source: %s" "$download_url"
+    tlog_info "$tag" "Destination: %s" "$output_file"
 
     if ! curl -fL -o "$output_file" "$download_url"; then
         tlog_error "$tag" "Download failed: %s" "$download_url"
@@ -47,7 +45,7 @@ curl_download() {
         return 2
     fi
 
-    tlog_info "$tag" "'$download_url' downloaded"
+    tlog_info "$tag" "'%s' downloaded" "$download_url"
 
     return 0
 }
@@ -72,11 +70,7 @@ aria2c_download() {
     local output_dir
     local output_name
     local control_file
-    local tag="curl"
-
-    if [[ -n "$canonical_id" ]]; then
-        tag+=":$canonical_id"
-    fi
+    local tag="aria2c:$canonical_id"
 
     if [[ -z "$canonical_id" || -z "$download_url" || -z "$output_file" ]]; then
         tlog_error "$tag" "A canonical ID, URL, and output file are required"
@@ -89,8 +83,8 @@ aria2c_download() {
     control_file="${output_file}.aria2"
 
     tlog_info "$tag" "Using aria2c with 4 concurrent connections"
-    tlog_info "$tag" "Source: $download_url"
-    tlog_info "$tag" "Destination: $output_file"
+    tlog_info "$tag" "Source: %s" "$download_url"
+    tlog_info "$tag" "Destination: %s" "$output_file"
 
     if ! aria2c \
         --allow-overwrite=true \
@@ -107,7 +101,7 @@ aria2c_download() {
         return 2
     fi
 
-    tlog_info "$tag" "'$download_url' downloaded"
+    tlog_info "$tag" "'%s' downloaded" "$download_url"
 
     return 0
 }
@@ -129,10 +123,10 @@ aria2c_download() {
 #   2 - The download failed.
 #
 download_file() {
-    local canonical_id="${1:-}"
-    local download_url="${2:-}"
-    local output_file="${3:-}"
-    
+    local canonical_id="$1"
+    local download_url="$2"
+    local output_file="$3"
+
     if command -v aria2c >/dev/null 2>&1; then
         aria2c_download "$canonical_id" "$download_url" "$output_file"
     else

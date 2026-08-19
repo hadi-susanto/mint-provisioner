@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${MP_MODULES}/ide/jetbrains_cleanup.sh"
+source "$LIB_WORKFLOW/state-cleaner.sh"
 
-main "$CANONICAL_ID"
+auto_clean_state_files "$CANONICAL_ID"

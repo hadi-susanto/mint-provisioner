@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${MP_MODULES}/ide/jetbrains_pre_install.sh"
+source "$LIB_WORKFLOW/jetbrains-pre-install.sh"
 
-main "$CANONICAL_ID" "RR" "RustRover" "${RUSTROVER_INSTALL_DIR:-${INSTALL_DIR}/rustrover}"
+main "$CANONICAL_ID" "RR" "RustRover" "${RUSTROVER_INSTALL_DIR:-${INSTALL_DIR}/rustrover}" "RUSTROVER_INSTALL_DIR"

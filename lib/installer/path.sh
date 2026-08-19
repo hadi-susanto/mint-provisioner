@@ -6,7 +6,6 @@ fi
 
 readonly __MINT_PROVISIONER_PATH_LOADED=1
 
-source "$LIB_COMMON/common.sh"
 source "$LIB_INSTALLER/messages.sh"
 
 ##

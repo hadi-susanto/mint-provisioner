@@ -119,9 +119,8 @@ add_system_toolkit_message() {
         return 1
     fi
 
-    message="If System Toolkit is installed, try syskit-bin,
-syskit-bash, syskit-zsh, or syskit-cfg to enable additional
-integrations and functionality for this tool."
+    message="Enhance this module with additional integrations and functionality
+by installing System Toolkit and enabling its integrations."
 
     add_message "$canonical_id" info "$message"
 }
@@ -204,7 +203,7 @@ print_messages() {
         case "$level" in
             info)
                 title='INFO'
-                title_color="$COLOR_GREEN"
+                title_color="$COLOR_BLUE"
                 ;;
             warn)
                 title='WARN'
