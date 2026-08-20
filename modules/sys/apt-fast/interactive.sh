@@ -1,103 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_COMMON}/common.sh"
-source "${LIB_INSTALLER}/state.sh"
-
-__resolve_apt_fast_package_manager() {
-    local package_manager="${1:-}"
-
-    case "$package_manager" in
-        apt-get | apt | aptitude)
-            set_state \
-                "APT_FAST_PACKAGE_MANAGER" \
-                "$package_manager"
-
-            tlog_info "interactive:$CANONICAL_ID" \
-                "apt-fast package manager: $package_manager"
-            ;;
-        *)
-            tlog_error "interactive:$CANONICAL_ID" \
-                "Invalid apt-fast package manager: $package_manager. Expected apt-get, apt, or aptitude."
-
-            return 1
-            ;;
-    esac
-
-    return 0
-}
-
-__resolve_apt_fast_max_connection() {
-    local max_connection="${1:-}"
-    local normalized_value
-
-    if [[ ! "$max_connection" =~ ^[0-9]+$ ]]; then
-        tlog_error "interactive:$CANONICAL_ID" \
-            "Maximum connections must be an integer from 1 to 10: $max_connection"
-
-        return 1
-    fi
-
-    normalized_value="$((10#$max_connection))"
-
-    if ((normalized_value < 1 || normalized_value > 10)); then
-        tlog_error "interactive:$CANONICAL_ID" \
-            "Maximum connections must be between 1 and 10: $max_connection"
-
-        return 1
-    fi
-
-    set_state \
-        "APT_FAST_MAX_CONNECTION" \
-        "$normalized_value"
-
-    tlog_info "interactive:$CANONICAL_ID" \
-        "apt-fast maximum connections: $normalized_value"
-
-    return 0
-}
-
-__resolve_apt_fast_suppress_confirm_dialog() {
-    local suppress_confirm_dialog="${1:-}"
-
-    suppress_confirm_dialog="${suppress_confirm_dialog,,}"
-
-    case "$suppress_confirm_dialog" in
-        true | false)
-            set_state \
-                "APT_FAST_SUPPRESS_CONFIRM_DIALOG" \
-                "$suppress_confirm_dialog"
-
-            tlog_info "interactive:$CANONICAL_ID" \
-                "Suppress apt-fast confirmation dialog: $suppress_confirm_dialog"
-            ;;
-        *)
-            tlog_error "interactive:$CANONICAL_ID" \
-                "Invalid APT_FAST_SUPPRESS_CONFIRM_DIALOG value: $1. Expected true or false."
-
-            return 1
-            ;;
-    esac
-
-    return 0
-}
-
-if [[ "${APT_FAST_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]; then
-    __resolve_apt_fast_package_manager \
-        "${APT_FAST_PACKAGE_MANAGER:-apt-get}" || exit $?
-
-    __resolve_apt_fast_max_connection \
-        "${APT_FAST_MAX_CONNECTION:-5}" || exit $?
-
-    __resolve_apt_fast_suppress_confirm_dialog \
-        "${APT_FAST_SUPPRESS_CONFIRM_DIALOG:-false}" || exit $?
-
-    save_states "$CANONICAL_ID" || exit $?
-
-    exit 0
-fi
-
 source "${LIB_INSTALLER}/prompt.sh"
+source "$LIB_WORKFLOW/$CANONICAL_ID/resolver.sh"
+
+tag="interactive:$CANONICAL_ID"
 
 __ask_apt_fast_package_manager() {
     local selected_index
@@ -112,17 +19,17 @@ __ask_apt_fast_package_manager() {
 
     case "$selected_index" in
         0)
-            __resolve_apt_fast_package_manager "apt-get"
+            resolve_apt_fast_package_manager "apt-get"
             ;;
         1)
-            __resolve_apt_fast_package_manager "apt"
+            resolve_apt_fast_package_manager "apt"
             ;;
         2)
-            __resolve_apt_fast_package_manager "aptitude"
+            resolve_apt_fast_package_manager "aptitude"
             ;;
         *)
-            tlog_error "interactive:$CANONICAL_ID" \
-                "Unexpected package manager selection index: $selected_index"
+            tlog_error "$tag" \
+                "Unexpected package manager selection index: %s" "$selected_index"
 
             return 1
             ;;
@@ -140,7 +47,7 @@ __ask_apt_fast_max_connection() {
             "10"
     )" || return $?
 
-    __resolve_apt_fast_max_connection "$max_connection"
+    resolve_apt_fast_max_connection "$max_connection"
 }
 
 __ask_apt_fast_suppress_confirm_dialog() {
@@ -157,44 +64,51 @@ The package manager may still ask for confirmation before installation." \
 
     case "$selected_index" in
         0)
-            __resolve_apt_fast_suppress_confirm_dialog "true"
+            resolve_apt_fast_suppress_confirm_dialog "true"
             ;;
         1)
-            __resolve_apt_fast_suppress_confirm_dialog "false"
+            resolve_apt_fast_suppress_confirm_dialog "false"
             ;;
         *)
-            tlog_error "interactive:$CANONICAL_ID" \
-                "Unexpected confirmation selection index: $selected_index"
+            tlog_error "$tag" \
+                "Unexpected confirmation selection index: %s" "$selected_index"
 
             return 1
             ;;
     esac
 }
 
-if [[ -n "${APT_FAST_PACKAGE_MANAGER:-}" ]]; then
-    __resolve_apt_fast_package_manager \
-        "$APT_FAST_PACKAGE_MANAGER" || exit $?
+apt_fast_package_manager="${APT_FAST_PACKAGE_MANAGER:-}"
+
+if [[ -n "$apt_fast_package_manager" ]]; then
+    if ! resolve_apt_fast_package_manager "$apt_fast_package_manager"; then
+        tlog_warn "$tag" "Fallback to interactive session: invalid APT_FAST_PACKAGE_MANAGER value."
+        __ask_apt_fast_package_manager || exit $?
+    fi
 else
     __ask_apt_fast_package_manager || exit $?
-    printf '\n'
 fi
 
-if [[ -n "${APT_FAST_MAX_CONNECTION:-}" ]]; then
-    __resolve_apt_fast_max_connection \
-        "$APT_FAST_MAX_CONNECTION" || exit $?
+apt_fast_max_connection="${APT_FAST_MAX_CONNECTION:-}"
+
+if [[ -n "$apt_fast_max_connection" ]]; then
+    if ! resolve_apt_fast_max_connection "$apt_fast_max_connection"; then
+        tlog_warn "$tag" "Fallback to interactive session: invalid APT_FAST_MAX_CONNECTION value."
+        __ask_apt_fast_max_connection || exit $?
+    fi
 else
     __ask_apt_fast_max_connection || exit $?
-    printf '\n'
 fi
 
-if [[ -n "${APT_FAST_SUPPRESS_CONFIRM_DIALOG:-}" ]]; then
-    __resolve_apt_fast_suppress_confirm_dialog \
-        "$APT_FAST_SUPPRESS_CONFIRM_DIALOG" || exit $?
+apt_fast_suppress_confirm_dialog="${APT_FAST_SUPPRESS_CONFIRM_DIALOG:-}"
+
+if [[ -n "$apt_fast_suppress_confirm_dialog" ]]; then
+    if ! resolve_apt_fast_suppress_confirm_dialog "$apt_fast_suppress_confirm_dialog"; then
+        tlog_warn "$tag" "Fallback to interactive session: invalid APT_FAST_SUPPRESS_CONFIRM_DIALOG value."
+        __ask_apt_fast_suppress_confirm_dialog || exit $?
+    fi
 else
     __ask_apt_fast_suppress_confirm_dialog || exit $?
-    printf '\n'
 fi
 
-save_states "$CANONICAL_ID" || exit $?
-
-exit 0
+save_states "$CANONICAL_ID"

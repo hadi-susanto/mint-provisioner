@@ -3,7 +3,4 @@ set -euo pipefail
 
 source "$LIB_WORKFLOW/jetbrains-interactive.sh"
 
-main "$CANONICAL_ID" \
-    "${PYCHARM_NON_INTERACTIVE:-${JETBRAINS_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}}" \
-    "${JETBRAINS_AUTO_INSTALL_JQ:-}" \
-    "${JETBRAINS_AUTO_INSTALL_ARIA2:-}"
+main
