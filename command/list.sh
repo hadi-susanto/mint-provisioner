@@ -278,7 +278,7 @@ __print_module_features() {
         printf ' %b[interactive]%b' "$COLOR_CYAN" "$COLOR_RESET"
     fi
 
-    script="$MP_MODULES/$canonical_id/post_install.sh"
+    script="$MP_MODULES/$canonical_id/post-install.sh"
     if [[ -f "$script" && ! -L "$script" ]]; then
         printf ' %b[post-install]%b' "$COLOR_CYAN" "$COLOR_RESET"
     fi

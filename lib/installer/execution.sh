@@ -10,9 +10,9 @@ source "$LIB_COMMON/common.sh"
 source "$LIB_COMMON/script.sh"
 
 readonly -a __EXECUTION_INSTALL_PHASES=(
-    pre_install
+    pre-install
     install
-    post_install
+    post-install
 )
 readonly __EXECUTION_CLEANUP_PHASE="cleanup"
 
