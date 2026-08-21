@@ -9,21 +9,21 @@ load_states "$CANONICAL_ID" || exit $?
 
 tlog_info "install:$CANONICAL_ID" "Preparing non-interactive apt-fast installation via debconf-set-selections"
 package_manager="$(get_state "APT_FAST_PACKAGE_MANAGER")" || exit 2
-if [[ -z "$APT_FAST_PACKAGE_MANAGER" ]]; then
+if [[ -z "$package_manager" ]]; then
     tlog_error "install:$CANONICAL_ID" "APT_FAST_PACKAGE_MANAGER must not be empty"
 
     exit 3
 fi
 
 max_connection="$(get_state "APT_FAST_MAX_CONNECTION")" || exit 2
-if [[ -z "$APT_FAST_MAX_CONNECTION" ]]; then
+if [[ -z "$max_connection" ]]; then
     tlog_error "install:$CANONICAL_ID" "APT_FAST_MAX_CONNECTION must not be empty"
 
     exit 3
 fi
 
 suppress_confirm_dialog="$(get_state "APT_FAST_SUPPRESS_CONFIRM_DIALOG")" || exit 2
-if [[ -z "$APT_FAST_SUPPRESS_CONFIRM_DIALOG" ]]; then
+if [[ -z "$suppress_confirm_dialog" ]]; then
     tlog_error "install:$CANONICAL_ID" "APT_FAST_SUPPRESS_CONFIRM_DIALOG must not be empty"
 
     exit 3

@@ -28,9 +28,7 @@ done
 message="Microsoft Edge's repository updater has been disabled because it may
 replace the APT source configuration managed by Mint Provisioner.
 
-A future Microsoft Edge package upgrade may make its updater executable again.
-Reapply the configuration when necessary with:
-
-    ./configure.sh gui/microsoft-edge"
+A future Microsoft Edge package upgrade may make its updater executable again."
 
 add_message "$CANONICAL_ID" "warn" "$message"
+add_system_toolkit_message "$CANONICAL_ID"
