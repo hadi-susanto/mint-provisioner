@@ -1,0 +1,31 @@
+README.md
+  240c6a5df6f74c81 134,141-145
+modules/AGENTS.md
+  240c6a5df6f74c81 12-13,15,21-23,26,82,87-93,186,237,239,242,245,311,313,442
+modules/CONTRIBUTING.md
+  240c6a5df6f74c81 57-60,80-81,90-92,116-121
+modules/README.md
+  240c6a5df6f74c81 55-57,59,72-77,84,86,123-124,126,135-139,209-211,219-221
+AGENTS.md
+  240c6a5df6f74c81 14-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "86895a6f5fa6cdc493b5e4364dfec6269a1ff982",
+  "prompts": {
+    "240c6a5df6f74c81": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a02897-231a-7f92-90ce-d2d03cf26de0",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "Hadi Susanto Lesmana <hd.susanto@yahoo.com>",
+      "messages": [],
+      "total_additions": 3324,
+      "total_deletions": 3510,
+      "accepted_lines": 72,
+      "overriden_lines": 0
+    }
+  }
+}
