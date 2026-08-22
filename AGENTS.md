@@ -11,7 +11,8 @@
   environment variables, such as `FEATURE_ENABLE`.
 - Use guard clauses and avoid unnecessary nesting.
 - Prefer small, readable validation appropriate for this framework.
-- Use `NON_INTERACTIVE`, never `NONINTERACTIVE`.
+- Non-interactive execution is selected only by `mp install --non-interactive` or its `--unattended` alias. Do not add
+  module-specific non-interactive environment-variable overrides.
 - Module canonical IDs use the `<category>/<module>` format.
 - Preserve unrelated user changes in the working tree.
 - Prefer (( ... )) for arithmetic conditions and numeric boolean flags. Prefer [[ ... ]] for string comparisons, pattern matching, and filesystem tests.
