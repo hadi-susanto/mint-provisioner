@@ -56,11 +56,6 @@ desktop entry and application icon. The JetBrains Runtime bundled with each IDE 
     - When unset in interactive mode and `aria2c` is missing, the module asks for permission.
     - When unset in non-interactive mode, defaults to `false` and uses the standard downloader.
 
-- `JETBRAINS_NON_INTERACTIVE`
-    - Disables the shared JetBrains dependency prompt.
-    - When unset, follows `mp install --non-interactive` or `--unattended`.
-    - A product-specific `*_NON_INTERACTIVE` variable takes precedence.
-
 ---
 
 ## CLion (`clion`)
@@ -76,9 +71,6 @@ CLion is JetBrains' IDE for C and C++ development, with code analysis, CMake, de
 - `CLION_INSTALL_DIR`
     - Installation directory.
     - Default: `${INSTALL_DIR}/clion`
-- `CLION_NON_INTERACTIVE`
-    - Product-specific override for JetBrains non-interactive configuration.
-
 ### Official Website
 
 https://www.jetbrains.com/clion/
@@ -98,10 +90,6 @@ CudaText is a cross-platform text and code editor with a Python plugin system.
 - `CUDATEXT_UI_TOOLKIT`
     - Selects the CudaText package variant.
     - Supported values: `auto`, `gtk2`, `gtk3`, `qt5`, and `qt6`.
-- `CUDATEXT_NON_INTERACTIVE`
-    - Disables the toolkit selection prompt and uses automatic detection when `CUDATEXT_UI_TOOLKIT` is unset.
-    - When unset, follows `mp install --non-interactive` or `--unattended`.
-
 ### Official Website
 
 https://cudatext.github.io/
@@ -121,9 +109,6 @@ DataGrip is JetBrains' database IDE for querying, developing, and managing multi
 - `DATAGRIP_INSTALL_DIR`
     - Installation directory.
     - Default: `${INSTALL_DIR}/datagrip`
-- `DATAGRIP_NON_INTERACTIVE`
-    - Product-specific override for JetBrains non-interactive configuration.
-
 ### Official Website
 
 https://www.jetbrains.com/datagrip/
@@ -166,9 +151,6 @@ GoLand is JetBrains' IDE for Go development, with integrated code analysis, refa
 - `GOLAND_INSTALL_DIR`
     - Installation directory.
     - Default: `${INSTALL_DIR}/goland`
-- `GOLAND_NON_INTERACTIVE`
-    - Product-specific override for JetBrains non-interactive configuration.
-
 ### Official Website
 
 https://www.jetbrains.com/go/
@@ -189,9 +171,6 @@ subscription, while advanced framework, database, and enterprise features requir
 - `IDEA_INSTALL_DIR`
     - Installation directory.
     - Default: `${INSTALL_DIR}/idea`
-- `IDEA_NON_INTERACTIVE`
-    - Product-specific override for JetBrains non-interactive configuration.
-
 ### Official Website
 
 https://www.jetbrains.com/idea/
@@ -211,9 +190,6 @@ PhpStorm is JetBrains' IDE for PHP and web development, with framework support, 
 - `PHPSTORM_INSTALL_DIR`
     - Installation directory.
     - Default: `${INSTALL_DIR}/phpstorm`
-- `PHPSTORM_NON_INTERACTIVE`
-    - Product-specific override for JetBrains non-interactive configuration.
-
 ### Official Website
 
 https://www.jetbrains.com/phpstorm/
@@ -233,9 +209,6 @@ PyCharm is JetBrains' unified IDE for Python development, data science, notebook
 - `PYCHARM_INSTALL_DIR`
     - Installation directory.
     - Default: `${INSTALL_DIR}/pycharm`
-- `PYCHARM_NON_INTERACTIVE`
-    - Product-specific override for JetBrains non-interactive configuration.
-
 ### Official Website
 
 https://www.jetbrains.com/pycharm/
@@ -255,9 +228,6 @@ Rider is JetBrains' cross-platform IDE for .NET, C#, ASP.NET, Unity, and related
 - `RIDER_INSTALL_DIR`
     - Installation directory.
     - Default: `${INSTALL_DIR}/rider`
-- `RIDER_NON_INTERACTIVE`
-    - Product-specific override for JetBrains non-interactive configuration.
-
 ### Official Website
 
 https://www.jetbrains.com/rider/
@@ -277,9 +247,6 @@ RubyMine is JetBrains' IDE for Ruby and Rails development, with code intelligenc
 - `RUBYMINE_INSTALL_DIR`
     - Installation directory.
     - Default: `${INSTALL_DIR}/rubymine`
-- `RUBYMINE_NON_INTERACTIVE`
-    - Product-specific override for JetBrains non-interactive configuration.
-
 ### Official Website
 
 https://www.jetbrains.com/ruby/
@@ -299,9 +266,6 @@ RustRover is JetBrains' IDE for Rust development, with Cargo integration, code a
 - `RUSTROVER_INSTALL_DIR`
     - Installation directory.
     - Default: `${INSTALL_DIR}/rustrover`
-- `RUSTROVER_NON_INTERACTIVE`
-    - Product-specific override for JetBrains non-interactive configuration.
-
 ### Official Website
 
 https://www.jetbrains.com/rust/
@@ -324,10 +288,6 @@ Interactive installations prompt for the channel. Non-interactive installations 
     - Selects the Visual Studio Code channel.
     - Supported values: `stable`, `insiders`, `code`, and `code-insiders`.
     - Default in non-interactive mode: `stable`.
-- `VSCODE_NON_INTERACTIVE`
-    - Disables the channel-selection prompt.
-    - When unset, follows `mp install --non-interactive` or `--unattended`.
-
 ### Official Website
 
 https://code.visualstudio.com/
@@ -341,12 +301,6 @@ VSCodium provides community-built VS Code binaries without Microsoft branding or
 ### Installation Method
 
 **Latest GitHub AMD64 `.deb` release**, installed using APT.
-
-### Supported ENV
-
-- `VSCODIUM_REGEX`
-    - Regular expression used to locate the GitHub release asset.
-    - Default: `codium_.*_amd64\.deb$`
 
 ### Official Website
 
@@ -367,9 +321,6 @@ WebStorm is JetBrains' IDE for JavaScript, TypeScript, and modern web applicatio
 - `WEBSTORM_INSTALL_DIR`
     - Installation directory.
     - Default: `${INSTALL_DIR}/webstorm`
-- `WEBSTORM_NON_INTERACTIVE`
-    - Product-specific override for JetBrains non-interactive configuration.
-
 ### Official Website
 
 https://www.jetbrains.com/webstorm/

@@ -26,13 +26,6 @@ and process information through a highly customizable user interface.
 
 The installer locates the latest AMD64 Debian package from the official GitHub releases page and installs it using APT.
 
-### Supported ENV
-
-- `BOTTOM_REGEX`
-    - Regular expression used to locate the GitHub release asset.
-    - Default:
-      `bottom-musl_.*_amd64\.deb`
-
 ### Official Website
 
 https://github.com/ClementTsang/bottom
@@ -52,11 +45,6 @@ The installer downloads the latest Linux x86_64 MUSL archive from the official G
 creates a symbolic link for the executable.
 
 ### Supported ENV
-
-- `DU_ANALYZER_REGEX`
-    - Regular expression used to locate the GitHub release asset.
-    - Default:
-      `dua-.*-x86_64-unknown-linux-musl\.tar\.gz$`
 
 - `DU_ANALYZER_INSTALL_DIR`
     - Installation directory.
@@ -83,11 +71,6 @@ creates a symbolic link for the executable.
 
 ### Supported ENV
 
-- `DU_RUST_REGEX`
-    - Regular expression used to locate the GitHub release asset.
-    - Default:
-      `dust-.*-x86_64-unknown-linux-musl\.tar\.gz$`
-
 - `DU_RUST_INSTALL_DIR`
     - Installation directory.
     - Default:
@@ -112,11 +95,6 @@ The installer downloads the latest Linux x86_64 archive from the official GitHub
 a symbolic link for the executable.
 
 ### Supported ENV
-
-- `DUF_REGEX`
-    - Regular expression used to locate the GitHub release asset.
-    - Default:
-      `duf_.*_linux_amd64\.tar\.gz$`
 
 - `DUF_INSTALL_DIR`
     - Installation directory.
@@ -146,9 +124,6 @@ Downloads the latest Linux x86_64 release archive from the official GitHub repos
     - Installation directory.
     - Default: `${INSTALL_DIR}/git-ui`
 
-- `GIT_UI_REGEX`
-    - Regular expression used to locate the GitHub release asset.
-
 ### Official Website
 
 https://github.com/gitui-org/gitui
@@ -171,9 +146,6 @@ Downloads the latest Linux x86_64 release archive from the official GitHub repos
 - `LAZY_GIT_INSTALL_DIR`
     - Installation directory.
     - Default: `${INSTALL_DIR}/lazy-git`
-
-- `LAZY_GIT_REGEX`
-    - Regular expression used to locate the GitHub release asset.
 
 ### Official Website
 

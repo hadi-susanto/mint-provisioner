@@ -9,18 +9,21 @@
   ├── metadata.conf      # Mandatory: NAME, DESCRIPTION, and SOURCE
   ├── installed.sh       # Optional: Detect whether the software is installed
   ├── interactive.sh     # Optional: Collect and validate installation choices
-  ├── pre_install.sh     # Optional: Configure prerequisites, repositories, or keys
+  ├── non-interactive.sh # Optional: No-prompt alternative; requires interactive.sh
+  ├── pre-install.sh     # Optional: Configure prerequisites, repositories, or keys
   ├── install.sh         # Mandatory: Perform the core installation
-  ├── post_install.sh    # Optional: Apply post-install system adjustments
+  ├── post-install.sh    # Optional: Apply post-install system adjustments
   └── cleanup.sh         # Optional: Remove installation-only state or artifacts
   ```
 
 - Only `metadata.conf` and `install.sh` are mandatory.
 - `interactive.sh` collects, resolves, validates, and stores choices required before installation phases run.
+- `non-interactive.sh` provides the no-prompt equivalent of `interactive.sh`. It is valid only when `interactive.sh`
+  exists and runs only through `mp install --non-interactive` or `mp install --unattended`. A module that has
+  `interactive.sh` but no `non-interactive.sh` does not support non-interactive installation.
 - `installed.sh` is optional. When absent, the framework falls back to metadata `CLI` commands and then the module basename command.
-- The top-level `configure.sh` reruns a module's `post_install.sh`; it does not run `interactive.sh`.
 - Add `cleanup.sh` when a module creates framework state, downloaded artifacts, temporary files or directories, or installation-only data.
-- In module phase scripts such as `pre_install.sh`, `install.sh`, and `post_install.sh`, use `exit` instead of `return` unless the statement is inside a function. The framework executes phase scripts directly.
+- In module phase scripts such as `pre-install.sh`, `install.sh`, and `post-install.sh`, use `exit` instead of `return` unless the statement is inside a function. The framework executes phase scripts directly.
 
 ### Metadata
 
@@ -76,15 +79,18 @@ SCRIPT_DIR="${MP_MODULES}/${CANONICAL_ID}"
 
 Do not use `$(dirname "$0")`, `${BASH_SOURCE[0]}`, or similar alternatives in module phase scripts.
 
-## Interactive and Non-Interactive Configuration (`interactive.sh`)
+## Interactive and Non-Interactive Configuration
 
 - Provide a resolver function for each required or configurable environment variable so invalid values cannot be stored.
 - Resolver functions must validate values and store the resolved choices with `set_state`.
 - Prefer guard clauses with immediate returns to reduce nesting.
-- When non-interactive mode is enabled, resolve all choices from environment variables or defaults, save the states, and exit without loading interactive prompt helpers.
-- Use `NON_INTERACTIVE` as the global flag.
-- A module-specific non-interactive flag may override the global flag.
-- In the example below, `MODULE_NAME` is a placeholder. Replace it with the module's uppercase environment-variable prefix, such as `TERMINATOR_NON_INTERACTIVE` or `TERMINATOR_PROFILE`.
+- Implement `interactive.sh` and `non-interactive.sh` as separate phase files when a module needs setup in both modes.
+- The command option selects the setup phase. Do not use `NON_INTERACTIVE` or a module-specific environment variable to
+  select a mode.
+- `non-interactive.sh` must resolve all choices from supported environment variables or defaults, save the states, and
+  must not load interactive prompt helpers.
+- In the example below, `MODULE_NAME` is a placeholder. Replace it with the module's uppercase environment-variable
+  prefix, such as `TERMINATOR_PROFILE`.
 
 Example:
 
@@ -126,15 +132,6 @@ __resolve_module_name_yyy() {
     set_state "MODULE_NAME_YYY" "$yyy"
     log_info "[$CANONICAL_ID] Set MODULE_NAME_YYY to $yyy"
 }
-
-# Handle the non-interactive session before loading prompt helpers.
-if [[ "${MODULE_NAME_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]; then
-    __resolve_xxx "${MODULE_NAME_XXX:-aaa}" || exit $?
-    __resolve_yyy "${MODULE_NAME_YYY:-5}" || exit $?
-    save_states "$CANONICAL_ID" || exit $?
-
-    exit 0
-fi
 
 source "${LIB_INSTALLER}/prompt.sh"
 
@@ -186,7 +183,7 @@ fi
 save_states "$CANONICAL_ID" || exit $?
 ```
 
-## PPA Pre-Installation Phase (`pre_install.sh`)
+## PPA Pre-Installation Phase (`pre-install.sh`)
 
 - When the user provides a Launchpad PPA and repository-signing-key information, support both `add_ppa` and `install_asc_key` as shown below.
 - Repository-signing-key information should include the ASCII-armored key URL or GPG key ID required by `install_asc_key`.
@@ -237,16 +234,15 @@ install_asc_key \
 ## Binary Installation and Path Management
 
 - Install downloaded binaries and register their commands during `install.sh`.
-- Do not defer required symbolic links or PATH registration to `post_install.sh`.
+- Do not defer required symbolic links or PATH registration to `post-install.sh`.
 - Keep configuration required for the installed software to function in `install.sh`.
-- Reserve `post_install.sh` for optional, rerunnable system adjustments that depend on the completed installation,
+- Reserve `post-install.sh` for optional, rerunnable system adjustments that depend on the completed installation,
   such as resolving a service compatibility issue or disabling vendor maintenance behavior that conflicts with
   repositories managed by Mint Provisioner.
-- Do not use `post_install.sh` for user preferences, shell integration, aliases, prompts, themes, or application
+- Do not use `post-install.sh` for user preferences, shell integration, aliases, prompts, themes, or application
   defaults. Implement those features in System Toolkit and provide installation guidance through module messages and
   documentation.
-- Keep every `post_install.sh` idempotent and independent of temporary installation artifacts because `configure.sh`
-  may execute it again.
+- Keep every `post-install.sh` idempotent and independent of temporary installation artifacts.
 
 ### Single Binary
 
@@ -312,9 +308,9 @@ Do not create a user configuration script or call `add_bash_source` and
 These rules apply to modules that download `.deb` packages or archives such as
 `.zip`, `.tar.gz`, and `.txz`.
 
-### Download Phase (`pre_install.sh`)
+### Download Phase (`pre-install.sh`)
 
-- Download installation assets during `pre_install.sh`.
+- Download installation assets during `pre-install.sh`.
 - Source `lib/installer/external.sh` and `lib/installer/state.sh`.
 - Create temporary download paths with `mktemp`.
 - For GitHub releases:
@@ -443,7 +439,7 @@ For archives containing multiple binaries or a required directory structure:
 - Do not silently create or omit the desktop entry.
 - If the user confirms, create the desktop entry during `install.sh`.
 - Desktop-entry creation is part of installing the GUI application. It must not
-  be placed in `post_install.sh`.
+  be placed in `post-install.sh`.
 
 ### Desktop Entry Installation
 

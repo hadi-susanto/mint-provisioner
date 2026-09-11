@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+# Prevent non-interactive session loading prompt.sh
+if [[ -n "${NON_INTERACTIVE:-}" ]]; then
+    source "$LIB_COMMON/common.sh"
+    tlog_error "prompt" "Invalid module; non-interactive session attempted to load prompt.sh"
+
+    return 1
+fi
+
 if [[ -n "${__MINT_PROVISIONER_PROMPT_LOADED:-}" ]]; then
     return 0
 fi

@@ -131,13 +131,18 @@ mint-provisioner/
 │   │   ├── metadata.sh                 # Metadata loading
 │   │   ├── resolver.sh                 # Module resolution
 │   │   └── script.sh                   # Phase-script execution
-│   └── installer/
+│   ├── installer/
 │       ├── apt.sh                      # APT and repository helpers
 │       ├── detection.sh                # Installation-state detection
 │       ├── execution.sh                # Installation lifecycle execution
 │       ├── registry.sh                 # Installed-module registry
 │       ├── state.sh                    # Persistent module state
 │       └── ...                         # Download, path, prompt, and system helpers
+│   └── workflow/                       # Reusable module installation workflows
+│       ├── install-target.sh           # Resolve and validate installation destinations
+│       ├── stateful-downloader.sh      # Download and persist temporary artifacts
+│       ├── stateful-*-install.sh       # Shared APT, Debian-package, and archive installation steps
+│       └── state-cleaner.sh            # Clean temporary module state
 ├── modules/                            # Module catalog and lifecycle scripts
 │   ├── README.md                       # Catalog and module-authoring documentation
 │   ├── CONTRIBUTING.md                 # Category and module contribution guide

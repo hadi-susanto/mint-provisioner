@@ -36,11 +36,6 @@ Supports Release, Beta, and Nightly channels.
     - Supported values: `release`, `stable`, `beta`, `nightly`.
     - Default: `release`
 
-- `BRAVE_BROWSER_NON_INTERACTIVE`
-    - Disables channel selection.
-    - When unset, follows `mp install --non-interactive` or `--unattended`.
-    - Default: prompts for a selection.
-
 Multiple channels can be installed side by side. Use `--force` when another Brave Browser channel is already installed.
 
 ### Official Website
@@ -64,11 +59,6 @@ Supports Release, Beta, and Nightly channels.
 - `BRAVE_ORIGIN_CHANNEL`
     - Supported values: `release`, `stable`, `beta`, `nightly`.
     - Default: `release`
-
-- `BRAVE_ORIGIN_NON_INTERACTIVE`
-    - Disables channel selection.
-    - When unset, follows `mp install --non-interactive` or `--unattended`.
-    - Default: prompts for a selection.
 
 Multiple channels can be installed side by side. Use `--force` when another Brave Origin channel is already installed.
 
@@ -150,12 +140,6 @@ Configures the Double Commander repository from the openSUSE Build Service, then
 
 ### Supported ENV
 
-- `DOUBLE_COMMANDER_NON_INTERACTIVE`
-    - Disables the UI toolkit selection prompt.
-    - When unset, follows `mp install --non-interactive` or `--unattended`.
-    - When enabled with `DOUBLE_COMMANDER_UI_TOOLKIT=auto` or without an explicit toolkit, uses automatic detection.
-    - Default: prompts for a selection.
-
 - `DOUBLE_COMMANDER_UI_TOOLKIT`
     - Double Commander GUI package variant to install.
     - Supported values: `auto`, `gtk`, `qt` (will be treated as `qt5`), `qt5`, `qt6`
@@ -177,12 +161,6 @@ Flameshot is a powerful screenshot application featuring an interactive annotati
 **GitHub latest release (.deb)**
 
 Downloads the latest Ubuntu-specific AMD64 release asset from the official GitHub releases page. If the matched asset is a ZIP file, the installer extracts the `.deb` package from it, then installs the package using APT.
-
-### Supported ENV
-
-- `FLAMESHOT_REGEX`
-    - Optional regular expression used to locate the GitHub release asset.
-    - When unset, the module builds an Ubuntu-version-specific pattern automatically.
 
 ### Cleanup
 
@@ -206,13 +184,6 @@ provides fast directory navigation, a Commander-style interface, and extensibili
 
 Locates and downloads the latest Ubuntu x64 Debian package from the official GitHub releases page, stores the downloaded
 package path in a module state file, then installs the package using APT.
-
-### Supported ENV
-
-- `FMAN_REGEX`
-    - Regular expression used to locate the Ubuntu x64 Debian package in the latest GitHub release.
-    - Default:
-      `fman-.*-ubuntu-x64\\.deb$`
 
 ### Cleanup
 
@@ -332,11 +303,6 @@ mp install --force gui/microsoft-edge
     - Supported values: `stable`, `beta`, `dev`, `canary`.
     - Default: `stable` in non-interactive mode.
 
-- `MICROSOFT_EDGE_NON_INTERACTIVE`
-    - Disables the channel selection prompt.
-    - When unset, follows `mp install --non-interactive` or `--unattended`.
-    - Default: prompts for a selection.
-
 ### Post-install Configuration
 
 Disables Edge's repository updater that may conflict with the repository managed by Mint Provisioner. This adjustment runs as part of `mp install`; use `mp install --force gui/microsoft-edge` to run the module again.
@@ -357,13 +323,6 @@ Mu Commander is a lightweight, cross-platform dual-pane file manager. It provide
 
 Downloads the latest x86_64 Debian package from the official GitHub releases page, stores the downloaded package path in a module state file, then installs the package using APT.
 
-### Supported ENV
-
-- `MUCOMMANDER_REGEX`
-    - Regular expression used to locate the GitHub release asset.
-    - Default:
-      `mucommander_.*_x86_64\.deb`
-
 ### Official Website
 
 https://www.mucommander.com/
@@ -379,13 +338,6 @@ Sunflower is a highly customizable twin-panel file manager for Linux. It provide
 **GitHub latest release (.deb)**
 
 Downloads the latest Debian package from the official GitHub releases page, stores the downloaded package path in a module state file, then installs the package using APT.
-
-### Supported ENV
-
-- `SUNFLOWER_REGEX`
-    - Regular expression used to locate the GitHub release asset.
-    - Default:
-      `sunflower-.*\.all\.deb`
 
 ### Official Website
 

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 source "$LIB_INSTALLER/source-forge.sh"
-source "$LIB_INSTALLER/stateful-downloader.sh"
+source "$LIB_WORKFLOW/stateful-downloader.sh"
 
 if ! load_states "$CANONICAL_ID"; then
     tlog_error "$CANONICAL_ID" " CudaText installation state was not found"
@@ -28,5 +28,5 @@ version_regex='^[0-9]+(\.[0-9]+){3}$'
 artifact_regex="^cudatext_[0-9]+(\\.[0-9]+){3}-[0-9]+_${CUDATEXT_UI_TOOLKIT}_amd64\\.deb$"
 
 tlog_info "$CANONICAL_ID" "Finding the latest CudaText %s package" "$CUDATEXT_UI_TOOLKIT"
-sourceforge_find_release "$CANONICAL_ID" "cudatext" "release" "$version_regex" "$artifact_regex" || exit $?
+url="$(sourceforge_find_release "$CANONICAL_ID" "cudatext" "release" "$version_regex" "$artifact_regex")" || exit $?
 stateful_download "$CANONICAL_ID" "DEB_FILE" "$url" ".deb"
