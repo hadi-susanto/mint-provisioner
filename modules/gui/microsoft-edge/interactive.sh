@@ -1,92 +1,51 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_COMMON}/common.sh"
-source "${LIB_INSTALLER}/state.sh"
+source "$LIB_WORKFLOW/$CANONICAL_ID/resolver.sh"
 
-__resolve_microsoft_edge_channel() {
-    local channel="${1:-}"
+microsoft_edge_channel="${MICROSOFT_EDGE_CHANNEL:-}"
+tag="interactive:$CANONICAL_ID"
 
-    case "${channel,,}" in
-        stable)
-            set_state "MICROSOFT_EDGE_CHANNEL" "stable"
-            set_state "MICROSOFT_EDGE_PACKAGE" "microsoft-edge-stable"
-            ;;
-        beta)
-            set_state "MICROSOFT_EDGE_CHANNEL" "beta"
-            set_state "MICROSOFT_EDGE_PACKAGE" "microsoft-edge-beta"
-            ;;
-        dev)
-            set_state "MICROSOFT_EDGE_CHANNEL" "dev"
-            set_state "MICROSOFT_EDGE_PACKAGE" "microsoft-edge-dev"
-            ;;
-        canary)
-            set_state "MICROSOFT_EDGE_CHANNEL" "canary"
-            set_state "MICROSOFT_EDGE_PACKAGE" "microsoft-edge-canary"
-            ;;
-        *)
-            tlog_error "interactive:$CANONICAL_ID" \
-                "Invalid MICROSOFT_EDGE_CHANNEL value: $channel. Expected stable, beta, dev, or canary."
+if [[ -n "$microsoft_edge_channel" ]]; then
+    if resolve_microsoft_edge_channel "$microsoft_edge_channel"; then
+        save_states "$CANONICAL_ID" || exit $?
 
-            return 1
-            ;;
-    esac
+        exit 0
+    fi
 
-    return 0
-}
-
-if [[ "${MICROSOFT_EDGE_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]; then
-    __resolve_microsoft_edge_channel \
-        "${MICROSOFT_EDGE_CHANNEL:-stable}" || exit $?
-
-    save_states "$CANONICAL_ID" || exit $?
-
-    exit 0
+    tlog_warn "$tag" "Fallback to interactive session: invalid MICROSOFT_EDGE_CHANNEL value."
 fi
 
 source "${LIB_INSTALLER}/prompt.sh"
 
-__ask_microsoft_edge_channel() {
-    local selected_index
+selected_index="$(
+    choose_option \
+        "Which Microsoft Edge channel do you want to install?" \
+        "Stable (recommended) - Most stable" \
+        "Beta - Preview features" \
+        "Dev - Latest features" \
+        "Canary - Daily builds"
+)" || exit $?
 
-    selected_index="$(
-        choose_option \
-            "Which Microsoft Edge channel do you want to install?" \
-            "Stable (recommended)" \
-            "Beta" \
-            "Dev" \
-            "Canary"
-    )" || return $?
+case "$selected_index" in
+    0)
+        resolve_microsoft_edge_channel "stable"
+        ;;
+    1)
+        resolve_microsoft_edge_channel "beta"
+        ;;
+    2)
+        resolve_microsoft_edge_channel "dev"
+        ;;
+    3)
+        resolve_microsoft_edge_channel "canary"
+        ;;
+    *)
+        tlog_error "$tag" \
+            "Unexpected Microsoft Edge channel index: $selected_index"
 
-    case "$selected_index" in
-        0)
-            __resolve_microsoft_edge_channel "stable"
-            ;;
-        1)
-            __resolve_microsoft_edge_channel "beta"
-            ;;
-        2)
-            __resolve_microsoft_edge_channel "dev"
-            ;;
-        3)
-            __resolve_microsoft_edge_channel "canary"
-            ;;
-        *)
-            tlog_error "interactive:$CANONICAL_ID" \
-                "Unexpected Microsoft Edge channel index: $selected_index"
+        exit 1
+        ;;
+esac
 
-            return 1
-            ;;
-    esac
-}
-
-if [[ -n "${MICROSOFT_EDGE_CHANNEL:-}" ]]; then
-    __resolve_microsoft_edge_channel \
-        "$MICROSOFT_EDGE_CHANNEL" || exit $?
-else
-    __ask_microsoft_edge_channel || exit $?
-fi
-
-save_states "$CANONICAL_ID" || exit $?
-
-exit 0
+save_states "$CANONICAL_ID" 

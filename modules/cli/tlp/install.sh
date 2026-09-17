@@ -4,10 +4,7 @@ set -euo pipefail
 source "$LIB_INSTALLER/apt.sh"
 source "$LIB_INSTALLER/messages.sh"
 
-if ! apt_install "$CANONICAL_ID" tlp tlp-rdw; then
-    exit 1
-fi
-
+apt_install "$CANONICAL_ID" tlp tlp-rdw || exit $?
 tlog_info "install:$CANONICAL_ID" "Enabling TLP service"
 
 if ! sudo systemctl enable --now tlp.service; then

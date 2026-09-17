@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+# Prevent non-interactive session loading prompt.sh
+if [[ -n "${NON_INTERACTIVE:-}" ]]; then
+    source "$LIB_COMMON/common.sh"
+    tlog_error "prompt" "Invalid module; non-interactive session attempted to load prompt.sh"
+
+    return 1
+fi
+
 if [[ -n "${__MINT_PROVISIONER_PROMPT_LOADED:-}" ]]; then
     return 0
 fi
@@ -219,16 +227,16 @@ choose_option() {
     done
 
     while true; do
-        printf '%s\n' "$question" >/dev/tty
+        printf '%bQuestion:%b %s\n' "$COLOR_CYAN" "$COLOR_RESET" "$question" >/dev/tty
         index=1
         for option in "${options[@]}"; do
-            printf '  %d. %s\n' "$index" "$option" >/dev/tty
+            printf '  %b%d.%b %s\n' "$COLOR_GREEN" "$index" "$COLOR_RESET" "$option" >/dev/tty
             (( index += 1 ))
         done
         printf '\n' >/dev/tty
 
         while true; do
-            printf 'Choose an option [1-%d]: ' "${#options[@]}" >/dev/tty
+            printf 'Choose an option %b[1-%d]%b: ' "$COLOR_GREEN" "${#options[@]}" "$COLOR_RESET" >/dev/tty
 
             if ! IFS= read -r selected </dev/tty; then
                 tlog_error "prompt" "Unable to read option input"

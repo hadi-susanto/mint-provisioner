@@ -1,101 +1,63 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-#
-# Installs oh-my-posh from previously downloaded artifacts.
-#
+source "$LIB_INSTALLER/extractor.sh"
+source "$LIB_INSTALLER/messages.sh"
+source "$LIB_INSTALLER/path.sh"
+source "$LIB_INSTALLER/registry.sh"
+source "$LIB_INSTALLER/state.sh"
+source "$LIB_INSTALLER/symlink.sh"
 
-source "${LIB_INSTALLER}/path.sh"
-source "${LIB_INSTALLER}/symlink.sh"
-source "${LIB_INSTALLER}/state.sh"
-source "${LIB_INSTALLER}/messages.sh"
-source "${LIB_INSTALLER}/registry.sh"
+__install_binary() {
+    local canonical_id="$1"
+    local install_path="$2"
+    local tag="install:$canonical_id"
+    local binary_file
+
+    tlog_info "$tag" "Installing Oh My Posh binary to: %s" "$install_path"
+    binary_file="$(get_state "BINARY_FILE")" || return $?
+    if [[ ! -f "$binary_file" ]]; then
+        tlog_error "$tag" "Oh My Posh binary not found: %s" "$binary_file"
+
+        return 1
+    fi
+    if ! mkdir -p "$install_path"; then
+        tlog_error "$tag" "Failed to create install directory: %s" "$install_path"
+
+        return 1
+    fi
+    if ! cp "$binary_file" "$install_path/oh-my-posh"; then
+        tlog_error "$tag" "Failed to copy %s to %s" "$binary_file" "$install_path/oh-my-posh"
+
+        return 1
+    fi
+    if ! chmod +x "$install_path/oh-my-posh"; then
+        tlog_error "$tag" "Failed to make %s executable" "$install_path/oh-my-posh"
+
+        return 1
+    fi
+
+    symlink_binary "$canonical_id" "$install_path/oh-my-posh"
+}
+
+__install_themes() {
+    local canonical_id="$1"
+    local install_path="$2"
+    local tag="install:$canonical_id"
+    local archive_file
+
+    tlog_info "$tag" "Installing Oh My Posh themes to: %s" "$install_path"
+    archive_file="$(get_state "THEMES_FILE")" || return $?
+    extract_archive "$canonical_id" "zip" "$archive_file" "$install_path"
+}
 
 load_states "$CANONICAL_ID" || exit 1
-BINARY_FILE="$(get_state "BINARY_FILE")" || exit 1
-THEMES_FILE="$(get_state "THEMES_FILE")" || exit 1
+install_path="$(expand_path "${OH_MY_POSH_INSTALL_DIR:-$INSTALL_DIR/oh-my-posh}")" || exit $?
+__install_binary "$CANONICAL_ID" "$install_path" || exit $?
+__install_themes "$CANONICAL_ID" "$install_path/themes" || exit $?
 
-if [[ ! -f "$BINARY_FILE" ]]; then
-    tlog_error "install:$CANONICAL_ID" "Binary file not found: ${BINARY_FILE}"
-
-    exit 2
-fi
-
-if [[ ! -f "$THEMES_FILE" ]]; then
-    tlog_error "install:$CANONICAL_ID" "Themes file not found: ${THEMES_FILE}"
-
-    exit 2
-fi
-
-if [[ -z "${OH_MY_POSH_INSTALL_DIR:-}" ]]; then
-    OH_MY_POSH_INSTALL_DIR="$INSTALL_DIR/oh-my-posh"
-fi
-
-tlog_info "install:$CANONICAL_ID" "Installing binary to $OH_MY_POSH_INSTALL_DIR"
-
-SUDO_CMD=""
-if ! can_write "$OH_MY_POSH_INSTALL_DIR"; then
-    SUDO_CMD="sudo"
-fi
-
-if ! $SUDO_CMD mkdir -p "$OH_MY_POSH_INSTALL_DIR"; then
-    tlog_error "install:$CANONICAL_ID" "Failed to create install directory: $OH_MY_POSH_INSTALL_DIR"
-
-    exit 3
-fi
-
-if ! $SUDO_CMD cp "$BINARY_FILE" "$OH_MY_POSH_INSTALL_DIR/oh-my-posh"; then
-    tlog_error "install:$CANONICAL_ID" "Failed to copy binary"
-
-    exit 4
-fi
-
-if ! $SUDO_CMD chmod +x "$OH_MY_POSH_INSTALL_DIR/oh-my-posh"; then
-    tlog_error "install:$CANONICAL_ID" "Failed to make binary executable"
-
-    exit 5
-fi
-
-if [[ -z "${OH_MY_POSH_THEMES_INSTALL_DIR:-}" ]]; then
-    OH_MY_POSH_THEMES_INSTALL_DIR="$OH_MY_POSH_INSTALL_DIR/themes"
-fi
-
-tlog_info "install:$CANONICAL_ID" "Installing themes to $OH_MY_POSH_THEMES_INSTALL_DIR"
-
-SUDO_CMD=""
-if ! can_write "$OH_MY_POSH_THEMES_INSTALL_DIR"; then
-    SUDO_CMD="sudo"
-fi
-
-if ! $SUDO_CMD mkdir -p "$OH_MY_POSH_THEMES_INSTALL_DIR"; then
-    tlog_error "install:$CANONICAL_ID" "Failed to create themes directory: $OH_MY_POSH_THEMES_INSTALL_DIR"
-
-    exit 6
-fi
-
-if ! $SUDO_CMD unzip -o "$THEMES_FILE" -d "$OH_MY_POSH_THEMES_INSTALL_DIR"; then
-    tlog_error "install:$CANONICAL_ID" "Themes extraction failed"
-
-    exit 7
-fi
-
-tlog_info "install:$CANONICAL_ID" "Creating symbolic link"
-
-if [[ "$OH_MY_POSH_INSTALL_DIR" != "$(symlink_location)" ]]; then
-    if ! symlink_binary "$CANONICAL_ID" "$OH_MY_POSH_INSTALL_DIR/oh-my-posh"; then
-        tlog_error "install:$CANONICAL_ID" "Failed to create the Oh My Posh symbolic link"
-
-        exit 8
-    fi
-else
-    tlog_info "install:$CANONICAL_ID" \
-        "Install directory matches symlink location, skipping symbolic link"
-fi
-
-set_registry "INSTALL_PATH" "$OH_MY_POSH_INSTALL_DIR" || exit 9
-save_registry "$CANONICAL_ID" || exit 9
-
-tlog_info "install:$CANONICAL_ID" "Installation completed successfully"
+set_registry "INSTALL_PATH" "$install_path" || exit $?
+save_registry "$CANONICAL_ID" || exit $?
 
 msg="Oh My Posh requires a Nerd Font to be installed. Ensure you
 have a Nerd Font installed.
@@ -103,10 +65,9 @@ To install one, you can use mint-provisioner."
 
 add_message "$CANONICAL_ID" "info" "$msg"
 
-add_system_toolkit_message "$CANONICAL_ID"
-
 msg="Unless System Toolkit is used to enable the shell
 integration, configure Oh My Posh manually:
   https://ohmyposh.dev/docs/installation/prompt"
 
 add_message "$CANONICAL_ID" "info" "$msg"
+add_system_toolkit_message "$CANONICAL_ID"

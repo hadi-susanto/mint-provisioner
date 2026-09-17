@@ -3,4 +3,4 @@ set -euo pipefail
 
 source "$LIB_INSTALLER/apt.sh"
 
-apt_install "$CANONICAL_ID" dbeaver-ce
+apt_install "$CANONICAL_ID" "dbeaver-ce"

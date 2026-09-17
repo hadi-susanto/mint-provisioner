@@ -54,8 +54,10 @@ category directory when several modules need them.
 5. Add optional lifecycle scripts only when needed:
     - `installed.sh` for an installed-state check more accurate than command detection.
     - `interactive.sh` for choices or validation that must complete before any selected module is installed.
-    - `pre_install.sh` for prerequisites, repositories, keys, downloads, and temporary setup.
-    - `post_install.sh` for installation-adjacent adjustments after successful installation.
+    - `non-interactive.sh` for the no-prompt equivalent of `interactive.sh`. It is valid only when `interactive.sh`
+      exists; without it, the module does not support non-interactive installation.
+    - `pre-install.sh` for prerequisites, repositories, keys, downloads, and temporary setup.
+    - `post-install.sh` for installation-adjacent adjustments after successful installation.
     - `cleanup.sh` for temporary state, downloads, and intermediate files.
 6. Add `helper.sh` and `resources/` when the module needs local reusable functions or payloads.
 7. Document the module in its category page with its installation method, supported environment variables, relevant
@@ -75,8 +77,8 @@ artifacts.
 
 ## Interactive and Non-Interactive Behavior
 
-`interactive.sh` runs for every module queued by `mp install` before any installation phase begins. It should store
-decisions that later phases need through the state library.
+`interactive.sh` runs for every module queued by a normal `mp install` before any installation phase begins. It should
+store decisions that later phases need through the state library.
 
 Do not ask users to set global `NON_INTERACTIVE`. The public interface is:
 
@@ -85,9 +87,9 @@ mp install --non-interactive <module>
 mp install --unattended <module>
 ```
 
-In either mode, the framework runs `interactive.sh` with `NON_INTERACTIVE=true` in that script's environment. The script
-must not prompt; it should use explicitly supplied values, detection, or documented defaults. A module may expose a
-documented `*_NON_INTERACTIVE` override when its behavior needs a module-specific control.
+In either mode, the framework runs `non-interactive.sh` instead of `interactive.sh` for modules that provide interactive
+setup. The non-interactive phase must not prompt; it should use explicitly supplied values, detection, or documented
+defaults. Do not add a module-specific non-interactive environment-variable override.
 
 Use `mp install --force <module>` to requeue a module that installed-state detection reports as already installed. Force
 does not skip selector resolution, metadata validation, installed-state detection, or the interactive session.
@@ -111,3 +113,9 @@ registry-management workflow.
 
 Use the state library for temporary values shared between phases, and ensure `cleanup.sh` removes temporary files that
 cannot be discovered from saved state.
+
+## Shared Installation Workflows
+
+Prefer helpers from `lib/workflow` when a module uses a common installation sequence. The workflow library provides
+shared target resolution, stateful download and installation steps, cleanup, and reusable product-specific resolvers.
+Source the smallest applicable helper from `$LIB_WORKFLOW` rather than duplicating a common sequence in a module phase.

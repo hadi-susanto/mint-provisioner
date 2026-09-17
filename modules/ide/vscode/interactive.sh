@@ -1,73 +1,42 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "${LIB_COMMON}/common.sh"
-source "${LIB_INSTALLER}/state.sh"
+source "$LIB_WORKFLOW/$CANONICAL_ID/resolver.sh"
 
-__resolve_vscode_channel() {
-    local channel="${1:-}"
+vscode_channel="${VSCODE_CHANNEL:-}"
+tag="interactive:$CANONICAL_ID"
 
-    case "${channel,,}" in
-        code | stable)
-            set_state "VSCODE_CHANNEL" "stable"
-            set_state "VSCODE_PACKAGE" "code"
-            ;;
-        code-insiders | insiders)
-            set_state "VSCODE_CHANNEL" "insiders"
-            set_state "VSCODE_PACKAGE" "code-insiders"
-            ;;
-        *)
-            tlog_error \
-                "$CANONICAL_ID" \
-                "Invalid VSCODE_CHANNEL value: %s. Expected stable, insiders, code, or code-insiders." \
-                "$channel"
+if [[ -n "$vscode_channel" ]]; then
+    if resolve_vscode_channel "$vscode_channel"; then
+        save_states "$CANONICAL_ID" || exit $?
 
-            return 1
-            ;;
-    esac
-}
+        exit 0
+    fi
 
-if [[ "${VSCODE_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]; then
-    __resolve_vscode_channel "${VSCODE_CHANNEL:-stable}" || exit $?
-    save_states "$CANONICAL_ID" || exit $?
-
-    exit 0
+    tlog_warn "$tag" "Fallback to interactive session: invalid VSCODE_CHANNEL value."
 fi
 
 source "${LIB_INSTALLER}/prompt.sh"
 
-__ask_vscode_channel() {
-    local selected_index
+selected_index="$(
+    choose_option \
+        "Which Visual Studio Code channel do you want to install?" \
+        "Stable (code, recommended)" \
+        "Insiders (code-insiders)"
+)" || exit $?
 
-    selected_index="$(
-        choose_option \
-            "Which Visual Studio Code channel do you want to install?" \
-            "Stable (code, recommended)" \
-            "Insiders (code-insiders)"
-    )" || return $?
+case "$selected_index" in
+    0)
+        resolve_vscode_channel "stable"
+        ;;
+    1)
+        resolve_vscode_channel "insiders"
+        ;;
+    *)
+        tlog_error "$tag" "Unexpected Visual Studio Code channel index: $selected_index"
 
-    case "$selected_index" in
-        0)
-            __resolve_vscode_channel "stable"
-            ;;
-        1)
-            __resolve_vscode_channel "insiders"
-            ;;
-        *)
-            log_error \
-                "[$CANONICAL_ID] Unexpected Visual Studio Code channel index: $selected_index"
+        exit 1
+        ;;
+esac
 
-            return 1
-            ;;
-    esac
-}
-
-if [[ -n "${VSCODE_CHANNEL:-}" ]]; then
-    __resolve_vscode_channel "$VSCODE_CHANNEL" || exit $?
-else
-    __ask_vscode_channel || exit $?
-fi
-
-save_states "$CANONICAL_ID" || exit $?
-
-exit 0
+save_states "$CANONICAL_ID" 

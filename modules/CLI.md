@@ -53,13 +53,6 @@ workflows.
 
 Downloads the latest AMD64 Debian package from the official GitHub releases page and installs it using APT.
 
-### Supported ENV
-
-- `BAT_REGEX`
-    - Regular expression used to locate the GitHub release asset.
-    - Default:
-      `bat_.*_amd64\.deb$`
-
 ### System Toolkit Integration
 
 This module has additional features that can be enabled by running SysKit. See the
@@ -88,9 +81,6 @@ Downloads the latest Linux x86_64 MUSL release archive from the official GitHub 
     - Installation directory.
     - Default: `${INSTALL_DIR}/delta`
     - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
-
-- `DELTA_REGEX`
-    - Regular expression used to locate the GitHub release asset.
 
 ### System Toolkit Integration
 
@@ -164,13 +154,6 @@ The package installed depends on the selected configuration:
 
 ### Supported ENV
 
-* `MKVTOOLNIX_NON_INTERACTIVE`
-
-    * Disables the MKVToolNix GUI-selection prompt.
-    * When unset, follows `mp install --non-interactive` or `--unattended`.
-    * When enabled without `MKVTOOLNIX_GUI_ENABLED`, installs the command-line-only package.
-    * Default: prompts for a selection.
-
 * `MKVTOOLNIX_GUI_ENABLED`
 
     * Controls whether the MKVToolNix graphical interface is installed alongside the command-line tools.
@@ -219,11 +202,6 @@ The installer downloads the latest Linux x86_64 archive from the official GitHub
 a symbolic link for the executable.
 
 ### Supported ENV
-
-- `PROCS_REGEX`
-    - Regular expression used to locate the GitHub release asset.
-    - Default:
-      `procs-.*-x86_64-linux\.zip$`
 
 - `PROCS_INSTALL_DIR`
     - Installation directory.

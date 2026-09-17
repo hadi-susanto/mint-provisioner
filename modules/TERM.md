@@ -77,11 +77,6 @@ Kitty as an available terminal emulator.
 
 ### Supported ENV
 
-- `KITTY_REGEX`
-    - Regular expression used to locate the GitHub release asset.
-    - Default:
-      `x86_64\.txz$`
-
 - `KITTY_INSTALL_DIR`
     - Installation directory.
     - Default:
@@ -207,11 +202,6 @@ Downloads the latest Linux x86_64 MUSL TAR.GZ archive from the official GitHub r
 binary into the configured installation directory, makes it executable, and creates a symbolic link.
 
 ### Supported ENV
-
-- `STARSHIP_REGEX`
-    - Regular expression used to locate the GitHub release asset.
-    - Default:
-      `starship-x86_64-unknown-linux-musl\.tar\.gz$`
 
 - `STARSHIP_INSTALL_DIR`
     - Installation directory.

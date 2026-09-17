@@ -52,10 +52,11 @@ modules/
     └── <module>/
         ├── metadata.conf               # Required module metadata and optional CLI commands
         ├── installed.sh                # Optional installed-state detector
-        ├── interactive.sh              # Optional pre-install questions or customization
-        ├── pre_install.sh              # Optional installation preparation
+        ├── interactive.sh              # Optional interactive pre-install questions or customization
+        ├── non-interactive.sh          # Alternative setup for --non-interactive; requires interactive.sh
+        ├── pre-install.sh              # Optional installation preparation
         ├── install.sh                  # Required software installation
-        ├── post_install.sh             # Optional post-install adjustment
+        ├── post-install.sh             # Optional post-install adjustment
         ├── cleanup.sh                  # Optional temporary-resource cleanup
         ├── helper.sh                   # Optional module-local helpers
         └── resources/                  # Optional templates and payloads
@@ -68,18 +69,21 @@ Only `install.sh` is required. All other module scripts and resources are option
 `mp install` resolves the requested module selectors, checks their installed state, and queues only modules that need
 installation. Use `--force` to queue a module even when it is already detected as installed.
 
-Before any module installation begins, every queued module runs its optional `interactive.sh`. If an interactive script
-fails, the command stops before any installation phase is run. After the complete interactive session succeeds, the
-framework processes each queued module in order:
+Before any module installation begins, every queued module completes its optional setup phase. A normal installation
+runs `interactive.sh`; `--non-interactive` and `--unattended` select `non-interactive.sh` instead. A non-interactive
+setup phase is valid only when the module also provides `interactive.sh`; a module with `interactive.sh` but no
+`non-interactive.sh` does not support non-interactive installation. If the selected setup phase fails, the command stops
+before any installation phase is run. After the complete setup session succeeds, the framework processes each queued
+module in order:
 
 ```text
 Resolve module selectors
         ↓
 Check installed state and filter modules
         ↓
-interactive.sh for every queued module
+interactive.sh or non-interactive.sh for every queued module
         ↓
-pre_install.sh → install.sh → post_install.sh → cleanup.sh
+pre-install.sh → install.sh → post-install.sh → cleanup.sh
 ```
 
 Missing optional scripts are skipped. A failure in a normal installation phase stops that module's remaining normal
@@ -116,9 +120,10 @@ registry data, files, package variants, or multiple application artifacts.
 |-------------------|:--------:|--------------------------------------------------------------------------------------------------------|
 | `installed.sh`    |    No    | Determine installed state when the default command detection is insufficient.                          |
 | `interactive.sh`  |    No    | Collect required answers or apply user-selected installation customization before installation starts. |
-| `pre_install.sh`  |    No    | Prepare repositories, dependencies, downloads, keys, or temporary files.                               |
+| `non-interactive.sh` | No | Provide the non-prompt equivalent of `interactive.sh`; valid only when `interactive.sh` exists. |
+| `pre-install.sh`  |    No    | Prepare repositories, dependencies, downloads, keys, or temporary files.                               |
 | `install.sh`      |   Yes    | Perform the software installation and save durable installation facts when needed.                     |
-| `post_install.sh` |    No    | Apply an installation-adjacent adjustment after a successful installation.                             |
+| `post-install.sh` |    No    | Apply an installation-adjacent adjustment after a successful installation.                             |
 | `cleanup.sh`      |    No    | Remove temporary state, downloads, and intermediate files.                                             |
 
 ### Interactive setup
@@ -127,10 +132,11 @@ Use `interactive.sh` for questions or customization that must be resolved before
 package variant, enabling an optional component, detecting a suitable toolkit, or validating an installation target.
 Save values that later phases need through the state library.
 
-`mp install --non-interactive` and its `--unattended` alias still run every queued `interactive.sh`, but pass
-`NON_INTERACTIVE=true` only to that child script. This internal value is not a public invocation method. Interactive
-scripts must avoid prompts in that mode and choose supplied values, current-configuration detection, or documented
-defaults; those choices may be opinionated when no neutral automatic choice exists.
+`mp install --non-interactive` and its `--unattended` alias run `non-interactive.sh` instead of `interactive.sh` for
+each module that has an interactive setup. The non-interactive phase must resolve the same required choices without
+prompts, using supplied values, current-configuration detection, or documented defaults. Modules with no setup phase
+continue directly to installation. Do not provide a `non-interactive.sh` file without its corresponding
+`interactive.sh`.
 
 ### Installation registry
 
@@ -200,9 +206,9 @@ mp install --unattended gui/double-commander
 mp install --force cli/git
 ```
 
-Module-specific environment variables remain supported when their category documentation lists them. A module-specific
-`*_NON_INTERACTIVE` setting can control that module's interactive behavior, but `mp install --non-interactive` is the
-standard way to run the whole installation without prompts.
+Module-specific environment variables remain supported when their category documentation lists them. Use
+`mp install --non-interactive` or `mp install --unattended` to run the whole installation without prompts; no
+module-specific non-interactive environment-variable override is supported.
 
 `USE_APT_ADD_REPOSITORY` remains a framework environment variable for modules that support alternate repository setup. A
 module may expose a corresponding `*_USE_APT_ADD_REPOSITORY` override.
@@ -210,7 +216,9 @@ module may expose a corresponding `*_USE_APT_ADD_REPOSITORY` override.
 ## 🧰 Framework Libraries
 
 Phase scripts receive `CANONICAL_ID` and can use the framework paths exported by `mp`, including `MP_MODULES`,
-`LIB_COMMON`, and `LIB_INSTALLER`. Source only the helpers a phase needs.
+`LIB_COMMON`, `LIB_INSTALLER`, and `LIB_WORKFLOW`. `lib/workflow` provides reusable installation steps such as target
+resolution, stateful downloading, archive or package installation, state cleanup, and product-specific resolvers.
+Source only the helpers a phase needs.
 
 Executable phase files run directly and may select another interpreter through their shebang. Non-executable phase files
 run through Bash, so Bash phase scripts must declare their own strict mode:

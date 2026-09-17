@@ -147,11 +147,6 @@ directory. The pre-installation phase fails when `rsync` is unavailable.
     - Must not be `/`, `/var/lib/docker`, a parent of `/var/lib/docker`, or a directory inside it.
     - Default: `${INSTALL_DIR}/docker-lib`
 
-- `DOCKER_NON_INTERACTIVE`
-    - Disables the Docker-specific installation prompt.
-    - When unset, follows `mp install --non-interactive` or `--unattended`.
-    - Default: prompts for a selection.
-
 ### Installation Configuration
 
 During installation, the module:
@@ -196,16 +191,6 @@ HTTPS traffic.
 Locates and downloads the latest Linux x64 Debian package from the official HTTP Toolkit Desktop GitHub releases, then
 installs it using APT. The package provides the `httptoolkit` command and desktop integration.
 
-### Supported ENV
-
-- `HTTPTOOLKIT_REGEX`
-    - Regular expression used to locate the Debian package in the latest GitHub release.
-    - Default:
-
-      ```text
-      HttpToolkit-.*-x64\.deb$
-      ```
-
 ### Official Website
 
 https://httptoolkit.com/
@@ -232,16 +217,6 @@ management, and database performance information.
 
 Locates and downloads the latest AMD64 Debian package from the official MongoDB Compass GitHub releases, then installs
 it using APT.
-
-### Supported ENV
-
-- `MONGODB_COMPASS_REGEX`
-    - Regular expression used to locate the Debian package in the latest GitHub release.
-    - Default:
-
-      ```text
-      mongodb-compass_.*_amd64\.deb$
-      ```
 
 ### Official Website
 
@@ -292,12 +267,6 @@ During a non-interactive installation, an unset `PGADMIN_UI` defaults to desktop
     - Any other value is rejected.
     - When unset during an interactive installation, the module asks which mode should be installed.
     - Default: `desktop`
-
-- `PGADMIN_NON_INTERACTIVE`
-    - Disables the pgAdmin package-selection prompt.
-    - When unset, follows `mp install --non-interactive` or `--unattended`.
-    - When enabled without `PGADMIN_UI`, installs `pgadmin4-desktop`.
-    - Default: prompts for a selection.
 
 ### Installation Detection
 
@@ -433,16 +402,6 @@ Yaak is a privacy-first desktop API client for REST, GraphQL, WebSockets, Server
 
 Locates and downloads the latest stable AMD64 Debian package from the official Yaak GitHub releases, then installs it
 using APT.
-
-### Supported ENV
-
-- `YAAK_REGEX`
-    - Regular expression used to locate the Debian package in the latest GitHub release.
-    - Default:
-
-      ```text
-      yaak_.*_amd64\.deb$
-      ```
 
 ### Official Website
 

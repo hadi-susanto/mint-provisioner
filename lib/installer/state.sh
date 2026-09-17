@@ -50,9 +50,9 @@ __resolve_state_file() {
 #   1 - The key is invalid or no state.
 #
 get_state() {
-    local key="${1:-}"
+    local key="$1"
 
-    if (( $# != 1 )) || [[ -z "$key" ]]; then
+    if [[ -z "$key" ]]; then
         tlog_error "state" "A non-empty state key is required"
 
         return 1
@@ -64,7 +64,7 @@ get_state() {
         return 0
     fi
 
-    tlog_error "state" "State does not exist: %s" "$key"
+    tlog_warn "state" "State does not exist: %s" "$key"
 
     return 1
 }
@@ -83,10 +83,10 @@ get_state() {
 #   1 - The key is empty or the argument count is invalid.
 #
 set_state() {
-    local key="${1:-}"
-    local value="${2-}"
+    local key="$1"
+    local value="$2"
 
-    if (( $# != 2 )) || [[ -z "$key" ]]; then
+    if [[ -z "$key" || -z "$value" ]]; then
         tlog_error "state" "A non-empty state key and value are required"
 
         return 1
@@ -108,17 +108,11 @@ set_state() {
 #   1 - Validation, directory creation, serialization, or writing failed.
 #
 save_states() {
-    local canonical_id="${1:-}"
+    local canonical_id="$1"
     local state_file
     local state_dir
     local temporary_file
     local key
-
-    if (( $# != 1 )); then
-        tlog_error "state" "save_states requires one canonical ID"
-
-        return 1
-    fi
 
     state_file="$(__resolve_state_file "$canonical_id")" || return $?
     state_dir="${state_file%/*}"
@@ -167,15 +161,9 @@ save_states() {
 #   1 - The state file is invalid, missing, unreadable, or malformed.
 #
 load_states() {
-    local canonical_id="${1:-}"
+    local canonical_id="$1"
     local state_file
     local content
-
-    if (( $# != 1 )); then
-        tlog_error "state" "load_states requires one canonical ID"
-
-        return 1
-    fi
 
     state_file="$(__resolve_state_file "$canonical_id")" || return $?
     __STATES=()
@@ -213,15 +201,10 @@ load_states() {
 #   1 - Validation or deletion failed.
 #
 delete_states() {
-    local canonical_id="${1:-}"
+    local canonical_id="$1"
     local state_file
 
-    if (( $# != 1 )); then
-        tlog_error "state" "delete_states requires one canonical ID"
-
-        return 1
-    fi
-
+    __STATES=()
     state_file="$(__resolve_state_file "$canonical_id")" || return $?
 
     if [[ -e "$state_file" ]] && ! rm -f "$state_file"; then
@@ -229,6 +212,8 @@ delete_states() {
 
         return 1
     fi
+
+    return 0
 }
 
 ##

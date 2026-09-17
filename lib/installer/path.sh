@@ -6,7 +6,6 @@ fi
 
 readonly __MINT_PROVISIONER_PATH_LOADED=1
 
-source "$LIB_COMMON/common.sh"
 source "$LIB_INSTALLER/messages.sh"
 
 ##
@@ -29,14 +28,8 @@ source "$LIB_INSTALLER/messages.sh"
 #       failed.
 #
 expand_path() {
-    local path="${1:-}"
+    local path="$1"
     local expanded_path
-
-    if (( $# != 1 )) || [[ -z "$path" ]]; then
-        tlog_error "path" "A non-empty path is required"
-
-        return 1
-    fi
 
     if [[ "$path" == *$'\n'* || "$path" == *$'\r'* ]]; then
         tlog_error "path" "Path must be single-line"

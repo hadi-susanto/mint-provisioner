@@ -1,81 +1,47 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$LIB_COMMON/common.sh"
-source "$LIB_INSTALLER/state.sh"
+source "$LIB_WORKFLOW/$CANONICAL_ID/resolver.sh"
 
-__resolve_pgadmin_package() {
-    local ui="${1:-desktop}"
-    local package
+pgadmin_ui="${PGADMIN_UI:-}"
+tag="interactive:$CANONICAL_ID"
 
-    case "$ui" in
-        desktop)
-            package="pgadmin4-desktop"
-            ;;
-        web)
-            package="pgadmin4-web"
-            ;;
-        both)
-            package="pgadmin4"
-            ;;
-        *)
-            tlog_error "interactive:$CANONICAL_ID" \
-                "Invalid PGADMIN_UI value: %s. Expected desktop, web, or both." "$ui"
+if [[ -n "$pgadmin_ui" ]]; then
+    if resolve_pgadmin_package "$pgadmin_ui"; then
+        save_states "$CANONICAL_ID" || exit $?
 
-            return 1
-            ;;
-    esac
+        exit 0
+    fi
 
-    set_state "PGADMIN_PACKAGE" "$package"
-    tlog_info "interactive:$CANONICAL_ID" "Selected package: %s" "$package"
-}
-
-if [[ "${PGADMIN_NON_INTERACTIVE:-${NON_INTERACTIVE:-false}}" == "true" ]]; then
-    __resolve_pgadmin_package "${PGADMIN_UI:-desktop}" || exit $?
-    save_states "$CANONICAL_ID" || exit $?
-
-    exit 0
+    tlog_warn "$tag" "Fallback to interactive session: invalid PGADMIN_UI value."
 fi
 
 source "$LIB_INSTALLER/prompt.sh"
 
-__ask_pgadmin_package() {
-    local selected_index
-    local ui
+selected_index="$(
+    choose_option \
+        "Which pgAdmin package do you want to install?" \
+        "Desktop (pgadmin4-desktop)" \
+        "Web (pgadmin4-web)" \
+        "Desktop and Web (pgadmin4)"
+)" || exit $?
 
-    selected_index="$(
-        choose_option \
-            "Which pgAdmin package do you want to install?" \
-            "Desktop (pgadmin4-desktop)" \
-            "Web (pgadmin4-web)" \
-            "Desktop and web (pgadmin4)"
-    )" || return $?
+case "$selected_index" in
+    0)
+        resolve_pgadmin_package "desktop"
+        ;;
+    1)
+        resolve_pgadmin_package "web"
+        ;;
+    2)
+        resolve_pgadmin_package "both"
+        ;;
+    *)
+        tlog_error "$tag" \
+            "Unexpected pgAdmin package selection index: %s" "$selected_index"
 
-    case "$selected_index" in
-        0)
-            ui="desktop"
-            ;;
-        1)
-            ui="web"
-            ;;
-        2)
-            ui="both"
-            ;;
-        *)
-            tlog_error "interactive:$CANONICAL_ID" \
-                "Unexpected pgAdmin package selection index: %s" "$selected_index"
+        exit 1
+        ;;
+esac
 
-            return 1
-            ;;
-    esac
-
-    __resolve_pgadmin_package "$ui"
-}
-
-if [[ -n "${PGADMIN_UI:-}" ]]; then
-    __resolve_pgadmin_package "$PGADMIN_UI" || exit $?
-else
-    __ask_pgadmin_package || exit $?
-fi
-
-save_states "$CANONICAL_ID" || exit $?
+save_states "$CANONICAL_ID"

@@ -9,7 +9,7 @@ export MP_COMMAND="$MP_ROOT/command"
 export MP_MODULES="$MP_ROOT/modules"
 export LIB_COMMON="$MP_ROOT/lib/common"
 export LIB_INSTALLER="$MP_ROOT/lib/installer"
-export LIB_MISC="$MP_ROOT/lib/misc"
+export LIB_WORKFLOW="$MP_ROOT/lib/workflow"
 
 if [[ -z "${INSTALL_DIR:-}" ]]; then
     export INSTALL_DIR="${MP_ROOT%/*}"
