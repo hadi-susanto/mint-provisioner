@@ -1,0 +1,196 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ -z "${NO_COLOR:-}" ]] &&
+    { [[ -n "${FORCE_COLOR:-}" ]] || [[ -t 1 ]]; }; then
+    readonly COLOR_RED=$'\033[0;31m'
+    readonly COLOR_CYAN=$'\033[0;36m'
+    readonly COLOR_RESET=$'\033[0m'
+else
+    readonly COLOR_RED=""
+    readonly COLOR_CYAN=""
+    readonly COLOR_RESET=""
+fi
+
+__log_error() {
+    printf '%s[ERROR]%s %s\n' \
+        "$COLOR_RED" \
+        "$COLOR_RESET" \
+        "$*" >&2
+}
+
+__usage() {
+    cat <<EOF
+${COLOR_CYAN}Usage:${COLOR_RESET}
+  kafdrop [OPTIONS]
+
+Run Kafdrop with the configured Kafka brokers and listener port.
+
+${COLOR_CYAN}Options:${COLOR_RESET}
+  -h, --help             Display this help message
+  -b, --broker BROKER    Configure a Kafka broker
+  -p, --port PORT        Configure Kafdrop listener port
+
+BROKER uses the [host]:[port] format. Missing host defaults to localhost,
+and missing port defaults to 9092.
+
+If no broker is specified, localhost:9092 is used.
+
+If no port is specified, Kafdrop will listen on port 9000.
+
+${COLOR_CYAN}Examples:${COLOR_RESET}
+  kafdrop
+  kafdrop --broker localhost:9094
+  kafdrop --broker :9094
+  kafdrop --broker my-kafka
+  kafdrop -b kafka-1:9092 -b kafka-2:9092
+  kafdrop --broker kafka-1 --broker kafka-2:9093 --port 9001
+EOF
+}
+
+__parse_broker() {
+    local broker="$1"
+    local host
+    local port
+
+    if [[ -z "$broker" || "$broker" == ":" ]]; then
+        __log_error "Invalid broker: '$broker'"
+
+        return 2
+    fi
+
+    if [[ "$broker" == *:* ]]; then
+        host="${broker%%:*}"
+        port="${broker#*:}"
+    else
+        host="$broker"
+        port=""
+    fi
+
+    [[ -z "$host" ]] && host="localhost"
+    [[ -z "$port" ]] && port="9092"
+
+    if [[ ! "$port" =~ ^[0-9]+$ ]]; then
+        __log_error "Invalid broker port: '$port'"
+
+        return 2
+    fi
+
+    printf '%s:%s\n' "$host" "$port"
+}
+
+__parse_args() {
+    local brokers_name="$1"
+    local -n brokers_ref="$brokers_name"
+    local port_name="$2"
+    local -n port_ref="$port_name"
+
+    shift 2
+
+    brokers_ref=()
+    port_ref="9000"
+
+    while (($# > 0)); do
+        case "$1" in
+            -h | --help)
+                __usage
+                exit 0
+                ;;
+
+            -b | --broker)
+                if (($# < 2)); then
+                    __log_error "Option '$1' requires an argument."
+                    printf "Run 'kafdrop --help' for usage information.\n" >&2
+                    return 2
+                fi
+
+                local broker
+                if ! broker="$(__parse_broker "$2")"; then
+                    printf "Run 'kafdrop --help' for usage information.\n" >&2
+                    return 2
+                fi
+
+                brokers_ref+=("$broker")
+                shift 2
+                ;;
+
+            -p | --port)
+                if (($# < 2)); then
+                    __log_error "Option '$1' requires an argument."
+                    printf "Run 'kafdrop --help' for usage information.\n" >&2
+                    return 2
+                fi
+
+                if [[ ! "$2" =~ ^[0-9]+$ ]]; then
+                    __log_error "Invalid Kafdrop listener port: '$2'"
+                    printf "Run 'kafdrop --help' for usage information.\n" >&2
+                    return 2
+                fi
+
+                port_ref="$2"
+                shift 2
+                ;;
+
+            --)
+                shift
+
+                if (($# > 0)); then
+                    __log_error "Unexpected argument: '$1'"
+                    printf "Run 'kafdrop --help' for usage information.\n" >&2
+                    return 2
+                fi
+
+                return 0
+                ;;
+
+            -*)
+                __log_error "Unknown option: $1"
+                printf "Run 'kafdrop --help' for usage information.\n" >&2
+                return 2
+                ;;
+
+            *)
+                __log_error "Unexpected argument: '$1'"
+                printf "Run 'kafdrop --help' for usage information.\n" >&2
+                return 2
+                ;;
+        esac
+    done
+
+    if ((${#brokers_ref[@]} == 0)); then
+        brokers_ref=("localhost:9092")
+
+        printf '%s[INFO]%s Using default Kafka broker: localhost:9092\n' \
+            "$COLOR_CYAN" \
+            "$COLOR_RESET"
+
+        printf '%s[INFO]%s Please use --broker [host]:[port] to override.\n' \
+            "$COLOR_CYAN" \
+            "$COLOR_RESET"
+    fi
+}
+
+main() {
+    local -a brokers=()
+    local kafdrop_port="9000"
+
+    __parse_args brokers kafdrop_port "$@"
+
+    if ! command -v java >/dev/null 2>&1; then
+        __log_error "java is not installed or is not available in PATH."
+
+        return 1
+    fi
+
+    local broker_connect
+    broker_connect="$(IFS=,; printf '%s' "${brokers[*]}")"
+
+    java \
+        --add-opens=java.base/sun.nio.ch=ALL-UNNAMED \
+        -jar "KAFDROP_BINARY_FILE" \
+        "--kafka.brokerConnect=$broker_connect" \
+        "--server.port=$kafdrop_port" \
+        "--management.server.port=$kafdrop_port"
+}
+
+main "$@"

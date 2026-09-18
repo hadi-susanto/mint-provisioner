@@ -9,7 +9,7 @@ modules, see the [module contributor guide](CONTRIBUTING.md).
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **68 modules** across **8 categories**. A category is part of a module's canonical
+Mint Provisioner currently provides **69 modules** across **8 categories**. A category is part of a module's canonical
 ID:
 
 ```text
@@ -31,7 +31,7 @@ official project links.
 | Category                        | ID     | Modules                                                                                                                                                                                           |
 |---------------------------------|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [Command Line](CLI.md)          | `cli`  | `adb`, `bat`, `delta`, `eza`, `git`, `mkvtoolnix`, `procs`, `tlp`                                                                                                                                 |
-| [Development](DEV.md)           | `dev`  | `apache-maven`, `bruno`, `dbeaver-community`, `dbgate-community`, `docker`, `httptoolkit`, `mongodb-compass`, `pg-admin`, `postman`, `sdkman`, `yaak`                                             |
+| [Development](DEV.md)           | `dev`  | `apache-maven`, `bruno`, `dbeaver-community`, `dbgate-community`, `docker`, `httptoolkit`, `kafdrop`, `mongodb-compass`, `pg-admin`, `postman`, `sdkman`, `yaak`                                  |
 | [Desktop Applications](GUI.md)  | `gui`  | `brave-browser`, `brave-origin`, `cryptomator`, `deadbeef`, `double-commander`, `flameshot`, `fman`, `insync`, `keepass-xc`, `librewolf`, `microsoft-edge`, `mu-commander`, `sunflower`, `tlp-ui` |
 | [IDE](IDE.md)                   | `ide`  | `clion`, `cudatext`, `datagrip`, `geany`, `goland`, `idea`, `phpstorm`, `pycharm`, `rider`, `rubymine`, `rustrover`, `vscode`, `vscodium`, `webstorm`                                             |
 | [System Administration](SYS.md) | `sys`  | `apt-fast`, `dconf-editor`, `dnscrypt-proxy`, `nerd-font`, `system-toolkit`                                                                                                                       |
