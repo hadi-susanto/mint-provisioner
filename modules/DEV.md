@@ -12,6 +12,7 @@ up and maintain a productive development environment, including tools such as **
 - [Docker](#docker-docker)
 - [HTTP Toolkit](#http-toolkit-httptoolkit)
 - [Kafdrop](#kafdrop-kafdrop)
+- [Mise](#mise-mise)
 - [MongoDB Compass](#mongodb-compass-mongodb-compass-alias-compass)
 - [pgAdmin 4](#pgadmin-4-pg-admin-alias-pgadmin)
 - [Postman](#postman-postman)
@@ -243,6 +244,41 @@ When no broker is specified, `localhost:9092` is used.
 ### Official Website
 
 https://github.com/obsidiandynamics/kafdrop
+
+---
+
+## Mise (`mise`)
+
+Mise is a development tool for managing programming language runtimes, SDKs, and other development tools. It can
+install and switch between multiple tool versions, automatically activate environment variables, and manage
+project-specific tool configurations.
+
+### Installation Method
+
+**GitHub latest release (precompiled archive)**
+
+Downloads the latest Linux x86_64 MUSL TAR.XZ archive from the official GitHub release page, extracts the `mise`
+binary into the configured installation directory, makes it executable, and creates a symbolic link.
+
+### Supported ENV
+
+* `MISE_INSTALL_DIR`
+
+  * Installation directory.
+  * Default:
+    `${INSTALL_DIR}/mise`
+
+### System Toolkit Integration
+
+This module has additional features that can be enabled by running SysKit. See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
+
+Without System Toolkit, follow the **Activate mise** section in the
+[official mise installation guide](https://mise.jdx.dev/installing-mise.html).
+
+### Official Website
+
+https://mise.jdx.dev/
 
 ---
 
