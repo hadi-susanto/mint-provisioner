@@ -13,6 +13,7 @@ Graphical applications for productivity, file management, security, and everyday
 - [fman](#fman-fman)
 - [Insync](#insync-insync)
 - [KeePassXC](#keepassxc-keepass-xc-alias-keepass-alias-keepassxc)
+- [LibreWolf](#librewolf-librewolf)
 - [Microsoft Edge](#microsoft-edge-microsoft-edge-alias-edge)
 - [Mu Commander](#mu-commander-mu-commander-alias-mu-cmd)
 - [Sunflower](#sunflower-sunflower)
@@ -65,6 +66,20 @@ Multiple channels can be installed side by side. Use `--force` when another Brav
 ### Official Website
 
 https://brave.com/origin/
+
+---
+
+## LibreWolf (`librewolf`)
+
+### Installation Method
+
+**Official LibreWolf repository**
+
+Mint Provisioner uses the official LibreWolf repository and configures it independently without relying on `extrepo`.
+
+### Official Website
+
+https://librewolf.net/
 
 ---
 
