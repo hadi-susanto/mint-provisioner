@@ -39,7 +39,8 @@ mp install git gui/flameshot term/kitty
 If a short module ID resolves to multiple canonical IDs, installation stops and asks you to use a canonical ID.
 
 See the [module catalog and documentation](modules/README.md) for available modules, installation methods, supported
-environment variables, and configuration details.
+environment variables, and configuration details. See the [FAQ](FAQ.md) for common issues and solutions.
+
 
 ## 🌱 Project Origin
 

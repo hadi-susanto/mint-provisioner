@@ -45,7 +45,13 @@ github_find_release() {
 
     tlog_info "$tag" "Finding latest GitHub release: %s" "$api_url"
 
-    if ! body="$(curl -fsSL "$api_url")"; then
+    local -a curl_args=(-fsSL)
+
+    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+        curl_args+=(-H "Authorization: Bearer $GITHUB_TOKEN")
+    fi
+
+    if ! body="$(curl "${curl_args[@]}" "$api_url")"; then
         tlog_error "$tag" "Failed to fetch the GitHub release API"
 
         return 1
