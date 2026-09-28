@@ -11,6 +11,8 @@ up and maintain a productive development environment, including tools such as **
 - [DbGate Community](#dbgate-community-dbgate-community-alias-dbgate)
 - [Docker](#docker-docker)
 - [HTTP Toolkit](#http-toolkit-httptoolkit)
+- [Kafdrop](#kafdrop-kafdrop)
+- [Mise](#mise-mise)
 - [MongoDB Compass](#mongodb-compass-mongodb-compass-alias-compass)
 - [pgAdmin 4](#pgadmin-4-pg-admin-alias-pgadmin)
 - [Postman](#postman-postman)
@@ -202,6 +204,81 @@ https://httptoolkit.com/docs/getting-started/installing/
 ### GitHub Repository
 
 https://github.com/httptoolkit/httptoolkit-desktop
+
+---
+
+## Kafdrop (`kafdrop`)
+
+Kafdrop is a web-based UI for viewing and monitoring Apache Kafka brokers,
+topics, partitions, consumer groups, and messages.
+
+### Installation Method
+
+**GitHub latest release (`.jar`)**
+
+Downloads the latest Kafdrop JAR release from GitHub and installs it into the
+configured installation directory. The module creates a `kafdrop` executable
+wrapper that runs the JAR using Java.
+
+### Supported ENV
+
+- `KAFDROP_INSTALL_DIR`
+    - Installation directory.
+    - Default: `${INSTALL_DIR}/kafdrop`
+    - Must be writable by the current user; the resolved path is recorded in
+      the module registry after installation.
+
+### Configuration
+
+The `kafdrop` executable supports:
+
+- `-b, --broker [host]:[port]` to configure Kafka brokers.
+- Multiple broker options can be specified.
+- Missing broker host defaults to `localhost`.
+- Missing broker port defaults to `9092`.
+- `-p, --port` to configure the Kafdrop listener port.
+- The listener port defaults to `9000`.
+
+When no broker is specified, `localhost:9092` is used.
+
+### Official Website
+
+https://github.com/obsidiandynamics/kafdrop
+
+---
+
+## Mise (`mise`)
+
+Mise is a development tool for managing programming language runtimes, SDKs, and other development tools. It can
+install and switch between multiple tool versions, automatically activate environment variables, and manage
+project-specific tool configurations.
+
+### Installation Method
+
+**GitHub latest release (precompiled archive)**
+
+Downloads the latest Linux x86_64 MUSL TAR.XZ archive from the official GitHub release page, extracts the `mise`
+binary into the configured installation directory, makes it executable, and creates a symbolic link.
+
+### Supported ENV
+
+* `MISE_INSTALL_DIR`
+
+  * Installation directory.
+  * Default:
+    `${INSTALL_DIR}/mise`
+
+### System Toolkit Integration
+
+This module has additional features that can be enabled by running SysKit. See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
+
+Without System Toolkit, follow the **Activate mise** section in the
+[official mise installation guide](https://mise.jdx.dev/installing-mise.html).
+
+### Official Website
+
+https://mise.jdx.dev/
 
 ---
 
