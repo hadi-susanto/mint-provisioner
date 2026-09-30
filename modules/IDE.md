@@ -1,8 +1,7 @@
 # IDE (`ide`)
 
 Integrated development environments and source-code editors for software development,
-ranging from lightweight editors such as Geany and CudaText to Visual Studio Code, VSCodium, and full-featured
-JetBrains IDEs.
+ranging from lightweight editors and full-featured IDEs.
 
 ## Contents
 

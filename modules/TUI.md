@@ -1,8 +1,7 @@
 # 📟 Terminal UI (`tui`)
 
 Interactive terminal applications that provide rich text-based user interfaces. These applications combine the
-efficiency of the terminal with a visual interface, including tools such as **lazygit**, **gitui**, **bottom**, **duf**,
-**du-analyzer**, and **du-rust**.
+efficiency of the terminal with a visual interface.
 
 ## Contents
 

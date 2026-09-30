@@ -1,6 +1,6 @@
 # `>_` Terminal (`term`)
 
-Terminal emulators, shells, prompts, themes, and tools that enhance the terminal experience. This category includes software such as **Kitty**, **Ghostty**, **Alacritty**, **Terminator**, **Zsh**, **Starship**, **Oh My Posh**, and **Powerlevel10k**.
+Terminal emulators, shells, prompts, themes, and tools that enhance the terminal experience.
 
 ## Contents
 
