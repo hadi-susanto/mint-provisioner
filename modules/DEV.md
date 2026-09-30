@@ -7,14 +7,10 @@ up and maintain a productive development environment.
 
 - [Apache Maven](#apache-maven-apache-maven-alias-maven-alias-mvn)
 - [Bruno](#bruno-bruno)
-- [DBeaver Community](#dbeaver-community-dbeaver-community-alias-dbeaver)
-- [DbGate Community](#dbgate-community-dbgate-community-alias-dbgate)
 - [Docker](#docker-docker)
 - [HTTP Toolkit](#http-toolkit-httptoolkit)
 - [Kafdrop](#kafdrop-kafdrop)
 - [Mise](#mise-mise)
-- [MongoDB Compass](#mongodb-compass-mongodb-compass-alias-compass)
-- [pgAdmin 4](#pgadmin-4-pg-admin-alias-pgadmin)
 - [Postman](#postman-postman)
 - [SDKMAN!](#sdkman-sdkman)
 - [Yaak](#yaak-yaak)
@@ -64,59 +60,6 @@ https://www.usebruno.com/
 ### Documentation
 
 https://docs.usebruno.com/get-started/bruno-basics/download
-
----
-
-## DBeaver Community (`dbeaver-community`) [alias: `dbeaver`]
-
-DBeaver Community is a free and open-source database management tool. It supports many database engines, including
-PostgreSQL, MySQL, MariaDB, SQLite, SQL Server, and Oracle.
-
-### Installation Method
-
-**Official DBeaver Community PPA**
-
-Adds the DBeaver Community PPA and installs the `dbeaver-ce` package using APT.
-
-Installing from the PPA allows DBeaver to receive updates through the standard system package upgrade process.
-
-### Supported ENV
-
-- `DBEAVER_COMMUNITY_USE_APT_ADD_REPOSITORY`
-    - Controls whether the Launchpad repository is added using `add-apt-repository`.
-    - Default:
-      `${USE_APT_ADD_REPOSITORY}`
-
-### Official Website
-
-https://dbeaver.io/
-
----
-
-## DbGate Community (`dbgate-community`) [alias: `dbgate`]
-
-DbGate Community is a cross-platform database management application supporting relational databases, NoSQL databases,
-and Redis. It provides database browsing, data editing, SQL development, import and export, and database administration
-tools.
-
-### Installation Method
-
-**GitHub latest release (`.deb`)**
-
-Downloads the latest Debian package from the DbGate GitHub releases page using its permanent latest-release URL, then
-installs it using APT.
-
-Because DbGate publishes a stable `latest/download` URL, the module does not need to query the GitHub API or use a
-release
-asset regular expression.
-
-### Official Website
-
-https://www.dbgate.org/
-
-### GitHub Repository
-
-https://github.com/dbgate/dbgate
 
 ---
 
@@ -279,31 +222,6 @@ Without System Toolkit, follow the **Activate mise** section in the
 ### Official Website
 
 https://mise.jdx.dev/
-
----
-
-## MongoDB Compass (`mongodb-compass`) [alias: `compass`]
-
-MongoDB Compass is the official graphical database management and development application for MongoDB. It provides
-document exploration and editing, schema analysis, query construction, aggregation pipeline development, index
-management, and database performance information.
-
-### Installation Method
-
-**GitHub latest release (`.deb`)**
-
-Locates and downloads the latest AMD64 Debian package from the official MongoDB Compass GitHub releases, then installs
-it using APT.
-
-### Official Website
-
-https://www.mongodb.com/products/tools/compass/
-
-### GitHub Repository
-
-https://github.com/mongodb-js/compass
-
-
 
 ---
 
