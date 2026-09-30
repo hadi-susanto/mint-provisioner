@@ -26,6 +26,7 @@ declare -Ar __MINT_PROVISIONER_MODULE_ALIASES=(
     [mkvmerge]="cli/mkvtoolnix"
     [mu-cmd]="gui/mu-commander"
     [mvn]="dev/apache-maven"
+    [mongodb]="db/mongodb-community"
     [omp]="term/oh-my-posh"
     [origin]="gui/brave-origin"
     [pgadmin]="dev/pg-admin"
