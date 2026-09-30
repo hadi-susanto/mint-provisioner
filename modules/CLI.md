@@ -10,6 +10,7 @@ applications such as **bat**, **eza**, **delta**, **git**, and **adb**.
 - [Bat](#bat-bat)
 - [Delta](#delta-delta)
 - [Eza](#eza-eza)
+- [Google Cloud CLI](#google-cloud-cli-gcloud)
 - [Git](#git-git)
 - [MKVToolNix](#mkvtoolnix-mkvtoolnix-alias-mkvmerge)
 - [Procs](#procs-procs)
@@ -110,6 +111,24 @@ This module has additional features that can be enabled by running SysKit. See t
 ### Official Website
 
 https://github.com/eza-community/eza
+
+---
+
+## Google Cloud CLI (`gcloud`)
+
+Google Cloud CLI (`gcloud`) is Google's official command-line interface for managing Google Cloud
+resources and services. It provides commands for authentication, project and configuration
+management, resource administration, application deployment, and interaction with Google Cloud APIs.
+
+### Installation Method
+
+**Official APT repository**
+
+Installs the Google Cloud CLI from Google's official APT package repository.
+
+### Official Website
+
+https://cloud.google.com/sdk
 
 ---
 
