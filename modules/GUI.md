@@ -1,6 +1,6 @@
 # 🖥️ Desktop Applications (`gui`)
 
-Graphical applications for productivity, file management, security, and everyday desktop workflows. This category includes desktop software such as **Double Commander**, **Flameshot**, **KeePassXC**, **Cryptomator**, **Sunflower**, and **muCommander**.
+Graphical applications for productivity, file management, security, and everyday desktop workflows.
 
 ## Contents
 

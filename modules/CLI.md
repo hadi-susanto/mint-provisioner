@@ -2,7 +2,7 @@
 
 Command-line utilities that improve everyday productivity, simplify common tasks, and enhance developer workflows. This
 category includes modern replacements for classic Unix tools, version control utilities, and other command-line
-applications such as **bat**, **eza**, **delta**, **git**, and **adb**.
+applications.
 
 ## Contents
 

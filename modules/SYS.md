@@ -1,8 +1,7 @@
 # ⚙️ System (`sys`)
 
 System utilities, machine setup, performance tools, fonts, and operating system configuration. Modules in this category
-help configure, maintain, and optimize the operating system, including tools such as **apt-fast**, **Nerd Fonts**, and
-**System Toolkit**.
+help configure, maintain, and optimize the operating system.
 
 ## Contents
 

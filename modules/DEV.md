@@ -1,7 +1,7 @@
 # 🛠️ Development (`dev`)
 
 Software development tools, SDK managers, build systems, and programming environments. Modules in this category help set
-up and maintain a productive development environment, including tools such as **Apache Maven** and **SDKMAN!**.
+up and maintain a productive development environment.
 
 ## Contents
 
