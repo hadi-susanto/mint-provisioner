@@ -8,6 +8,7 @@ up and maintain a productive development environment.
 - [Apache Maven](#apache-maven-apache-maven-alias-maven-alias-mvn)
 - [Bruno](#bruno-bruno)
 - [Docker](#docker-docker)
+- [Google Cloud CLI](#google-cloud-cli-gcloud)
 - [HTTP Toolkit](#http-toolkit-httptoolkit)
 - [Kafdrop](#kafdrop-kafdrop)
 - [Mise](#mise-mise)
@@ -121,6 +122,24 @@ https://www.docker.com/
 ### Documentation
 
 https://docs.docker.com/engine/
+
+---
+
+## Google Cloud CLI (`gcloud`)
+
+Google Cloud CLI (`gcloud`) is Google's official command-line interface for managing Google Cloud
+resources and services. It provides commands for authentication, project and configuration
+management, resource administration, application deployment, and interaction with Google Cloud APIs.
+
+### Installation Method
+
+**Official APT repository**
+
+Installs the Google Cloud CLI from Google's official APT package repository.
+
+### Official Website
+
+https://cloud.google.com/sdk
 
 ---
 

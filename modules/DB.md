@@ -9,7 +9,7 @@ servers, database clients, management utilities, and other tools for working wit
 - [DbGate Community](#dbgate-community-dbgate-community-alias-dbgate)
 - [Memcached](#memcached-memcached)
 - [MongoDB Compass](#mongodb-compass-mongodb-compass-alias-compass)
-- [MongoDB Server](#mongodb-server-mongodb)
+- [MongoDB Community](#mongodb-server-mongodb-community-alias-mongodb)
 - [pgAdmin 4](#pgadmin-4-pg-admin-alias-pgadmin)
 - [PostgreSQL Server](#postgresql-server-postgresql)
 - [Redis](#redis-redis)
@@ -111,7 +111,7 @@ https://github.com/mongodb-js/compass
 
 ---
 
-## MongoDB Server (`mongodb`)
+## MongoDB Community (`mongodb-community`) [alias: `mongodb`]
 
 MongoDB is a document-oriented NoSQL database designed for flexibility, scalability, and high
 performance. It stores data in flexible JSON-like documents and provides powerful querying,
