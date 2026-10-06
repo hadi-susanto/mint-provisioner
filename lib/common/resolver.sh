@@ -12,6 +12,7 @@ declare -Ar __MINT_PROVISIONER_MODULE_ALIASES=(
     [anydesk]="misc/any-desk"
     [btm]="tui/bottom"
     [brave]="gui/brave-browser"
+    [claude]="misc/claude-code"
     [compass]="db/mongodb-compass"
     [db-cmd]="gui/double-commander"
     [dbgate]="db/dbgate-community"
