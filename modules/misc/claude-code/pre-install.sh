@@ -2,6 +2,7 @@
 set -euo pipefail
 
 source "$LIB_INSTALLER/downloader.sh"
+source "$LIB_INSTALLER/extractor.sh"
 source "$LIB_INSTALLER/state.sh"
 source "$LIB_WORKFLOW/install-target.sh"
 
@@ -90,6 +91,10 @@ __resolve_claude_checksum() {
     return 1
 }
 
+__zstd_available() {
+    command -v zstd >/dev/null 2>&1
+}
+
 __download_claude_binary() {
     local canonical_id="$1"
     local version="$2"
@@ -98,33 +103,62 @@ __download_claude_binary() {
     local result_name="$5"
     local tag="download:$canonical_id"
     local -n result_ref="$result_name"
-    local temp_file
+    local use_zstd=0
+    local asset_name="claude"
+    local downloaded_file
     local actual_checksum
 
-    if ! temp_file="$(mktemp)"; then
+    if __zstd_available; then
+        use_zstd=1
+        asset_name="claude.zst"
+    fi
+
+    if ! result_ref="$(mktemp)"; then
         tlog_error "$tag" "Failed to create a temporary file"
 
         return 1
     fi
 
+    downloaded_file="$result_ref"
+    if (( use_zstd == 1 )); then
+        downloaded_file="${result_ref}.zst"
+    fi
+
+    tlog_info "$tag" "Downloading %s asset" "$asset_name"
     if ! download_file "$canonical_id" \
-        "$CLAUDE_DOWNLOAD_BASE_URL/$version/$platform/claude" "$temp_file"; then
+        "$CLAUDE_DOWNLOAD_BASE_URL/$version/$platform/$asset_name" "$downloaded_file"; then
         tlog_error "$tag" "Download failed"
-        rm -f -- "$temp_file"
+        rm -f -- "$result_ref" "$downloaded_file"
 
         return 1
     fi
 
-    actual_checksum="$(sha256sum "$temp_file" | awk '{ print $1 }')"
+    if (( use_zstd == 1 )); then
+        if ! extract_archive "$canonical_id" "zst" "$downloaded_file" "$(dirname -- "$result_ref")"; then
+            rm -f -- "$result_ref" "$downloaded_file"
+
+            return 1
+        fi
+
+        rm -f -- "$downloaded_file"
+    fi
+
+    if [[ ! -f "$result_ref" ]]; then
+        tlog_error "$tag" "Expected binary not found: %s" "$result_ref"
+        rm -f -- "$result_ref"
+
+        return 1
+    fi
+
+    actual_checksum="$(sha256sum "$result_ref" | awk '{ print $1 }')"
     if [[ "${actual_checksum,,}" != "${checksum,,}" ]]; then
         tlog_error "$tag" "Checksum verification failed"
-        rm -f -- "$temp_file"
+        rm -f -- "$result_ref"
 
         return 1
     fi
 
     tlog_info "$tag" "Checksum verified"
-    result_ref="$temp_file"
 }
 
 main() {
