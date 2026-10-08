@@ -15,7 +15,7 @@ source "$LIB_COMMON/common.sh"
 #
 # Parameters:
 #   canonical_id - Canonical module ID used for tagged logging.
-#   type - Archive type (for example: zip, tar, tar.gz).
+#   type - Archive type (for example: zip, tar, tar.gz, zst).
 #   source - Archive file path.
 #   destination - Extraction destination directory.
 #   extractor args... - Additional extractor arguments passed as-is.
@@ -60,19 +60,29 @@ extract_archive() {
 
     case "$archive_type" in
         zip)
-            unzip -o "$@" "$source_file" -d "$destination_dir" || status = $?
+            unzip -o "$@" "$source_file" -d "$destination_dir" || status=$?
             ;;
         tar)
-            tar --overwrite -xf "$source_file" -C "$destination_dir" "$@" || status = $?
+            tar --overwrite -xf "$source_file" -C "$destination_dir" "$@" || status=$?
             ;;
         tar.gz)
-            tar --overwrite -xzf "$source_file" -C "$destination_dir" "$@" || status = $?
+            tar --overwrite -xzf "$source_file" -C "$destination_dir" "$@" || status=$?
             ;;
         tar.bz2)
-            tar --overwrite -xjf "$source_file" -C "$destination_dir" "$@" || status = $?
+            tar --overwrite -xjf "$source_file" -C "$destination_dir" "$@" || status=$?
             ;;
         tar.bxz | txz)
-            tar --overwrite -xJf "$source_file" -C "$destination_dir" "$@" || status = $?
+            tar --overwrite -xJf "$source_file" -C "$destination_dir" "$@" || status=$?
+            ;;
+        zst)
+            if ! command -v zstd >/dev/null 2>&1; then
+                tlog_error "$tag" "zstd is required to extract .zst archives"
+
+                return 1
+            fi
+
+            zstd -d -f "$@" -o "$destination_dir/$(basename -- "${source_file%.zst}")" \
+                "$source_file" || status=$?
             ;;
         *)
             tlog_error "$tag" "Unsupported archive type: %s" "$archive_type"
