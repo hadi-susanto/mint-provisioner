@@ -129,8 +129,16 @@ Nerd Fonts provides patched developer fonts containing thousands of additional g
 
 **GitHub latest release (precompiled archive)**
 
-The installer downloads selected font archives from the official Nerd Fonts project, extracts the fonts into the system font directory (`/usr/local/share/fonts/nerd-font`), and refreshes the font cache.
+The installer downloads selected font archives (`.tar.xz`) from the official Nerd Fonts project, extracts the fonts
+into the system font directory (`/usr/local/share/fonts/nerd-font`), and refreshes the font cache.
 The installer creates one folder per font family, for example `/usr/local/share/fonts/nerd-font/FiraCode`.
+
+### Interactive and Non-interactive Setup
+
+Running `mp install` interactively presents every font family published in the latest Nerd Fonts GitHub release as a
+`whiptail` checklist when `whiptail` is available, letting multiple families be toggled and confirmed. Otherwise it
+falls back to listing the families in columns and prompting for one or more family names (comma-separated).
+`mp install --non-interactive` resolves the selection from the environment variables below instead of prompting.
 
 ### Supported ENV
 
@@ -141,27 +149,20 @@ The installer creates one folder per font family, for example `/usr/local/share/
     - Single-family or comma-separated selection.
     - Used only when `NERD_FONT_FAMILIES` is empty.
 
-At least one of these variables must be non-empty. Family names are trimmed,
-validated, and deduplicated before downloads begin.
+At least one of these variables must be non-empty when running non-interactively. Family names are trimmed and
+deduplicated, then validated against the font families published in the latest GitHub release.
 
-### Installation Detection and Registry
+### Installation Detection
 
-Detection checks the requested family directory and requires at least one `.ttf` or `.otf` file. Mint Provisioner keeps
-one registry file for the module containing the install root and a comma-separated, sorted list of font families that
-it manages. Post-install reconciliation removes missing managed families from that list and adds every successfully
-installed family from the current request.
+The font family selection is not yet known when `installed.sh` runs (before the interactive or non-interactive
+session), so `installed.sh` always reports the module as not installed. The actual per-family check — the requested
+family directory must contain at least one `.ttf` or `.otf` file — happens during `pre-install.sh`, which skips the
+download for any family that is already installed.
 
-Valid font families found under the install root but absent from the registry remain unmanaged. The installer logs and
-stores aggregated warnings for unmanaged families and managed families that were removed manually.
-
-### Post-install Configuration
-
-#### Installed Configuration
+### Installed Configuration
 
 - Installs the selected fonts into `/usr/local/share/fonts/nerd-font/<family>`.
 - Refreshes the font cache automatically using `fc-cache`.
-- Reconciles installed families with the registry without adopting fonts installed manually.
-- Can be rerun after ordinary cleanup; when transient installation state is absent, only existing registry entries are reconciled.
 
 ### Official Website
 
