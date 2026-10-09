@@ -9,7 +9,7 @@ modules, see the [module contributor guide](CONTRIBUTING.md).
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **80 modules** across **10 categories**. A category is part of a module's canonical
+Mint Provisioner currently provides **81 modules** across **10 categories**. A category is part of a module's canonical
 ID:
 
 ```text
@@ -30,7 +30,7 @@ official project links.
 
 | Category                        | ID     | Modules                                                                                                                                               |
 |---------------------------------|--------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [Command Line](CLI.md)          | `cli`  | `adb`, `bat`, `delta`, `eza`, `git`, `mkvtoolnix`, `procs`, `tlp`                                                                                     |
+| [Command Line](CLI.md)          | `cli`  | `adb`, `bat`, `delta`, `eza`, `git`, `mkvtoolnix`, `openconnect-saml`, `procs`, `tlp`                                                                 |
 | [Database](DB.md)               | `db`   | `dbeaver-community`, `dbgate-community`, `memcached`, `mongodb-community`, `mongodb-compass`, `pg-admin`, `postgresql`, `redis`                       |
 | [Development](DEV.md)           | `dev`  | `apache-maven`, `bruno`, `docker`, `gcloud`, `httptoolkit`, `kafdrop`, `mise`, `postman`, `sdkman`, `yaak`                                            |
 | [Desktop Applications](GUI.md)  | `gui`  | `cryptomator`, `deadbeef`, `double-commander`, `flameshot`, `fman`, `insync`, `keepass-xc`, `mu-commander`, `sunflower`, `tlp-ui`                     |

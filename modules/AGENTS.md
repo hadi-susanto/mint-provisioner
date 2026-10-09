@@ -303,6 +303,21 @@ add_to_path "$CANONICAL_ID" "${APACHE_MAVEN_INSTALL_DIR}/bin"
 Do not create a user configuration script or call `add_bash_source` and
 `add_zsh_source` solely to register an installed binary directory.
 
+### Modules Installed with pipx
+
+- Any module that installs software with `pipx` must use a shared `PIPX_INSTALL_DIR` and fall back to
+  `INSTALL_DIR/pipx`. Do not introduce a module-specific install-directory variable for pipx installations.
+- Use the resolved directory as `PIPX_HOME`, scoped to the `pipx` command rather than exported to the caller's
+  environment. pipx creates each package environment under `$PIPX_HOME/venvs/<package-name>`.
+- Do not override `PIPX_BIN_DIR`.
+- Register the executable with `symlink_binary`, using the executable inside the package environment.
+
+Example:
+
+    PIPX_INSTALL_DIR="${PIPX_INSTALL_DIR:-$INSTALL_DIR/pipx}"
+
+    PIPX_HOME="$PIPX_INSTALL_DIR" pipx install --force "package-name"
+
 ## GitHub and External Modules
 
 These rules apply to modules that download `.deb` packages or archives such as
