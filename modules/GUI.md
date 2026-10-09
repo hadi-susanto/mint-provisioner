@@ -11,6 +11,7 @@ Graphical applications for productivity, file management, security, and everyday
 - [Double Commander](#double-commander-double-commander-alias-db-cmd)
 - [Flameshot](#flameshot-flameshot)
 - [fman](#fman-fman)
+- [Google Chrome](#google-chrome-google-chrome-alias-chrome)
 - [Insync](#insync-insync)
 - [KeePassXC](#keepassxc-keepass-xc-alias-keepass-alias-keepassxc)
 - [LibreWolf](#librewolf-librewolf)
@@ -212,6 +213,50 @@ https://github.com/mherrmann/fman
 ### Official Website
 
 https://fman.io/
+
+---
+
+## Google Chrome (`google-chrome`) [alias: `chrome`]
+
+Google Chrome is Google's Chromium-based web browser. The module supports Stable, Beta, Unstable, and Canary channels.
+
+### Installation Method
+
+**Official Google Chrome APT repository**
+
+Configures Google's Chrome repository and installs the selected package:
+
+| Channel  | Package                  |
+|----------|--------------------------|
+| Stable   | `google-chrome-stable`   |
+| Beta     | `google-chrome-beta`     |
+| Unstable | `google-chrome-unstable` |
+| Canary   | `google-chrome-canary`   |
+
+Multiple Chrome channels can be installed side by side. Use `GOOGLE_CHROME_CHANNEL` to select a channel directly. If a
+Chrome channel is already installed, add `--force` to run the module again and install another channel.
+
+Example without prompts:
+
+```bash
+GOOGLE_CHROME_CHANNEL=beta mp install --non-interactive gui/google-chrome
+```
+
+### Supported ENV
+
+- `GOOGLE_CHROME_CHANNEL`
+    - Supported values: `stable`, `beta`, `unstable`, `canary`.
+    - Default: `stable` in non-interactive mode.
+
+### Repository
+
+Uses Google's APT repository (`https://dl.google.com/linux/chrome-stable/deb/`, suite `stable`, component `main`),
+signed with the key from `https://dl.google.com/linux/linux_signing_key.pub`. The source file is named
+`google-chrome.sources`, the same name the Chrome package uses, so the package updates it instead of adding a duplicate.
+
+### Official Website
+
+https://www.google.com/chrome/
 
 ---
 

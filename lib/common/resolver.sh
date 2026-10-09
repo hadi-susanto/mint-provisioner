@@ -20,6 +20,7 @@ declare -Ar __MINT_PROVISIONER_MODULE_ALIASES=(
     [dnscrypt]="sys/dnscrypt-proxy"
     [dua]="tui/du-analyzer"
     [dust]="tui/du-rust"
+    [chrome]="gui/google-chrome"
     [edge]="gui/microsoft-edge"
     [keepass]="gui/keepass-xc"
     [keepassxc]="gui/keepass-xc"
