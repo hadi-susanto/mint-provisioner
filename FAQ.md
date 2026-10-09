@@ -31,13 +31,13 @@ export GITHUB_TOKEN="github_pat_..."
 Then run the Mint Provisioner command again:
 
 ```bash
-./install.sh ...
+mp install ...
 ```
 
 Alternatively, provide the token for a single invocation:
 
 ```bash
-GITHUB_TOKEN="github_pat_..." ./install.sh ...
+GITHUB_TOKEN="github_pat_..." mp install ...
 ```
 
 > **Note:** Mint Provisioner only requires the token for GitHub API
