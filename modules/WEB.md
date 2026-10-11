@@ -6,6 +6,7 @@ Web-related applications for browsing, communicating, and working online.
 
 - [Brave Browser](#brave-browser-brave-browser-alias-brave)
 - [Brave Origin](#brave-origin-brave-origin-alias-origin)
+- [Firefox](#firefox-firefox)
 - [Firefox PWA](#firefox-pwa-firefox-pwa)
 - [Google Chrome](#google-chrome-google-chrome-alias-chrome)
 - [LibreWolf](#librewolf-librewolf)
@@ -58,6 +59,30 @@ Multiple channels can be installed side by side. Use `--force` when another Brav
 ### Official Website
 
 https://brave.com/origin/
+
+---
+
+## Firefox (`firefox`)
+
+Firefox is Mozilla's open-source web browser. This module installs Mozilla's own build instead of the distribution package.
+
+### Installation Method
+
+**Official Mozilla APT repository (`packages.mozilla.org`)**
+
+The module also writes `/etc/apt/preferences.d/mozilla.pref`:
+
+- Pins `packages.mozilla.org` at priority 1000 so the Mozilla `firefox` package overrides the system package (Linux Mint's
+  or Ubuntu's) and keeps receiving updates from Mozilla.
+- Pins `firefox*` packages from the Ubuntu archive at priority -1, so apt never falls back to Ubuntu's transitional
+  snap packages on Ubuntu or Ubuntu-based distributions.
+
+The module is reported as installed only when this pin exists and the `firefox` package is installed; use `--force` to
+reapply it.
+
+### Official Website
+
+https://www.mozilla.org/firefox/
 
 ---
 
