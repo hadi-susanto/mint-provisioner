@@ -326,7 +326,7 @@ These rules apply to modules that download `.deb` packages or archives such as
 ### Download Phase (`pre-install.sh`)
 
 - Download installation assets during `pre-install.sh`.
-- Source `lib/installer/external.sh` and `lib/installer/state.sh`.
+- Source `lib/installer/github.sh` (GitHub releases), `lib/installer/downloader.sh`, and `lib/installer/state.sh`.
 - Create temporary download paths with `mktemp`.
 - For GitHub releases:
   - Use `github_find_release` to resolve the latest matching asset.
@@ -343,7 +343,8 @@ These rules apply to modules that download `.deb` packages or archives such as
 Example for a GitHub release:
 
 ```bash
-source "${LIB_INSTALLER}/external.sh"
+source "${LIB_INSTALLER}/github.sh"
+source "${LIB_INSTALLER}/downloader.sh"
 source "${LIB_INSTALLER}/state.sh"
 
 if ! download_file="$(mktemp --suffix=.tar.gz)"; then
@@ -388,7 +389,7 @@ save_states "$CANONICAL_ID" || exit 4
 For `.deb` packages:
 
 - Source `lib/installer/apt.sh`.
-- Call `apt_install` with the absolute path to the downloaded package.
+- Call `apt_install "$CANONICAL_ID"` with the absolute path to the downloaded package.
 
 Example:
 
@@ -405,7 +406,7 @@ if [[ ! -f "$DEB_FILE" ]]; then
     exit 2
 fi
 
-apt_install "$DEB_FILE"
+apt_install "$CANONICAL_ID" "$DEB_FILE"
 ```
 
 For archives containing a single primary binary:

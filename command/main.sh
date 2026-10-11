@@ -85,7 +85,7 @@ main() {
             printf 'Unsupported command: %s\n\n' "${options[CMD]}" >&2
             bash "$MP_COMMAND/help.sh" >&2
 
-            return 1
+            return 2
             ;;
     esac
 }

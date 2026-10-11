@@ -494,9 +494,9 @@ Use this structure for new dedicated commands:
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$LIB_DIR/common.sh"
-source "$LIB_DIR/logging.sh"
-source "$LIB_DIR/module.sh"
+source "$LIB_COMMON/common.sh"
+source "$LIB_COMMON/metadata.sh"
+source "$LIB_COMMON/resolver.sh"
 
 __parse_args() {
     local options_name="$1"
