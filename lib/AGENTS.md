@@ -120,8 +120,7 @@ fi
 
 readonly __MINT_PROVISIONER_EXTERNAL_INSTALLER_LOADED=1
 
-source "$LIB_DIR/common.sh"
-source "$LIB_DIR/log.sh"
+source "$LIB_COMMON/common.sh"
 ```
 
 Avoid unnecessary dependencies and circular imports.
@@ -408,7 +407,7 @@ fi
 
 readonly __MINT_PROVISIONER_EXAMPLE_LIBRARY_LOADED=1
 
-source "$LIB_DIR/common.sh"
+source "$LIB_COMMON/common.sh"
 
 ##
 # example_public_function
@@ -416,7 +415,7 @@ source "$LIB_DIR/common.sh"
 # Performs one coherent library operation.
 #
 # Parameters:
-#   $1 - Description of the input.
+#   input - Description of the input.
 #
 # Output:
 #   Prints the resolved value to standard output.
