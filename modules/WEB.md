@@ -6,6 +6,7 @@ Web-related applications for browsing, communicating, and working online.
 
 - [Brave Browser](#brave-browser-brave-browser-alias-brave)
 - [Brave Origin](#brave-origin-brave-origin-alias-origin)
+- [Firefox PWA](#firefox-pwa-firefox-pwa)
 - [Google Chrome](#google-chrome-google-chrome-alias-chrome)
 - [LibreWolf](#librewolf-librewolf)
 - [Microsoft Edge](#microsoft-edge-microsoft-edge-alias-edge)
@@ -57,6 +58,26 @@ Multiple channels can be installed side by side. Use `--force` when another Brav
 ### Official Website
 
 https://brave.com/origin/
+
+---
+
+## Firefox PWA (`firefox-pwa`)
+
+FirefoxPWA installs websites as Progressive Web Apps that run as standalone desktop apps using a dedicated Firefox runtime.
+
+### Installation Method
+
+**Official FirefoxPWA APT repository (packagecloud.io)**
+
+Installs the `firefoxpwa` native connector from the cross-distribution `any` repository.
+
+### Post-install
+
+Install the PWAsForFirefox browser extension in Firefox. Run `firefoxpwa runtime install` when no system Firefox is used.
+
+### Official Website
+
+https://pwasforfirefox.filips.si/
 
 ---
 
