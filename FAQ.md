@@ -42,3 +42,24 @@ GITHUB_TOKEN="github_pat_..." mp install ...
 
 > **Note:** Mint Provisioner only requires the token for GitHub API
 > authentication. It does not require access to private repositories.
+
+## Interactive Prompts Look Broken or Render Oddly
+
+### Problem
+
+Interactive module questions are shown as `whiptail` dialogs, which may render
+poorly in some terminals (for example limited terminal emulators, serial
+consoles, or unusual `TERM` values).
+
+### Solution
+
+Set `DISABLE_WHIPTAIL=true` to force the plain-text prompts, which only need
+Bash:
+
+```bash
+DISABLE_WHIPTAIL=true mp install ...
+```
+
+Mint Provisioner uses `whiptail` automatically when it is installed and
+`TERM` is set to something other than `dumb`; otherwise it already falls back
+to plain-text prompts. Only the exact value `true` disables `whiptail`.
