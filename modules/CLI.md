@@ -14,6 +14,7 @@ applications.
 - [MKVToolNix](#mkvtoolnix-mkvtoolnix-alias-mkvmerge)
 - [OpenConnect SAML](#openconnect-saml-openconnect-saml)
 - [Procs](#procs-procs)
+- [rclone](#rclone-rclone)
 - [TLP](#tlp-tlp)
 
 ---
@@ -247,6 +248,36 @@ a symbolic link for the executable.
 ### Official Website
 
 https://github.com/dalance/procs
+
+---
+
+## rclone (`rclone`)
+
+rclone is a command-line program for syncing, copying, and mounting files on cloud storage such as OneDrive, Google
+Drive, and S3-compatible services.
+
+### Installation Method
+
+**GitHub latest release (`.deb` package)**
+
+The installer downloads the latest Linux amd64 `.deb` from the official GitHub releases page and installs it with APT.
+
+### Supported ENV
+
+None.
+
+### Post-install Guide
+
+The module does not create remotes. After installation, it points to https://rclone.org/, where the supported
+providers are listed with setup instructions, and shows the command to start configuration:
+
+```bash
+rclone config
+```
+
+### Official Website
+
+https://rclone.org/
 
 ---
 
