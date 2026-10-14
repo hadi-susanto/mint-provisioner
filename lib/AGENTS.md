@@ -101,6 +101,17 @@ The guard variable must:
 
 Do not use `exit` in a sourcing guard. A library must return control to its caller.
 
+### Exception: Private Backends
+
+A library whose filename starts with `__` (for example `__prompt_basic.sh`) is a private backend loaded only by a
+public loader library of the same name (for example `prompt.sh`).
+
+A private backend may omit the double-sourcing guard and any one-time environment checks (such as the interactive
+terminal check). The loader owns them and must perform them before sourcing the backend.
+
+Nothing else may source a private backend directly. If another library must, it is responsible for its own guard.
+Private backends must still keep the shebang, must not enable strict mode, and must document public functions.
+
 ## Library Dependencies
 
 A library may source another library when needed.

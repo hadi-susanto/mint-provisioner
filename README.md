@@ -116,6 +116,9 @@ mp install <module> [options]
 `<module>` may be a canonical module ID, a unique short module ID, or a registered alias. Do not run `mp install` with
 `sudo` or as root; module installers invoke `sudo` only when required.
 
+Interactive questions use `whiptail` dialogs when `whiptail` is installed. Set `DISABLE_WHIPTAIL=true` to force
+plain-text prompts (see the [FAQ](FAQ.md)).
+
 ## 📁 Project Structure
 
 ```text
