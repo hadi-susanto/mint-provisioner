@@ -9,7 +9,7 @@ modules, see the [module contributor guide](CONTRIBUTING.md).
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **84 modules** across **10 categories**. A category is part of a module's canonical
+Mint Provisioner currently provides **85 modules** across **10 categories**. A category is part of a module's canonical
 ID:
 
 ```text
@@ -30,15 +30,15 @@ official project links.
 
 | Category                        | ID     | Modules                                                                                                                                               |
 |---------------------------------|--------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [Command Line](CLI.md)          | `cli`  | `adb`, `bat`, `delta`, `eza`, `git`, `mkvtoolnix`, `openconnect-saml`, `procs`, `rclone`, `tlp`                                                           |
+| [Command Line](CLI.md)          | `cli`  | `adb`, `bat`, `delta`, `eza`, `git`, `mkvtoolnix`, `openconnect-saml`, `procs`, `rclone`, `tlp`                                                       |
 | [Database](DB.md)               | `db`   | `dbeaver-community`, `dbgate-community`, `memcached`, `mongodb-community`, `mongodb-compass`, `pg-admin`, `postgresql`, `redis`                       |
 | [Development](DEV.md)           | `dev`  | `apache-maven`, `bruno`, `docker`, `gcloud`, `httptoolkit`, `kafdrop`, `mise`, `postman`, `sdkman`, `yaak`                                            |
-| [Desktop Applications](GUI.md)  | `gui`  | `cryptomator`, `deadbeef`, `double-commander`, `flameshot`, `fman`, `insync`, `keepass-xc`, `mu-commander`, `sunflower`, `tlp-ui`                     |
+| [Desktop Applications](GUI.md)  | `gui`  | `cryptomator`, `deadbeef`, `double-commander`, `flameshot`, `fman`, `insync`, `keepass-xc`, `mu-commander`, `onedriver`, `sunflower`, `tlp-ui`        |
 | [IDE](IDE.md)                   | `ide`  | `clion`, `cudatext`, `datagrip`, `geany`, `goland`, `idea`, `phpstorm`, `pycharm`, `rider`, `rubymine`, `rustrover`, `vscode`, `vscodium`, `webstorm` |
 | [System Administration](SYS.md) | `sys`  | `apt-fast`, `dconf-editor`, `dnscrypt-proxy`, `nerd-font`, `system-toolkit`                                                                           |
 | [Terminal](TERM.md)             | `term` | `alacritty`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `terminator`, `zsh`                                                     |
 | [Terminal UI](TUI.md)           | `tui`  | `bottom`, `du-analyzer`, `du-rust`, `duf`, `git-ui`, `lazy-git`                                                                                       |
-| [Web](WEB.md)                   | `web`  | `brave-browser`, `brave-origin`, `firefox`, `firefox-pwa`, `google-chrome`, `librewolf`, `microsoft-edge`                                                         |
+| [Web](WEB.md)                   | `web`  | `brave-browser`, `brave-origin`, `firefox`, `firefox-pwa`, `google-chrome`, `librewolf`, `microsoft-edge`                                             |
 | [Miscellaneous](MISC.md)        | `misc` | `any-desk`, `claude-code`, `codex`, `junie`, `mkcert`, `virtual-box`                                                                                  |
 
 ## 📁 Directory Structure
@@ -118,15 +118,15 @@ registry data, files, package variants, or multiple application artifacts.
 
 ### Phase responsibilities
 
-| Phase             | Required | Responsibility                                                                                         |
-|-------------------|:--------:|--------------------------------------------------------------------------------------------------------|
-| `installed.sh`    |    No    | Determine installed state when the default command detection is insufficient.                          |
-| `interactive.sh`  |    No    | Collect required answers or apply user-selected installation customization before installation starts. |
-| `non-interactive.sh` | No | Provide the non-prompt equivalent of `interactive.sh`; valid only when `interactive.sh` exists. |
-| `pre-install.sh`  |    No    | Prepare repositories, dependencies, downloads, keys, or temporary files.                               |
-| `install.sh`      |   Yes    | Perform the software installation and save durable installation facts when needed.                     |
-| `post-install.sh` |    No    | Apply an installation-adjacent adjustment after a successful installation.                             |
-| `cleanup.sh`      |    No    | Remove temporary state, downloads, and intermediate files.                                             |
+| Phase                | Required | Responsibility                                                                                         |
+|----------------------|:--------:|--------------------------------------------------------------------------------------------------------|
+| `installed.sh`       |    No    | Determine installed state when the default command detection is insufficient.                          |
+| `interactive.sh`     |    No    | Collect required answers or apply user-selected installation customization before installation starts. |
+| `non-interactive.sh` |    No    | Provide the non-prompt equivalent of `interactive.sh`; valid only when `interactive.sh` exists.        |
+| `pre-install.sh`     |    No    | Prepare repositories, dependencies, downloads, keys, or temporary files.                               |
+| `install.sh`         |   Yes    | Perform the software installation and save durable installation facts when needed.                     |
+| `post-install.sh`    |    No    | Apply an installation-adjacent adjustment after a successful installation.                             |
+| `cleanup.sh`         |    No    | Remove temporary state, downloads, and intermediate files.                                             |
 
 ### Interactive setup
 
