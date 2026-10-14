@@ -6,6 +6,31 @@
 
 source "$LIB_COMMON/common.sh"
 
+# Forced theme so the dialogs stay blue on systems with another default palette.
+__prompt_whiptail_colors='root=white,blue
+roottext=white,blue
+shadow=,black
+window=black,lightgray
+border=black,lightgray
+title=blue,lightgray
+label=black,lightgray
+textbox=black,lightgray
+acttextbox=black,lightgray
+listbox=black,lightgray
+actlistbox=white,blue
+sellistbox=black,lightgray
+actsellistbox=white,blue
+checkbox=black,lightgray
+actcheckbox=white,blue
+entry=black,cyan
+disentry=gray,lightgray
+button=black,cyan
+actbutton=white,blue
+compactbutton=black,lightgray
+helpline=white,blue
+emptyscale=,lightgray
+fullscale=,blue'
+
 ##
 # __prompt_whiptail_run <whiptail_arg>...
 #
@@ -20,7 +45,7 @@ source "$LIB_COMMON/common.sh"
 __prompt_whiptail_run() {
     local status
 
-    if NEWT_COLORS="${NEWT_COLORS:-root=,blue}" \
+    if env -u NEWT_COLORS_FILE NEWT_COLORS="$__prompt_whiptail_colors" \
         whiptail "$@" 3>&1 1>&2 2>&3 </dev/tty >/dev/tty; then
         return 0
     else
@@ -35,7 +60,7 @@ __prompt_whiptail_run() {
 __prompt_whiptail_message() {
     local message="$1"
 
-    NEWT_COLORS="${NEWT_COLORS:-root=,blue}" \
+    env -u NEWT_COLORS_FILE NEWT_COLORS="$__prompt_whiptail_colors" \
         whiptail --title "Invalid input" --msgbox "$message" 8 60 \
         </dev/tty >/dev/tty 2>&1 || true
 }
