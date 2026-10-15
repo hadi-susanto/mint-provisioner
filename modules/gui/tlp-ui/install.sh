@@ -2,6 +2,7 @@
 set -euo pipefail
 
 source "${LIB_INSTALLER}/apt.sh"
+source "${LIB_INSTALLER}/desktop-integration.sh"
 source "${LIB_INSTALLER}/path.sh"
 source "${LIB_INSTALLER}/registry.sh"
 
@@ -76,72 +77,6 @@ EOF
     return 0
 }
 
-__install_desktop_entry() {
-    local canonical_id="$1"
-    local tag="desktop:$canonical_id"
-    local icon_source="$MP_MODULES/$CANONICAL_ID/payload/tlp-ui.png"
-    local icon_theme_dir="/usr/share/icons/hicolor"
-    local icon_path="$icon_theme_dir/512x512/apps/tlp-ui.png"
-    local application_dir="/usr/share/applications"
-    local desktop_file="$application_dir/tlp-ui.desktop"
-
-    tlog_info "$tag" "Installing TLP UI .desktop file"
-    if [[ ! -f "$icon_source" ]]; then
-        tlog_error "$tag" "Missing TLP UI Icon resources: %s" "$icon_source"
-
-        return 1
-    fi
-
-    if ! sudo install -Dm0644 "$icon_source" "$icon_path"; then
-        tlog_error "$tag" "Failed to install application icon: %s" "$icon_path"
-
-        return 1
-    fi
-
-    if ! sudo tee "$desktop_file" >/dev/null <<EOF
-[Desktop Entry]
-Type=Application
-Version=1.0
-Name=TLP UI
-GenericName=Power Management
-Comment=Configure TLP power management
-Exec=tlp-ui
-TryExec=tlp-ui
-Icon=tlp-ui
-Terminal=false
-Categories=Settings;HardwareSettings;GTK;
-Keywords=Battery;Power;Laptop;TLP;
-StartupWMClass=Tlp-UI
-EOF
-    then
-        tlog_error "$tag" "Failed to install desktop file: %s" "$desktop_file"
-
-        return 1
-    fi
-
-    if ! sudo chmod 0644 "$desktop_file"; then
-        tlog_error "$tag" "Failed to set desktop file permissions: %s" "$desktop_file"
-
-        return 1
-    fi
-
-    if command -v gtk-update-icon-cache >/dev/null 2>&1; then
-        tlog_info "$tag" "Refreshing icon cache"
-
-        if ! sudo gtk-update-icon-cache -f -t "$icon_theme_dir"; then
-            tlog_warn "$tag" "Failed to refresh the icon cache"
-        fi
-    fi
-
-    if command -v update-desktop-database >/dev/null 2>&1; then
-        tlog_info "$tag" "Refreshing desktop application database"
-
-        if ! sudo update-desktop-database "$application_dir"; then
-            tlog_warn "$tag" "Failed to refresh the desktop application database"
-        fi
-    fi
-}
-
 main() {
     local canonical_id="$1"
     local raw_install_path="$2"
@@ -151,7 +86,15 @@ main() {
     __ensure_python_dependencies "$canonical_id" || return $?
     __clone_tlpui_repository "$canonical_id" "$install_path" || return $?
     __install_cli_entry "$canonical_id" "$install_path" || return $?
-    __install_desktop_entry "$canonical_id" "$install_path" || return $?
+    install_desktop_entry "$canonical_id" "tlp-ui" "TLP UI" "tlp-ui" \
+        --try-exec "tlp-ui" \
+        --generic-name "Power Management" \
+        --comment "Configure TLP power management" \
+        --icon-file "$MP_MODULES/$canonical_id/payload/tlp-ui.png" \
+        --icon-size "512x512" \
+        --categories "Settings;HardwareSettings;GTK;" \
+        --keywords "Battery;Power;Laptop;TLP;" \
+        --startup-wm-class "Tlp-UI" || return $?
     set_registry "INSTALL_PATH" "$install_path" || return $?
     save_registry "$canonical_id"
 }
