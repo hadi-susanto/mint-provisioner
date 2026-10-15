@@ -39,7 +39,8 @@ installation was explicitly authorized.
 
 Each JetBrains IDE is extracted into its configured installation directory. Its bundled native launcher is linked under
 `/usr/local/bin` using the launcher's filename, such as `idea` or `goland`. Each module also installs a system-wide
-desktop entry and application icon. The JetBrains Runtime bundled with each IDE is used.
+desktop entry (`/usr/share/applications/<launcher>.desktop`) and installs the bundled SVG icon into
+`/usr/share/icons/hicolor/scalable/apps/<launcher>.svg`. The JetBrains Runtime bundled with each IDE is used.
 
 ### Shared JetBrains supported ENV
 
