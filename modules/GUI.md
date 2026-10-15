@@ -12,6 +12,7 @@ Graphical applications for productivity, file management, security, and everyday
 - [Insync](#insync-insync)
 - [KeePassXC](#keepassxc-keepass-xc-alias-keepass-alias-keepassxc)
 - [Mu Commander](#mu-commander-mu-commander-alias-mu-cmd)
+- [onedriver](#onedriver-onedriver)
 - [Sunflower](#sunflower-sunflower)
 - [TLP UI](#tlp-ui-tlp-ui)
 
@@ -226,6 +227,34 @@ Downloads the latest x86_64 Debian package from the official GitHub releases pag
 ### Official Website
 
 https://www.mucommander.com/
+
+---
+
+## onedriver (`onedriver`)
+
+onedriver is a native Linux filesystem for Microsoft OneDrive. It mounts your OneDrive as a regular folder and downloads
+files on demand, so nothing is stored locally until it is opened. It includes a GTK launcher for managing mounts.
+
+### Installation Method
+
+**External APT repository**
+
+Configures the onedriver repository from the openSUSE Build Service (`home:jstaf`), then installs the `onedriver`
+package using APT. The repository path is derived from the detected Ubuntu version, so installation fails if the
+repository has no build for that version.
+
+### Supported ENV
+
+None.
+
+### Usage
+
+After installation, start `onedriver-launcher` from the application menu, click `+`, and sign in with your Microsoft
+account through the browser.
+
+### Official Website
+
+https://github.com/jstaf/onedriver
 
 ---
 
