@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+source "$LIB_INSTALLER/desktop-integration.sh"
 source "$LIB_WORKFLOW/stateful-extract-install.sh"
 source "$LIB_INSTALLER/messages.sh"
 
@@ -15,7 +16,7 @@ stateful_extract_install \
 
 tag="install:$CANONICAL_ID"
 install_open_handler="${KITTY_INSTALL_OPEN_HANDLER:-false}"
-application_dir="/usr/share/applications"
+application_dir="$(desktop_application_dir)"
 desktop_files=("kitty.desktop")
 
 tlog_info "$tag" "Installing desktop files"

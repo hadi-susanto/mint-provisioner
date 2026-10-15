@@ -137,6 +137,7 @@ mint-provisioner/
 │   │   └── script.sh                   # Phase-script execution
 │   ├── installer/
 │   │   ├── apt.sh                      # APT and repository helpers
+│   │   ├── desktop-integration.sh      # Generated desktop entries and icons
 │   │   ├── detection.sh                # Installation-state detection
 │   │   ├── execution.sh                # Installation lifecycle execution
 │   │   ├── registry.sh                 # Installed-module registry

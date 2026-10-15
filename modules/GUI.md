@@ -65,7 +65,7 @@ extracts the standalone application into the configured installation directory a
 - Installs `deadbeef.desktop` into `/usr/share/applications`.
 - Registers DeaDBeeF as an audio player for supported audio files, playlists, cue sheets, and directories.
 - Adds desktop actions for playing, pausing, stopping, and navigating tracks.
-- Uses the bundled DeaDBeeF icon when available, with the system audio icon as a fallback.
+- Uses the bundled DeaDBeeF icon (`deadbeef.png`) from the installation directory.
 
 ### Cleanup
 

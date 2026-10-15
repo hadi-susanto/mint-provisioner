@@ -462,93 +462,47 @@ For archives containing multiple binaries or a required directory structure:
 
 ### Desktop Entry Installation
 
-- Install system-wide desktop entries under:
-
-  `/usr/share/applications/<module-name>.desktop`
-
-- Ensure the parent directory exists.
-- Use `0644` permissions for the installed desktop file.
-- Ensure `Exec` refers to an installed executable or launcher.
-- Use `TryExec` when it provides useful validation that the launcher exists.
-- Ensure `Terminal` is set appropriately for the application.
-- Include appropriate `Categories` and, when useful, `Keywords`,
-  `StartupWMClass`, `MimeType`, or desktop actions.
-- Do not use an unverified executable or icon path.
+- Generate desktop entries only through `install_desktop_entry` from
+  `lib/installer/desktop-integration.sh`. Do not hand-write `[Desktop Entry]`
+  heredocs or hard-code `/usr/share/applications` in modules.
+- Path helpers: `desktop_application_dir`, `desktop_icon_theme_dir`, and
+  `desktop_entry_path <desktop_id>` (resolves
+  `/usr/share/applications/<desktop_id>.desktop`). Modules that copy a
+  vendor-supplied desktop file (for example `term/kitty`) still use
+  `desktop_application_dir` for the target directory.
+- Signature: `install_desktop_entry <canonical_id> <desktop_id> <name> <executable> [--key value]...`.
+  Use the module name as `<desktop_id>`.
+- The library validates the executable (absolute path must be executable, a
+  bare name must be in `PATH`), quotes `Exec` when needed, installs the file
+  with `0644` permissions, runs `desktop-file-validate` when available, and
+  refreshes the icon cache and desktop application database (warnings only).
+- Optional fields: `--exec-args`, `--try-exec`, `--generic-name`, `--comment`,
+  `--categories`, `--keywords`, `--mime-type`, `--startup-wm-class`,
+  `--terminal 0|1`, `--startup-notify 0|1`, and repeatable
+  `--action "<Id>|<Name>|<exec arguments>"`.
+- Include appropriate `--categories` and, when useful, `--keywords`,
+  `--startup-wm-class`, `--mime-type`, or actions. Use `--try-exec` when it
+  provides useful validation that the launcher exists.
 
 Example:
 
 ```bash
-APPLICATION_DIR="/usr/share/applications"
-DESKTOP_FILE="${APPLICATION_DIR}/module-name.desktop"
-EXEC_PATH="/usr/local/bin/module-name"
+source "$LIB_INSTALLER/desktop-integration.sh"
 
-if [[ ! -x "$EXEC_PATH" ]]; then
-    log_error "[$CANONICAL_ID] Application launcher not found or not executable: $EXEC_PATH"
-
-    exit 1
-fi
-
-if ! sudo mkdir -p "$APPLICATION_DIR"; then
-    log_error \
-        "[$CANONICAL_ID] Failed to create desktop application directory: $APPLICATION_DIR"
-
-    exit 2
-fi
-
-if ! sudo tee "$DESKTOP_FILE" >/dev/null <<EOF
-[Desktop Entry]
-Type=Application
-Version=1.0
-Name=Application Name
-Comment=Application description
-Exec=$EXEC_PATH
-TryExec=$EXEC_PATH
-Icon=application-icon
-Terminal=false
-Categories=Utility;
-EOF
-then
-    log_error "[$CANONICAL_ID] Failed to install desktop file: $DESKTOP_FILE"
-
-    exit 3
-fi
-
-if ! sudo chmod 0644 "$DESKTOP_FILE"; then
-    log_error "[$CANONICAL_ID] Failed to set desktop file permissions: $DESKTOP_FILE"
-
-    exit 4
-fi
+install_desktop_entry "$CANONICAL_ID" "module-name" "Application Name" "/usr/local/bin/module-name" \
+    --try-exec "/usr/local/bin/module-name" \
+    --comment "Application description" \
+    --icon-file "$install_path/share/module-name.svg" \
+    --categories "Utility;" || exit $?
 ```
 
 ### Application Icons
 
 - Prefer an icon supplied by the application archive or repository.
-- Validate that a file-based icon exists before installing or referencing it.
-- Install theme icons under an appropriate directory such as:
-
-  `/usr/share/icons/hicolor/<size>/apps/<module-name>.png`
-
-- Alternatively, use an existing icon-theme name when an appropriate system
-  icon is available.
+- `--icon-file <file>` installs the icon into
+  `/usr/share/icons/hicolor/<size>/apps/<desktop_id>.<ext>` and sets
+  `Icon=<desktop_id>`. SVG icons default to `scalable`; other formats require
+  `--icon-size`, such as `--icon-size 512x512`. The file must exist.
+- `--icon <name|path>` writes the value as-is: an existing icon-theme name or
+  a verified absolute path. `--icon` and `--icon-file` are mutually exclusive.
 - Do not reference a missing icon path.
-- Refresh the icon cache and desktop application database when their commands
-  are available.
-- Cache-refresh failures may log warnings and continue because they do not
-  invalidate an otherwise successful installation.
-
-Example:
-
-```bash
-if command -v gtk-update-icon-cache >/dev/null 2>&1; then
-    if ! sudo gtk-update-icon-cache -f -t "/usr/share/icons/hicolor"; then
-        log_warn "[$CANONICAL_ID] Failed to refresh the icon cache"
-    fi
-fi
-
-if command -v update-desktop-database >/dev/null 2>&1; then
-    if ! sudo update-desktop-database "/usr/share/applications"; then
-        log_warn \
-            "[$CANONICAL_ID] Failed to refresh the desktop application database"
-    fi
-fi
-```
