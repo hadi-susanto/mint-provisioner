@@ -437,6 +437,38 @@ For archives containing multiple binaries or a required directory structure:
 - Delete the module state after cleanup.
 - Missing state should produce a warning and exit successfully.
 
+## Removal (`remove.sh`)
+
+Compose the libraries in `lib/remover/`. Each reads `PURGE` itself, so `remove.sh` does not branch on it for these calls.
+Source them through `$LIB_REMOVER`. Order: undo the last install step first, and clean user files last.
+
+| Library      | Function                                          | Purpose                                                                                                          |
+|--------------|---------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
+| `package.sh` | `package_remove <id> <package>...`                | Native and `.deb` packages (package names, not file paths). `apt-get remove`, or `purge` when `PURGE=true`.       |
+| `apt.sh`     | `remove_ppa <id> <ppa>`                           | Undo `add_ppa`. Runs only when `PURGE=true`; otherwise the PPA is kept.                                          |
+| `apt.sh`     | `remove_apt_repository <id> [filename]`           | Undo `install_asc_key` (deletes `.sources` and keyring). Only when `PURGE=true`; pass the same `filename`.        |
+| `binary.sh`  | `remove_symlink <id> <link_name>`                 | Undo `symlink_binary`. Pass every link name explicitly; non-symlinks are never deleted.                          |
+| `binary.sh`  | `remove_from_path <id>`                           | Undo `add_to_path`.                                                                                              |
+| `binary.sh`  | `remove_install_dir <id>`                         | Loads the registry and deletes `INSTALL_PATH`; refuses unsafe or protected paths; a missing registry only warns.  |
+| `home.sh`    | `purge_home_paths <id> <path>...`                 | `PURGE=true` only. Deletes `~/.local/{,share/,state/}<path>`, `~/.config/<path>`, `~/.cache/<path>`, and `~/.<path>`. |
+
+`purge_home_paths` paths are literal and relative (`kitty` or `JetBrains/IntelliJ`); absolute paths, `..`, `./`, and
+globs are rejected. `remove_install_dir` loads the registry itself and only warns when it is missing (for example after an earlier
+`mp remove`, so a following `mp purge` still works). The framework deletes the registry only after `remove.sh` succeeds.
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+source "$LIB_REMOVER/binary.sh"
+source "$LIB_REMOVER/home.sh"
+
+remove_symlink "$CANONICAL_ID" "bat" || exit $?
+remove_from_path "$CANONICAL_ID" || exit $?
+remove_install_dir "$CANONICAL_ID" || exit $?
+purge_home_paths "$CANONICAL_ID" "bat" || exit $?
+```
+
 ## GUI Desktop Entry Management
 
 - When creating or modifying a GUI module, determine whether its installation

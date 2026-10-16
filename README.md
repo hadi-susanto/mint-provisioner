@@ -153,8 +153,12 @@ mint-provisioner/
 │   │   ├── script.sh                   # Phase-script execution
 │   │   └── sudo.sh                     # Sudo privilege caching and validation
 │   ├── remover/
+│   │   ├── apt.sh                      # Remove PPAs and APT repository files (purge only)
+│   │   ├── binary.sh                   # Remove symlinks, PATH entries, and install directories
 │   │   ├── execution.sh                # Removal lifecycle execution
-│   │   └── filter.sh                   # Select modules to remove
+│   │   ├── filter.sh                   # Select modules to remove
+│   │   ├── home.sh                     # Purge lingering files under $HOME (purge only)
+│   │   └── package.sh                  # Remove or purge Debian packages
 │   ├── installer/
 │   │   ├── apt.sh                      # APT and repository helpers
 │   │   ├── desktop-integration.sh      # Generated desktop entries and icons
