@@ -10,6 +10,7 @@ export MP_MODULES="$MP_ROOT/modules"
 export LIB_COMMON="$MP_ROOT/lib/common"
 export LIB_INSTALLER="$MP_ROOT/lib/installer"
 export LIB_WORKFLOW="$MP_ROOT/lib/workflow"
+export LIB_REMOVER="$MP_ROOT/lib/remover"
 
 if [[ -z "${INSTALL_DIR:-}" ]]; then
     export INSTALL_DIR="${MP_ROOT%/*}"
@@ -21,8 +22,4 @@ else
     export INSTALL_DIR
 fi
 
-main() {
-    exec bash "$MP_COMMAND/main.sh" "$@"
-}
-
-main "$@"
+exec bash "$MP_COMMAND/main.sh" "$@"

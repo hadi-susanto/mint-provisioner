@@ -81,6 +81,12 @@ main() {
         install)
             exec bash "$MP_COMMAND/install.sh" "${args[@]}"
             ;;
+        remove | uninstall)
+            exec bash "$MP_COMMAND/remove.sh" "${args[@]}"
+            ;;
+        purge)
+            exec bash "$MP_COMMAND/remove.sh" --purge "${args[@]}"
+            ;;
         *)
             printf 'Unsupported command: %s\n\n' "${options[CMD]}" >&2
             bash "$MP_COMMAND/help.sh" >&2

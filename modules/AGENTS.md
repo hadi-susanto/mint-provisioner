@@ -13,8 +13,13 @@
   ├── pre-install.sh     # Optional: Configure prerequisites, repositories, or keys
   ├── install.sh         # Mandatory: Perform the core installation
   ├── post-install.sh    # Optional: Apply post-install system adjustments
-  └── cleanup.sh         # Optional: Remove installation-only state or artifacts
+  ├── cleanup.sh         # Optional: Remove installation-only state or artifacts
+  └── remove.sh          # Optional: Uninstall the software (required for `mp remove|uninstall|purge`)
   ```
+
+`remove.sh` runs with `$CANONICAL_ID` and `$PURGE` (`true` for `mp purge`, otherwise `false`). It must use
+`set -euo pipefail`, use `exit` instead of `return`, and delete well-known user configuration only when `$PURGE` is
+`true`. It may call `add_message`; stored messages are shown in the removal summary.
 
 - Only `metadata.conf` and `install.sh` are mandatory.
 - `interactive.sh` collects, resolves, validates, and stores choices required before installation phases run.

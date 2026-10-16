@@ -15,6 +15,8 @@ Commands:
   help [command]  Show basic help or details for a command.
   list            List available modules or categories.
   install         Install one or more modules.
+  remove          Remove one or more modules (alias: uninstall).
+  purge           Remove modules and their well-known configuration.
 
 Options:
   -h, --help  Show this help messages.
@@ -96,6 +98,57 @@ EOF
         "$COLOR_YELLOW" "$COLOR_RESET"
 }
 
+__root_warning() {
+    printf '\n%bWARNING: Do not run mp remove or mp purge with sudo or as root.%b\n' \
+        "$COLOR_RED" "$COLOR_RESET"
+}
+
+__remove_help() {
+    cat <<'EOF'
+Mint Provisioner
+----------------
+
+Usage:
+  mp remove [OPTIONS] MODULE...
+  mp uninstall [OPTIONS] MODULE...
+
+Options:
+  -f, --force  Process modules even when they are not detected as installed.
+
+Arguments:
+  MODULE  A canonical ID, unique module ID, or registered alias.
+
+Description:
+  Resolves one or more modules and runs each module's remove.sh. Modules
+  without remove.sh do not support removal and fail.
+  Modules that are not installed are skipped unless --force is used.
+EOF
+
+    __root_warning
+}
+
+__purge_help() {
+    cat <<'EOF'
+Mint Provisioner
+----------------
+
+Usage:
+  mp purge [OPTIONS] MODULE...
+
+Options:
+  -f, --force  Accepted for symmetry; purge always implies --force.
+
+Arguments:
+  MODULE  A canonical ID, unique module ID, or registered alias.
+
+Description:
+  Same as mp remove, but remove.sh runs with PURGE=true so the module also
+  removes its well-known configuration locations. Purge implies --force.
+EOF
+
+    __root_warning
+}
+
 main() {
     local help_type="${1:-basic}"
 
@@ -111,6 +164,12 @@ main() {
             ;;
         list)
             __list_help
+            ;;
+        remove | uninstall)
+            __remove_help
+            ;;
+        purge)
+            __purge_help
             ;;
         *)
             log_error "Unknown help topic: %s" "$help_type"
