@@ -444,7 +444,7 @@ Source them through `$LIB_REMOVER`. Order: undo the last install step first, and
 
 | Library      | Function                                          | Purpose                                                                                                          |
 |--------------|---------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
-| `package.sh` | `package_remove <id> <package>...`                | Native and `.deb` packages (package names, not file paths). `apt-get remove`, or `purge` when `PURGE=true`.       |
+| `package.sh` | `package_remove <id> <package>...`                | Native and `.deb` packages (package names, not file paths). `apt-get remove`, or `purge` when `PURGE=true`, with `--auto-remove` (auto-installed deps go too; manual ones stay). |
 | `apt.sh`     | `remove_ppa <id> <ppa>`                           | Undo `add_ppa`. Runs only when `PURGE=true`; otherwise the PPA is kept.                                          |
 | `apt.sh`     | `remove_apt_repository <id> [filename]`           | Undo `install_asc_key` (deletes `.sources` and keyring). Only when `PURGE=true`; pass the same `filename`.        |
 | `binary.sh`  | `remove_symlink <id> <link_name>`                 | Undo `symlink_binary`. Pass every link name explicitly; non-symlinks are never deleted.                          |

@@ -38,8 +38,12 @@ __package_removable() {
 # package_remove
 #
 # Removes Debian packages installed from native sources, APT repositories, or
-# .deb files. Uses `apt-get purge` when PURGE=true and `apt-get remove` otherwise.
-# Packages that are not installed are skipped. Dependencies are not autoremoved.
+# .deb files. Uses `apt-get purge` when PURGE=true and `apt-get remove` otherwise,
+# with --auto-remove so dependencies that were installed automatically and are no
+# longer needed are removed (or purged) in the same transaction. Dependencies
+# marked as manually installed are kept. apt applies --auto-remove system-wide,
+# so unrelated packages that were already orphaned are removed too. Packages
+# that are not installed are skipped.
 #
 # Parameters:
 #   canonical_id - Canonical module ID used for logging.
@@ -97,9 +101,9 @@ package_remove() {
         return 0
     fi
 
-    tlog_info "$tag" "Running apt-get %s: %s" "$action" "${targets[*]}"
+    tlog_info "$tag" "Running apt-get %s --auto-remove: %s" "$action" "${targets[*]}"
 
-    if ! sudo apt-get "$action" -y "${targets[@]}"; then
+    if ! sudo apt-get "$action" --auto-remove -y "${targets[@]}"; then
         tlog_error "$tag" "Failed to %s packages: %s" "$action" "${targets[*]}"
 
         return 1
