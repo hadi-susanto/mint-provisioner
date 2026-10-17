@@ -143,7 +143,12 @@ Arguments:
 
 Description:
   Same as mp remove, but remove.sh runs with PURGE=true so the module also
-  removes its well-known configuration locations. Purge implies --force.
+  removes its packages' configuration, repositories, well-known configuration
+  locations under your home directory, and service data directories such as
+  databases. Purge implies --force and cannot be undone.
+
+  Before anything is removed, mp purge lists the modules and requires you to
+  type PURGE in an interactive terminal. It cannot run unattended.
 EOF
 
     __root_warning

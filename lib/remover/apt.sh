@@ -12,14 +12,17 @@ source "$LIB_COMMON/common.sh"
 # remove_ppa
 #
 # Removes a Launchpad PPA and refreshes the package index. Only acts when
-# PURGE=true; otherwise the repository is kept.
+# PURGE=true and the PPA is configured in /etc/apt; otherwise the repository
+# is kept or skipped, so it is safe for modules that install through either
+# add_ppa or install_asc_key.
 #
 # Parameters:
 #   canonical_id - Canonical module ID used for logging.
 #   repository - Launchpad PPA identifier that was added.
 #
 # Return:
-#   1 - Validation, repository removal, or index refresh failed.
+#   1 - Validation (including a malformed ppa:owner/name), repository removal,
+#       or index refresh failed.
 #
 remove_ppa() {
     local canonical_id="${1:-}"
@@ -36,8 +39,23 @@ remove_ppa() {
         return 1
     fi
 
+    if [[ ! "$repository" =~ ^ppa:([A-Za-z0-9._+-]+)/([A-Za-z0-9._+-]+)$ ]]; then
+        tlog_error "$tag" "Invalid PPA identifier: %s" "$repository"
+
+        return 1
+    fi
+
+    local ppa_path="${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+
     if [[ "${PURGE:-false}" != "true" ]]; then
         tlog_info "$tag" "Keeping PPA repository (use mp purge to remove it): %s" "$repository"
+
+        return 0
+    fi
+
+    if ! grep -rqsF "launchpadcontent.net/$ppa_path" /etc/apt/sources.list /etc/apt/sources.list.d &&
+        ! grep -rqsF "ppa.launchpad.net/$ppa_path" /etc/apt/sources.list /etc/apt/sources.list.d; then
+        tlog_info "$tag" "PPA repository is not configured, skipping: %s" "$repository"
 
         return 0
     fi

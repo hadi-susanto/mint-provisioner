@@ -123,9 +123,9 @@ mp remove <module> [options]     # alias: mp uninstall
 mp purge <module> [options]      # remove plus well-known configuration
 ```
 
-| Option          | Description                                                                         |
-|-----------------|-------------------------------------------------------------------------------------|
-| `-f`, `--force` | Process modules even when installed-state detection reports them as not installed.  |
+| Option               | Description                                                                         |
+|----------------------|-------------------------------------------------------------------------------------|
+| `-f`, `--force`      | Process modules even when installed-state detection reports them as not installed.  |
 
 `purge` runs the module's `remove.sh` with `PURGE=true` and implies `--force`. A module supports removal only when it
 ships `remove.sh`; otherwise it is reported as failed. Do not run these commands with `sudo` or as root.
@@ -155,10 +155,14 @@ mint-provisioner/
 │   ├── remover/
 │   │   ├── apt.sh                      # Remove PPAs and APT repository files (purge only)
 │   │   ├── binary.sh                   # Remove symlinks, PATH entries, and install directories
+│   │   ├── data.sh                     # Delete service data directories (purge only)
+│   │   ├── desktop.sh                  # Remove desktop entries and icons
 │   │   ├── execution.sh                # Removal lifecycle execution
 │   │   ├── filter.sh                   # Select modules to remove
 │   │   ├── home.sh                     # Purge lingering files under $HOME (purge only)
-│   │   └── package.sh                  # Remove or purge Debian packages
+│   │   ├── jetbrains.sh                # Purge per-version JetBrains product directories
+│   │   ├── package.sh                  # Remove or purge Debian packages
+│   │   └── system.sh                   # Remove generated system files (APT pins, launchers)
 │   ├── installer/
 │   │   ├── apt.sh                      # APT and repository helpers
 │   │   ├── desktop-integration.sh      # Generated desktop entries and icons

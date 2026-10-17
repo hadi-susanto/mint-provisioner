@@ -75,6 +75,63 @@ __validate_options() {
     return 0
 }
 
+##
+# __confirm_purge <canonical_id...>
+#
+# Shows what a purge will delete and requires the user to type PURGE in an
+# interactive terminal before anything is removed.
+#
+# Returns:
+#   1 when no terminal is available, the answer cannot be read, or it does not
+#   match.
+#
+__confirm_purge() {
+    local canonical_id
+    local answer
+    local joined
+    local -a names=()
+
+    for canonical_id in "$@"; do
+        names+=("${__MODULE_NAMES[$canonical_id]:-$canonical_id}")
+    done
+
+    joined=$(printf '%s, ' "${names[@]}")
+
+    printf '\n%b%s%b\n' "$COLOR_RED" \
+        "WARNING: mp purge permanently deletes software, settings and data. This cannot be undone." \
+        "$COLOR_RESET" >&2
+    printf 'User   : %s (home: %s)\n' "${USER:-$(id -un)}" "$HOME" >&2
+    printf 'Modules: %s\n' "${joined%, }" >&2
+    printf '%s\n' \
+        'For every module above this will:' \
+        '  - purge its packages, including their configuration files under /etc' \
+        '  - remove its APT repositories and signing keys' \
+        '  - delete its configuration, cache and data under your home directory' \
+        '  - delete service data directories, such as databases under /var/lib' \
+        '  - delete installation directories recorded by the provisioner' >&2
+    printf '%s\n\n' "Use mp remove instead to keep configuration and data." >&2
+
+    if ! source "$LIB_INSTALLER/prompt.sh"; then
+        log_error "Purge aborted: an interactive terminal is required to confirm it"
+
+        return 1
+    fi
+
+    if ! answer="$(ask_text "Type PURGE to continue")"; then
+        log_error "Purge aborted: the confirmation could not be read"
+
+        return 1
+    fi
+
+    if [[ "$answer" != "PURGE" ]]; then
+        log_error "Purge aborted: the confirmation text did not match"
+
+        return 1
+    fi
+
+    return 0
+}
+
 __run_removal() {
     local purge="$1"
     shift
@@ -187,6 +244,10 @@ main() {
         log_info "No modules require removal."
 
         return 0
+    fi
+
+    if (( options[PURGE] )); then
+        __confirm_purge "${filtered_ids[@]}" || return $?
     fi
 
     cache_sudo_privileges || return $?
