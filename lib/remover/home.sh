@@ -137,7 +137,7 @@ purge_home_paths() {
 
         tlog_info "$tag" "Removing %s" "$target"
 
-        if ! rm -rf -- "$target"; then
+        if ! rm -rf --one-file-system -- "$target"; then
             tlog_error "$tag" "Failed to remove %s" "$target"
             failed=1
         fi

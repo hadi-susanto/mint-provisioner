@@ -29,42 +29,12 @@ source "$LIB_INSTALLER/symlink.sh"
 #
 __is_protected_directory() {
     local directory="$1"
-    local resolved
-    local -a roots=()
-    local root
+    local install_dir="${INSTALL_DIR:-}"
+    local mp_root="${MP_ROOT:-}"
 
-    if ! resolved="$(realpath -m -- "$directory" 2>/dev/null)"; then
-        resolved="$directory"
-    fi
-
-    for root in "${INSTALL_DIR:-}" "${MP_ROOT:-}"; do
-        root="${root%/}"
-
-        if [[ -n "$root" ]]; then
-            roots+=("$root")
-            roots+=("$(realpath -m -- "$root" 2>/dev/null || printf '%s' "$root")")
-        fi
-    done
-
-    if __is_protected_path "$directory" roots || __is_protected_path "$resolved" roots; then
-        return 0
-    fi
-
-    return 1
-}
-
-__is_protected_path() {
-    local directory="$1"
-    local -n roots_ref="$2"
-    local root
-
-    for root in "${roots_ref[@]}"; do
-        if [[ "$root/" == "$directory/"* ]]; then
-            return 0
-        fi
-    done
-
-    if [[ -n "${MP_ROOT:-}" && "$directory/" == "${MP_ROOT%/}/"* ]]; then
+    if __is_protected_path "$directory" "$install_dir" "$mp_root" ||
+        __is_protected_path "$(__resolve_path "$directory")" \
+            "$(__resolve_path "$install_dir")" "$(__resolve_path "$mp_root")"; then
         return 0
     fi
 
@@ -72,6 +42,54 @@ __is_protected_path() {
         return 0
     fi
 
+    return 1
+}
+
+__resolve_path() {
+    local path="$1"
+
+    if [[ -z "$path" ]] || ! realpath -m -- "$path" 2>/dev/null; then
+        printf '%s\n' "$path"
+    fi
+}
+
+##
+# __is_protected_path <directory> <install_dir> <mp_root>
+#
+# Path-only part of __is_protected_directory (no filesystem access). Callers
+# pass either all raw or all resolved paths so the comparisons stay consistent.
+#
+# Parameters:
+#   directory - Directory path to check.
+#   install_dir - INSTALL_DIR in the same form as directory; may be empty.
+#   mp_root - MP_ROOT in the same form as directory; may be empty.
+#
+# Return:
+#   0 - The directory is a system or home directory, INSTALL_DIR or MP_ROOT or
+#       one of their ancestors, or inside MP_ROOT.
+#   1 - None of these apply.
+#
+__is_protected_path() {
+    local directory="$1"
+    local install_dir="${2%/}"
+    local mp_root="${3%/}"
+    local root
+
+    # The directory is INSTALL_DIR or MP_ROOT, or one of their ancestors: deleting
+    # it would take every installed tool or the repository with it. The trailing
+    # slashes stop /opt/app from matching /opt/application.
+    for root in "$install_dir" "$mp_root"; do
+        if [[ -n "$root" && "$root/" == "$directory/"* ]]; then
+            return 0
+        fi
+    done
+
+    # The directory is inside the repository (modules, lib, command, ...).
+    if [[ -n "$mp_root" && "$directory/" == "$mp_root/"* ]]; then
+        return 0
+    fi
+
+    # Well-known system directories and the user's home and XDG base directories.
     case "$directory" in
         / | /bin | /boot | /dev | /etc | /home | /lib | /lib32 | /lib64 | /media | /mnt | \
             /opt | /proc | /root | /run | /sbin | /srv | /sys | /tmp | /usr | /usr/bin | \
@@ -285,9 +303,9 @@ remove_install_dir() {
     tlog_info "$tag" "Removing installation directory: %s" "$install_path"
 
     if [[ -w "${install_path%/*}" ]] && can_write "$install_path"; then
-        rm -rf -- "$install_path" || status=$?
+        rm -rf --one-file-system -- "$install_path" || status=$?
     else
-        sudo rm -rf -- "$install_path" || status=$?
+        sudo rm -rf --one-file-system -- "$install_path" || status=$?
     fi
 
     if (( status != 0 )) || [[ -d "$install_path" ]]; then

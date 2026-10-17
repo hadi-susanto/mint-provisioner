@@ -54,12 +54,6 @@ remove_data_dir() {
         return 1
     fi
 
-    if __is_protected_directory "$data_path"; then
-        tlog_error "$tag" "Refusing to remove a protected directory: %s" "$data_path"
-
-        return 1
-    fi
-
     if [[ -L "$data_path" ]] || { [[ -e "$data_path" ]] && [[ ! -d "$data_path" ]]; }; then
         tlog_error "$tag" "Data path is not a directory: %s" "$data_path"
 
@@ -83,12 +77,19 @@ remove_data_dir() {
         return 0
     fi
 
+    # Checked only when deleting: a kept directory may be a mount point.
+    if __is_protected_directory "$data_path"; then
+        tlog_error "$tag" "Refusing to remove a protected directory: %s" "$data_path"
+
+        return 1
+    fi
+
     tlog_warn "$tag" "Deleting data directory: %s" "$data_path"
 
     if [[ -w "${data_path%/*}" ]] && can_write "$data_path"; then
-        rm -rf -- "$data_path" || status=$?
+        rm -rf --one-file-system -- "$data_path" || status=$?
     else
-        sudo rm -rf -- "$data_path" || status=$?
+        sudo rm -rf --one-file-system -- "$data_path" || status=$?
     fi
 
     if (( status != 0 )) || [[ -d "$data_path" ]]; then
