@@ -146,6 +146,11 @@ installs `mysql-connector-j`, `mysql-connector-python-py3`, `mysql-connector-odb
 
 Components enabled by `mysql` are kept. Removing this module drops only the `mysql-tools` component on `mp purge`.
 
+### Installation Detection
+
+The module counts as installed only when all four connector packages are installed, so a single distribution package
+(for example Ubuntu's `libmysqlcppconn-dev`) does not skip the installation.
+
 ### Official Website
 
 https://dev.mysql.com/downloads/connector/
@@ -165,6 +170,10 @@ Replaces Oracle's `mysql-apt-config` package. Adds the MySQL signing key and the
 `https://repo.mysql.com/apt/ubuntu` for the Ubuntu base codename (Linux Mint resolves to its Ubuntu base), then
 installs `mysql-community-server`. The repository URL is fixed and cannot be changed.
 
+The installation stops before asking anything when an Ubuntu-packaged MySQL or MariaDB server
+(`mysql-server-core-8.0`, `mysql-server-core-8.4`, or `mariadb-server-core`) is installed. Replacing it would attempt
+an unsupported in-place upgrade of its data directory; remove it first.
+
 The interactive session asks which server series (repository component) to install:
 
 | Series             | Notes             |
@@ -173,11 +182,14 @@ The interactive session asks which server series (repository component) to insta
 | `mysql-8.4-lts`    | Long-term support |
 | `mysql-innovation` | Innovation series |
 
-The non-interactive session installs `MYSQL_SERIES` (default `mysql-9.7-lts`) and preseeds an empty root password, so root logs in through
-`auth_socket` (`sudo mysql`). The interactive session also asks for the root password (masked, entered twice); leaving it empty selects
-`auth_socket`. The password is preseeded into debconf right away and is never written
-to the module state file; the server package clears it from debconf after use. When root has no password, the run
-summary reminds you to log in with `sudo mysql`.
+The non-interactive session installs `MYSQL_SERIES` (default `mysql-9.7-lts`) with an empty root password, so root logs
+in through `auth_socket` (`sudo mysql`). The interactive session also asks for the root password (masked, entered
+twice); leaving it empty selects `auth_socket`. The password must be printable ASCII without backslashes. A non-empty
+password is preseeded into debconf right away and is never written to the module state file; the server package clears
+it from debconf after use. The run summary shows how to log in: `sudo mysql` when root has no password, `mysql -u root -p` otherwise.
+
+When `/var/lib/mysql` already exists (for example after `mp remove`, which keeps it), the password is not asked: the
+server package keeps the root credentials stored in that data directory, and the run summary says so.
 
 The `mysql` and `mysql-tools` modules share one APT source (`/etc/apt/sources.list.d/mysql.sources`) and keyring,
 because apt rejects two sources for the same repository with different signing keys. Each module adds or removes only
@@ -196,7 +208,12 @@ downgrading an existing data directory to an older series.
 ### Removal
 
 `mp remove` removes the server packages and keeps the repository and `/var/lib/mysql`. `mp purge` also removes the
-series component (and the whole repository when `mysql-tools` is not enabled) and the data directory.
+series component (and the whole repository when `mysql-tools` is not enabled), and answers the package's own
+"remove data directories" question with yes, so `/var/lib/mysql`, `/var/lib/mysql-files`, `/var/lib/mysql-keyring`,
+and `/var/log/mysql` are removed without a second prompt.
+
+Changing repository components only rewrites the `Components:` line of the shared source file; the signing key is
+downloaded only when the repository is first created.
 
 ### Official Website
 

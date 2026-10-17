@@ -26,11 +26,35 @@ __mysql_repository_components() {
     sed -n 's/^Components:[[:space:]]*//p' "$__MYSQL_SOURCE_FILE"
 }
 
+# Rewrites only the Components line of the existing source file, so changing
+# components never deletes the shared source file or keyring.
+__mysql_set_repository_components() {
+    local canonical_id="$1"
+    local components="$2"
+    local tag="mysql-repo:$canonical_id"
+
+    tlog_info "$tag" "Setting MySQL APT repository components: %s" "$components"
+
+    if ! sudo sed -i "s/^Components:.*/Components: $components/" "$__MYSQL_SOURCE_FILE"; then
+        tlog_error "$tag" "Failed to update %s" "$__MYSQL_SOURCE_FILE"
+
+        return 1
+    fi
+
+    if ! sudo apt-get update; then
+        tlog_error "$tag" "Failed to update package lists"
+
+        return 1
+    fi
+}
+
 ##
 # add_mysql_repository_component <canonical_id> <component> [replace]
 #
 # Adds a component to the shared MySQL APT repository, keeping the components
-# already enabled by other modules, then refreshes the package index.
+# already enabled by other modules, then refreshes the package index. The key
+# and source file are created only when the repository does not exist yet;
+# otherwise only the Components line is rewritten.
 #
 # Parameters:
 #   canonical_id - Canonical module ID used for logging.
@@ -65,6 +89,13 @@ add_mysql_repository_component() {
     done
 
     components+=("$component")
+
+    if [[ -f "$__MYSQL_SOURCE_FILE" ]]; then
+        __mysql_set_repository_components "$canonical_id" "${components[*]}"
+
+        return $?
+    fi
+
     codename="$(get_ubuntu_codename)" || return $?
 
     install_asc_key \
@@ -89,14 +120,13 @@ add_mysql_repository_component() {
 #               are not enabled are ignored.
 #
 # Return:
-#   1 - The Ubuntu codename could not be resolved or repository update failed.
+#   1 - The repository files or package lists could not be updated.
 #
 remove_mysql_repository_component() {
     local canonical_id="$1"
     shift
 
     local tag="remove-apt:$canonical_id"
-    local codename
     local item
     local removed
     local -a current=()
@@ -132,14 +162,5 @@ remove_mysql_repository_component() {
         return $?
     fi
 
-    tlog_info "$tag" "Keeping MySQL APT repository components: %s" "${remaining[*]}"
-    codename="$(get_ubuntu_codename)" || return $?
-
-    install_asc_key \
-        "$canonical_id" \
-        "$__MYSQL_KEY_URL" \
-        "$__MYSQL_REPO_URI" \
-        "$codename" \
-        "${remaining[*]}" \
-        "$__MYSQL_REPO_NAME"
+    __mysql_set_repository_components "$canonical_id" "${remaining[*]}"
 }
