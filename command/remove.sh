@@ -78,8 +78,9 @@ __validate_options() {
 ##
 # __confirm_purge <canonical_id...>
 #
-# Shows what a purge will delete and requires the user to type PURGE in an
-# interactive terminal before anything is removed.
+# Requires the user to type PURGE in an interactive terminal before anything is
+# removed. The warning is part of the prompt question because the whiptail
+# backend takes over the screen; keep it to about four lines.
 #
 # Returns:
 #   1 when no terminal is available, the answer cannot be read, or it does not
@@ -88,28 +89,29 @@ __validate_options() {
 __confirm_purge() {
     local canonical_id
     local answer
-    local joined
+    local question
+    local summary
+    local index
     local -a names=()
 
     for canonical_id in "$@"; do
         names+=("${__MODULE_NAMES[$canonical_id]:-$canonical_id}")
     done
 
-    joined=$(printf '%s, ' "${names[@]}")
+    summary="${names[0]}"
+    for (( index = 1; index < ${#names[@]}; index += 1 )); do
+        if (( ${#summary} + ${#names[index]} + 2 > 40 )); then
+            summary+=", ... (+$(( ${#names[@]} - index )) more)"
 
-    printf '\n%b%s%b\n' "$COLOR_RED" \
-        "WARNING: mp purge permanently deletes software, settings and data. This cannot be undone." \
-        "$COLOR_RESET" >&2
-    printf 'User   : %s (home: %s)\n' "${USER:-$(id -un)}" "$HOME" >&2
-    printf 'Modules: %s\n' "${joined%, }" >&2
-    printf '%s\n' \
-        'For every module above this will:' \
-        '  - purge its packages, including their configuration files under /etc' \
-        '  - remove its APT repositories and signing keys' \
-        '  - delete its configuration, cache and data under your home directory' \
-        '  - delete service data directories, such as databases under /var/lib' \
-        '  - delete installation directories recorded by the provisioner' >&2
-    printf '%s\n\n' "Use mp remove instead to keep configuration and data." >&2
+            break
+        fi
+
+        summary+=", ${names[index]}"
+    done
+
+    question="WARNING: ${USER:-$(id -un)}, mp purge permanently deletes software, settings and data (including databases) and cannot be undone."
+    question+=$'\n'"Modules: $summary"
+    question+=$'\n'"Type PURGE to continue:"
 
     if ! source "$LIB_INSTALLER/prompt.sh"; then
         log_error "Purge aborted: an interactive terminal is required to confirm it"
@@ -117,7 +119,7 @@ __confirm_purge() {
         return 1
     fi
 
-    if ! answer="$(ask_text "Type PURGE to continue")"; then
+    if ! answer="$(ask_text "$question")"; then
         log_error "Purge aborted: the confirmation could not be read"
 
         return 1

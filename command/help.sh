@@ -147,8 +147,14 @@ Description:
   locations under your home directory, and service data directories such as
   databases. Purge implies --force and cannot be undone.
 
-  Before anything is removed, mp purge lists the modules and requires you to
-  type PURGE in an interactive terminal. It cannot run unattended.
+  Per module, purge also: purges packages with their /etc configuration,
+  removes APT repositories and signing keys, deletes configuration, cache and
+  data under your home directory, deletes service data directories under
+  /var/lib, and deletes installation directories. Use mp remove to keep them.
+
+  Before anything is removed, mp purge shows a warning with your user name and
+  the modules and requires you to type PURGE in an interactive terminal. It
+  cannot run unattended.
 EOF
 
     __root_warning
