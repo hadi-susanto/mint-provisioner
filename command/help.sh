@@ -114,6 +114,7 @@ Usage:
 
 Options:
   -f, --force  Process modules even when they are not detected as installed.
+  -h, --help   Show this help.
 
 Arguments:
   MODULE  A canonical ID, unique module ID, or registered alias.
@@ -137,20 +138,18 @@ Usage:
 
 Options:
   -f, --force  Accepted for symmetry; purge always implies --force.
+  -h, --help   Show this help.
 
 Arguments:
   MODULE  A canonical ID, unique module ID, or registered alias.
 
 Description:
-  Same as mp remove, but remove.sh runs with PURGE=true so the module also
-  removes its packages' configuration, repositories, well-known configuration
-  locations under your home directory, and service data directories such as
-  databases. Purge implies --force and cannot be undone.
-
-  Per module, purge also: purges packages with their /etc configuration,
-  removes APT repositories and signing keys, deletes configuration, cache and
-  data under your home directory, deletes service data directories under
-  /var/lib, and deletes installation directories. Use mp remove to keep them.
+  Same as mp remove, but remove.sh runs with PURGE=true. Per module, purge
+  also purges packages with their /etc configuration, removes APT repositories
+  and signing keys, deletes configuration, cache and data under your home
+  directory, and deletes service data directories (such as databases under
+  /var/lib) and installation directories. Purge implies --force and cannot be
+  undone. Use mp remove to keep them.
 
   Before anything is removed, mp purge shows a warning with your user name and
   the modules and requires you to type PURGE in an interactive terminal. It

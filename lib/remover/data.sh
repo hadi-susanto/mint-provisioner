@@ -105,7 +105,9 @@ remove_data_dir() {
 #
 # Loads the module registry and passes its INSTALL_PATH to remove_data_dir, for
 # modules whose data directory was chosen at install time and recorded as
-# INSTALL_PATH. A missing registry logs a warning and is not an error.
+# INSTALL_PATH. A missing registry logs a warning and is not an error. When the
+# directory is kept (not PURGE=true), the registry is marked DATA_RETAINED=1 so
+# exec_remove keeps it and a later mp purge can still find the directory.
 #
 # Parameters:
 #   canonical_id - Canonical module ID selecting the registry and used for logging.
@@ -148,5 +150,15 @@ remove_registry_data_dir() {
         return 1
     fi
 
-    remove_data_dir "$canonical_id" "$data_path"
+    remove_data_dir "$canonical_id" "$data_path" || return $?
+
+    if [[ "${PURGE:-false}" == "true" || ! -d "$data_path" ]]; then
+        return 0
+    fi
+
+    if ! set_registry DATA_RETAINED 1 || ! save_registry "$canonical_id"; then
+        tlog_warn "$tag" "Failed to mark the registry as retaining data; mp purge may not find it"
+    fi
+
+    return 0
 }

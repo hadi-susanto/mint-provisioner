@@ -97,6 +97,33 @@ get_registry() {
 }
 
 ##
+# has_registry <key>
+#
+# Checks whether an in-memory registry value exists, without logging.
+#
+# Parameters:
+#   key - Registry key to check.
+#
+# Return:
+#   0 - The registry value exists.
+#   1 - The registry value does not exist.
+#   2 - The argument is invalid.
+#
+has_registry() {
+    local key="${1:-}"
+
+    if (( $# != 1 )); then
+        tlog_error "registry" "has_registry requires one key"
+
+        return 2
+    fi
+
+    __validate_registry_key "$key" || return $?
+
+    [[ -v "__REGISTRY[$key]" ]]
+}
+
+##
 # set_registry <key> <value>
 #
 # Stores a value in the in-memory registry collection.

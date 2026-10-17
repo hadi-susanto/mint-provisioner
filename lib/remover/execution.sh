@@ -12,12 +12,23 @@ source "$LIB_INSTALLER/registry.sh"
 
 readonly __REMOVER_PHASE="remove"
 
+__registry_retains_data() {
+    local canonical_id="$1"
+
+    load_registry "$canonical_id" silent || return 1
+    has_registry DATA_RETAINED || return 1
+
+    [[ "$(get_registry DATA_RETAINED)" == "1" ]]
+}
+
 ##
 # exec_remove
 #
 # Executes a module's remove.sh phase.
 #
-# The module registry is deleted only when remove.sh succeeds.
+# The module registry is deleted only when remove.sh succeeds. Without purge,
+# a registry marked DATA_RETAINED=1 (see remove_registry_data_dir) is kept so a
+# later mp purge can still locate the retained data directory.
 #
 # Parameters:
 #   canonical_id - Resolved canonical module ID.
@@ -63,7 +74,9 @@ exec_remove() {
         return "$status"
     fi
 
-    if ! delete_registry "$canonical_id"; then
+    if (( ! purge )) && __registry_retains_data "$canonical_id"; then
+        tlog_info "$tag" "Registry kept: data directory retained for mp purge"
+    elif ! delete_registry "$canonical_id"; then
         tlog_warn "$tag" "Removal succeeded but the registry could not be deleted"
     fi
 

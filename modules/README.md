@@ -95,7 +95,8 @@ prints a summary, and exits non-zero if any module failed.
 
 `mp remove` (alias `mp uninstall`) and `mp purge` run only the module's `remove.sh`, with `PURGE=true` for purge (after the
 user types `PURGE` to confirm). The framework deletes the module's registry after `remove.sh`
-succeeds. `remove.sh` composes the helpers in `lib/remover/` (see "Removal" in `modules/AGENTS.md`).
+succeeds, except on a plain remove that kept a registry-recorded data directory (`DATA_RETAINED=1`), so a later
+`mp purge` can still find it. `remove.sh` composes the helpers in `lib/remover/` (see "Removal" in `modules/AGENTS.md`).
 
 ### Installed-state detection
 

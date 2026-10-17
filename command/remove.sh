@@ -21,6 +21,7 @@ __parse_args() {
 
     options_ref=(
         [FORCE]=0
+        [HELP]=0
         [PURGE]=0
     )
     args_ref=()
@@ -29,6 +30,10 @@ __parse_args() {
         case "$1" in
             -f | --force)
                 options_ref[FORCE]=1
+                shift
+                ;;
+            -h | --help)
+                options_ref[HELP]=1
                 shift
                 ;;
             --purge)
@@ -209,14 +214,21 @@ main() {
     local status=0
 
     __parse_args options args "$@" || status=$?
+    if (( options[PURGE] )); then
+        help_topic="purge"
+    fi
+
+    if (( status == 0 && options[HELP] )); then
+        bash "$MP_COMMAND/help.sh" "$help_topic"
+
+        return 0
+    fi
+
     if (( status == 0 )); then
         __validate_options options args || status=$?
     fi
 
     if (( status != 0 )); then
-        if (( options[PURGE] )); then
-            help_topic="purge"
-        fi
         bash "$MP_COMMAND/help.sh" "$help_topic" >&2
 
         return "$status"

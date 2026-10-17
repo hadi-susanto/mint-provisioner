@@ -460,7 +460,10 @@ Source them through `$LIB_REMOVER`. Order: undo the last install step first, and
 
 `purge_home_paths` paths are literal and relative (`kitty` or `JetBrains/IntelliJ`); absolute paths, `..`, `./`, and
 globs are rejected. `remove_install_dir` loads the registry itself and only warns when it is missing (for example after an earlier
-`mp remove`, so a following `mp purge` still works). The framework deletes the registry only after `remove.sh` succeeds.
+`mp remove`, so a following `mp purge` still works). The framework deletes the registry only after `remove.sh` succeeds,
+and keeps it on a plain remove when `remove_registry_data_dir` kept the directory (it marks the registry `DATA_RETAINED=1`).
+Protected paths (never deleted recursively) include system and home directories, `INSTALL_DIR`, `MP_ROOT` and their
+ancestors, anything inside `MP_ROOT`, and mount points; symlinks in the path are resolved before checking.
 
 ```bash
 #!/usr/bin/env bash

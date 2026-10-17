@@ -113,7 +113,8 @@ Registry files are stored under `$HOME/.local/state/mint-provisioner/registry/<c
 `installed.sh` may load and verify the registry, but its presence alone must not be treated as proof of installation. Do
 not remove durable registry data in ordinary `cleanup.sh`; removal belongs to `remove.sh`: the framework
 deletes the registry after `remove.sh` succeeds, and `remove.sh` reads it first with `remove_install_dir` or
-`remove_registry_data_dir`.
+`remove_registry_data_dir`. When `remove_registry_data_dir` keeps the directory (no purge), it marks the registry
+`DATA_RETAINED=1` and the framework keeps the registry for a later `mp purge`.
 
 Use the state library for temporary values shared between phases, and ensure `cleanup.sh` removes temporary files that
 cannot be discovered from saved state.

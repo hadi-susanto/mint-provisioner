@@ -126,6 +126,7 @@ mp purge <module> [options]      # remove plus well-known configuration
 | Option               | Description                                                                         |
 |----------------------|-------------------------------------------------------------------------------------|
 | `-f`, `--force`      | Process modules even when installed-state detection reports them as not installed.  |
+| `-h`, `--help`       | Show help for `remove` (or `purge`) and exit.                                       |
 
 `purge` runs the module's `remove.sh` with `PURGE=true` and implies `--force`. A module supports removal only when it
 ships `remove.sh`; otherwise it is reported as failed. Do not run these commands with `sudo` or as root.

@@ -15,10 +15,62 @@ source "$LIB_INSTALLER/symlink.sh"
 ##
 # __is_protected_directory <directory>
 #
-# Succeeds for directories that must never be deleted recursively.
+# Succeeds for directories that must never be deleted recursively: system and
+# home directories, INSTALL_DIR and MP_ROOT or any of their ancestors, anything
+# inside MP_ROOT, and mount points. Both the given path and its resolved form
+# (symlinks followed) are checked.
+#
+# Parameters:
+#   directory - Absolute, normalized directory path.
+#
+# Return:
+#   0 - The directory is protected.
+#   1 - The directory may be deleted.
 #
 __is_protected_directory() {
     local directory="$1"
+    local resolved
+    local -a roots=()
+    local root
+
+    if ! resolved="$(realpath -m -- "$directory" 2>/dev/null)"; then
+        resolved="$directory"
+    fi
+
+    for root in "${INSTALL_DIR:-}" "${MP_ROOT:-}"; do
+        root="${root%/}"
+
+        if [[ -n "$root" ]]; then
+            roots+=("$root")
+            roots+=("$(realpath -m -- "$root" 2>/dev/null || printf '%s' "$root")")
+        fi
+    done
+
+    if __is_protected_path "$directory" roots || __is_protected_path "$resolved" roots; then
+        return 0
+    fi
+
+    return 1
+}
+
+__is_protected_path() {
+    local directory="$1"
+    local -n roots_ref="$2"
+    local root
+
+    for root in "${roots_ref[@]}"; do
+        if [[ "$root/" == "$directory/"* ]]; then
+            return 0
+        fi
+    done
+
+    if [[ -n "${MP_ROOT:-}" && "$directory/" == "${MP_ROOT%/}/"* ]]; then
+        return 0
+    fi
+
+    if mountpoint -q -- "$directory" 2>/dev/null; then
+        return 0
+    fi
 
     case "$directory" in
         / | /bin | /boot | /dev | /etc | /home | /lib | /lib32 | /lib64 | /media | /mnt | \
