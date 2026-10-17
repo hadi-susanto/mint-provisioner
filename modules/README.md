@@ -60,6 +60,7 @@ modules/
         ├── install.sh                  # Required software installation
         ├── post-install.sh             # Optional post-install adjustment
         ├── cleanup.sh                  # Optional temporary-resource cleanup
+        ├── remove.sh                   # Removal phase for mp remove|uninstall|purge
         ├── helper.sh                   # Optional module-local helpers
         └── resources/                  # Optional templates and payloads
 ```
@@ -91,6 +92,10 @@ pre-install.sh → install.sh → post-install.sh → cleanup.sh
 Missing optional scripts are skipped. A failure in a normal installation phase stops that module's remaining normal
 phases, then runs `cleanup.sh` when present. The framework records the result, continues with later selected modules,
 prints a summary, and exits non-zero if any module failed.
+
+`mp remove` (alias `mp uninstall`) and `mp purge` run only the module's `remove.sh`, with `PURGE=true` for purge (after the
+user types `PURGE` to confirm). The framework deletes the module's registry after `remove.sh`
+succeeds. `remove.sh` composes the helpers in `lib/remover/` (see "Removal" in `modules/AGENTS.md`).
 
 ### Installed-state detection
 
@@ -127,6 +132,7 @@ registry data, files, package variants, or multiple application artifacts.
 | `install.sh`         |   Yes    | Perform the software installation and save durable installation facts when needed.                     |
 | `post-install.sh`    |    No    | Apply an installation-adjacent adjustment after a successful installation.                             |
 | `cleanup.sh`         |    No    | Remove temporary state, downloads, and intermediate files.                                             |
+| `remove.sh`          |    No    | Undo the installation for `mp remove`, `mp uninstall`, and `mp purge`; modules without it cannot be removed. |
 
 ### Interactive setup
 

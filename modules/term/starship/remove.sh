@@ -8,4 +8,4 @@ remove_symlink "$CANONICAL_ID" "starship" || exit $?
 
 remove_install_dir "$CANONICAL_ID" || exit $?
 
-purge_home_paths "$CANONICAL_ID" "starship" "starship.toml" || exit $?
+purge_home_paths "$CANONICAL_ID" "starship" "starship.toml"

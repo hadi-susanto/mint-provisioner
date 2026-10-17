@@ -14,10 +14,11 @@
   ├── install.sh         # Mandatory: Perform the core installation
   ├── post-install.sh    # Optional: Apply post-install system adjustments
   ├── cleanup.sh         # Optional: Remove installation-only state or artifacts
-  └── remove.sh          # Optional: Uninstall the software (required for `mp remove|uninstall|purge`)
+  └── remove.sh          # Uninstall the software (required for `mp remove|uninstall|purge`; every catalog module has one)
   ```
 
-`remove.sh` runs with `$CANONICAL_ID` and `$PURGE` (`true` for `mp purge`, otherwise `false`). It must use
+`remove.sh` runs with `$CANONICAL_ID` and `$PURGE` (`true` for `mp purge`, otherwise `false`). `mp purge` asks the
+user to type `PURGE` before any `remove.sh` runs. It must use
 `set -euo pipefail`, use `exit` instead of `return`, and delete well-known user configuration only when `$PURGE` is
 `true`. It may call `add_message`; stored messages are shown in the removal summary.
 
@@ -445,12 +446,17 @@ Source them through `$LIB_REMOVER`. Order: undo the last install step first, and
 | Library      | Function                                          | Purpose                                                                                                          |
 |--------------|---------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
 | `package.sh` | `package_remove <id> <package>...`                | Native and `.deb` packages (package names, not file paths). `apt-get remove`, or `purge` when `PURGE=true`, with `--auto-remove` (auto-installed deps go too; manual ones stay). |
-| `apt.sh`     | `remove_ppa <id> <ppa>`                           | Undo `add_ppa`. Runs only when `PURGE=true`; otherwise the PPA is kept.                                          |
+| `apt.sh`     | `remove_ppa <id> <ppa>`                           | Undo `add_ppa`. Runs only when `PURGE=true` and the PPA is configured, so it is safe next to `remove_apt_repository` for modules installable either way. |
 | `apt.sh`     | `remove_apt_repository <id> [filename]`           | Undo `install_asc_key` (deletes `.sources` and keyring). Only when `PURGE=true`; pass the same `filename`.        |
 | `binary.sh`  | `remove_symlink <id> <link_name>`                 | Undo `symlink_binary`. Pass every link name explicitly; non-symlinks are never deleted.                          |
 | `binary.sh`  | `remove_from_path <id>`                           | Undo `add_to_path`.                                                                                              |
 | `binary.sh`  | `remove_install_dir <id>`                         | Loads the registry and deletes `INSTALL_PATH`; refuses unsafe or protected paths; a missing registry only warns.  |
 | `home.sh`    | `purge_home_paths <id> <path>...`                 | `PURGE=true` only. Deletes `~/.local/{,share/,state/}<path>`, `~/.config/<path>`, `~/.cache/<path>`, and `~/.<path>`. |
+| `desktop.sh` | `remove_desktop_entry <id> <desktop_id>`          | Undo `install_desktop_entry`: deletes the `.desktop` file and hicolor icons, then refreshes caches. Call once per desktop ID. |
+| `data.sh`    | `remove_data_dir <id> <absolute_path>`            | Deletes service/application data (for example `/var/lib/<service>`) only when `PURGE=true`; otherwise keeps it and adds a message naming the path. |
+| `data.sh`    | `remove_registry_data_dir <id>`                   | Same as `remove_data_dir` for a data directory recorded as `INSTALL_PATH` in the registry (for example Docker's data-root). |
+| `system.sh`  | `remove_system_file <id> <file>`                  | Deletes one generated file, only under `/etc/apt/preferences.d/` or `/usr/local/bin/` (APT pins, launcher scripts). |
+| `jetbrains.sh` | `purge_jetbrains_dirs <id> <product_prefix>...` | `PURGE=true` only. Deletes this product's versioned `JetBrains/<Prefix><version>` directories under `~/.config`, `~/.cache`, and `~/.local/share`; never the shared `JetBrains` root. |
 
 `purge_home_paths` paths are literal and relative (`kitty` or `JetBrains/IntelliJ`); absolute paths, `..`, `./`, and
 globs are rejected. `remove_install_dir` loads the registry itself and only warns when it is missing (for example after an earlier
@@ -466,7 +472,7 @@ source "$LIB_REMOVER/home.sh"
 remove_symlink "$CANONICAL_ID" "bat" || exit $?
 remove_from_path "$CANONICAL_ID" || exit $?
 remove_install_dir "$CANONICAL_ID" || exit $?
-purge_home_paths "$CANONICAL_ID" "bat" || exit $?
+purge_home_paths "$CANONICAL_ID" "bat"
 ```
 
 ## GUI Desktop Entry Management
