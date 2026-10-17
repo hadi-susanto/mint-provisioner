@@ -15,6 +15,8 @@ Commands:
   help [command]  Show basic help or details for a command.
   list            List available modules or categories.
   install         Install one or more modules.
+  remove          Remove one or more modules (alias: uninstall).
+  purge           Remove modules and their well-known configuration.
 
 Options:
   -h, --help  Show this help messages.
@@ -96,6 +98,67 @@ EOF
         "$COLOR_YELLOW" "$COLOR_RESET"
 }
 
+__root_warning() {
+    printf '\n%bWARNING: Do not run mp remove or mp purge with sudo or as root.%b\n' \
+        "$COLOR_RED" "$COLOR_RESET"
+}
+
+__remove_help() {
+    cat <<'EOF'
+Mint Provisioner
+----------------
+
+Usage:
+  mp remove [OPTIONS] MODULE...
+  mp uninstall [OPTIONS] MODULE...
+
+Options:
+  -f, --force  Process modules even when they are not detected as installed.
+  -h, --help   Show this help.
+
+Arguments:
+  MODULE  A canonical ID, unique module ID, or registered alias.
+
+Description:
+  Resolves one or more modules and runs each module's remove.sh. Modules
+  without remove.sh do not support removal and fail.
+  Modules that are not installed are skipped unless --force is used.
+EOF
+
+    __root_warning
+}
+
+__purge_help() {
+    cat <<'EOF'
+Mint Provisioner
+----------------
+
+Usage:
+  mp purge [OPTIONS] MODULE...
+
+Options:
+  -f, --force  Accepted for symmetry; purge always implies --force.
+  -h, --help   Show this help.
+
+Arguments:
+  MODULE  A canonical ID, unique module ID, or registered alias.
+
+Description:
+  Same as mp remove, but remove.sh runs with PURGE=true. Per module, purge
+  also purges packages with their /etc configuration, removes APT repositories
+  and signing keys, deletes configuration, cache and data under your home
+  directory, and deletes service data directories (such as databases under
+  /var/lib) and installation directories. Purge implies --force and cannot be
+  undone. Use mp remove to keep them.
+
+  Before anything is removed, mp purge shows a warning with your user name and
+  the modules and requires you to type PURGE in an interactive terminal. It
+  cannot run unattended.
+EOF
+
+    __root_warning
+}
+
 main() {
     local help_type="${1:-basic}"
 
@@ -111,6 +174,12 @@ main() {
             ;;
         list)
             __list_help
+            ;;
+        remove | uninstall)
+            __remove_help
+            ;;
+        purge)
+            __purge_help
             ;;
         *)
             log_error "Unknown help topic: %s" "$help_type"

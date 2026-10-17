@@ -4,6 +4,8 @@ set -euo pipefail
 source "$LIB_COMMON/common.sh"
 source "$LIB_COMMON/metadata.sh"
 source "$LIB_COMMON/resolver.sh"
+source "$LIB_COMMON/run-report.sh"
+source "$LIB_COMMON/sudo.sh"
 source "$LIB_INSTALLER/detection.sh"
 source "$LIB_INSTALLER/execution.sh"
 source "$LIB_INSTALLER/messages.sh"
@@ -213,157 +215,16 @@ __run_interactive_session() {
     return 0
 }
 
-__build_unattended_retry_command() {
-    local result_name="$1"
-    shift
-
-    local -n result_ref="$result_name"
-    local argument
-    local quoted_argument
-
-    result_ref="sudo -v && mp install"
-
-    for argument in "$@"; do
-        printf -v quoted_argument '%q' "$argument"
-        result_ref+=" $quoted_argument"
-    done
-}
-
-__cache_sudo_privileges() {
-    local response
-
-    log_info \
-        "The installer can cache sudo privileges now so modules can invoke sudo when necessary."
-
-    if ! IFS= read -r -p "Cache sudo privileges now? (Y/n): " response; then
-        log_error "Unable to read the sudo privilege response"
-
-        return 1
-    fi
-
-    response="${response:-y}"
-
-    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
-        log_info "Acquiring sudo privileges..."
-
-        if ! sudo -v; then
-            log_error "Failed to acquire sudo privileges"
-
-            return 1
-        fi
-
-        return 0
-    fi
-
-    log_info "Continuing without cached sudo privileges"
-
-    return 0
-}
-
-__validate_sudo_privileges() {
-    log_info \
-        "Non-interactive mode: validating cached or passwordless sudo privileges..."
-
-    if sudo -n -v; then
-        return 0
-    fi
-
-    __build_unattended_retry_command retry_command "$@"
-    log_error \
-        "Non-interactive mode could not acquire sudo privileges without prompting"
-    log_info "Retry after validating sudo privileges: %s" "$retry_command"
-
-    return 1
-}
-
-__current_time_ms() {
-    local current_time
-
-    if ! current_time="$(date +%s%3N)" ||
-        [[ ! "$current_time" =~ ^[0-9]+$ ]]; then
-        log_error "Unable to read the current time in milliseconds"
-
-        return 1
-    fi
-
-    printf '%s\n' "$current_time"
-}
-
-__format_module_duration() {
-    local duration_ms="$1"
-    local result_name="$2"
-    local -n result_ref="$result_name"
-
-    printf -v result_ref '%d.%03d second(s)' \
-        "$((duration_ms / 1000))" "$((duration_ms % 1000))"
-}
-
-__format_total_duration() {
-    local duration_ms="$1"
-    local result_name="$2"
-    local -n result_ref="$result_name"
-    local total_seconds=$((duration_ms / 1000))
-
-    printf -v result_ref '%02d:%02d.%03d' \
-        "$((total_seconds / 60))" \
-        "$((total_seconds % 60))" \
-        "$((duration_ms % 1000))"
-}
-
-__print_module_header() {
-    local canonical_id="$1"
-    local name="$2"
-    local description="${3:-}"
-
-    printf '%s\n' \
-        '----------------------------------------------------------------------'
-    printf 'Installing: %b%s%b\n' "$COLOR_BLUE" "$name" "$COLOR_RESET"
-    printf 'Module ID : %b%s%b\n' "$COLOR_YELLOW" "$canonical_id" "$COLOR_RESET"
-    if [[ -n "$description" ]]; then
-        printf '%s\n' "$description"
-    fi
-    printf '%s\n' \
-        '----------------------------------------------------------------------'
-}
-
-__print_module_footer() {
-    local status="$1"
-    local duration="$2"
-    local status_text
-    local status_color
-
-    if [[ "$status" == "SUCCESS" ]]; then
-        status_text="Installation succeeded"
-        status_color="$COLOR_GREEN"
-    else
-        status_text="Installation failed"
-        status_color="$COLOR_RED"
-    fi
-
-    printf '%s\n' \
-        '----------------------------------------------------------------------'
-    printf -- '-= %b%s%b =- [duration: %b%s%b]\n' \
-        "$status_color" "$status_text" "$COLOR_RESET" \
-        "$COLOR_CYAN" "$duration" "$COLOR_RESET"
-    printf '%s\n' \
-        '----------------------------------------------------------------------'
-}
-
 __run_installation() {
     local canonical_id
     local start_time_ms
     local end_time_ms
     local total_start_time_ms
     local total_end_time_ms
-    local duration_ms
-    local total_duration_ms
     local duration
     local total_duration
     local result
-    local result_color
     local exit_status=0
-    local index
-    local message_status
     local -a canonical_ids=("$@")
     local -a durations=()
     local -a results=()
@@ -372,15 +233,16 @@ __run_installation() {
         tlog_error "installation" "Failed to clear messages from a previous installation run"
     fi
 
-    total_start_time_ms="$(__current_time_ms)" || return $?
+    total_start_time_ms="$(current_time_ms)" || return $?
 
     for canonical_id in "${canonical_ids[@]}"; do
-        __print_module_header \
+        print_module_header \
+            "Installing" \
             "$canonical_id" \
             "${__MODULE_NAMES[$canonical_id]:-$canonical_id}" \
             "${__MODULE_DESCRIPTIONS[$canonical_id]:-}"
 
-        start_time_ms="$(__current_time_ms)" || return $?
+        start_time_ms="$(current_time_ms)" || return $?
         if exec_install "$canonical_id"; then
             result="SUCCESS"
         else
@@ -388,10 +250,10 @@ __run_installation() {
             exit_status=1
         fi
 
-        end_time_ms="$(__current_time_ms)" || return $?
-        duration_ms=$((end_time_ms - start_time_ms))
-        __format_module_duration "$duration_ms" duration
-        __print_module_footer "$result" "$duration"
+        end_time_ms="$(current_time_ms)" || return $?
+        format_module_duration "$((end_time_ms - start_time_ms))" duration
+        print_module_footer "$result" "$duration" \
+            "Installation succeeded" "Installation failed"
 
         results+=("$result")
         durations+=("$duration")
@@ -399,39 +261,11 @@ __run_installation() {
         printf '\n'
     done
 
-    total_end_time_ms="$(__current_time_ms)" || return $?
-    total_duration_ms=$((total_end_time_ms - total_start_time_ms))
-    __format_total_duration "$total_duration_ms" total_duration
+    total_end_time_ms="$(current_time_ms)" || return $?
+    format_total_duration "$((total_end_time_ms - total_start_time_ms))" total_duration
 
-    printf 'Installation Results [time: %s]\n' "$total_duration"
-    printf '%s\n' '=================================================='
-
-    for (( index = 0; index < ${#canonical_ids[@]}; index += 1 )); do
-        if [[ "${results[$index]}" == "SUCCESS" ]]; then
-            result_color="$COLOR_GREEN"
-        else
-            result_color="$COLOR_RED"
-        fi
-
-        canonical_id="${canonical_ids[$index]}"
-        printf '%2d. %b%s%b %b[id: %s]%b %b[%s: %s]%b\n' \
-            "$((index + 1))" \
-            "$COLOR_BLUE" "${__MODULE_NAMES[$canonical_id]:-$canonical_id}" "$COLOR_RESET" \
-            "$COLOR_YELLOW" "$canonical_id" "$COLOR_RESET" \
-            "$result_color" "${results[$index]}" "${durations[$index]}" "$COLOR_RESET"
-
-        if has_messages "$canonical_id"; then
-            if ! print_messages "$canonical_id" 2; then
-                tlog_error "installation:$canonical_id" "Failed to print stored messages"
-            fi
-        else
-            message_status=$?
-
-            if (( message_status > 1 )); then
-                tlog_error "installation:$canonical_id" "Failed to inspect stored messages"
-            fi
-        fi
-    done
+    print_run_results "Installation Results" "$total_duration" \
+        __MODULE_NAMES canonical_ids results durations
 
     if ! delete_all_messages; then
         tlog_error "installation" "Failed to delete stored installation messages"
@@ -492,9 +326,9 @@ main() {
     __run_interactive_session \
         "${options[NON_INTERACTIVE]}" "${filtered_ids[@]}" || return $?
     if (( ${options[NON_INTERACTIVE]} )); then
-        __validate_sudo_privileges "${original_args[@]}"
+        validate_sudo_privileges install "${original_args[@]}"
     else
-        __cache_sudo_privileges || return $?
+        cache_sudo_privileges || return $?
     fi
     __run_installation "${filtered_ids[@]}"
 }

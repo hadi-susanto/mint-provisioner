@@ -97,6 +97,33 @@ get_registry() {
 }
 
 ##
+# has_registry <key>
+#
+# Checks whether an in-memory registry value exists, without logging.
+#
+# Parameters:
+#   key - Registry key to check.
+#
+# Return:
+#   0 - The registry value exists.
+#   1 - The registry value does not exist.
+#   2 - The argument is invalid.
+#
+has_registry() {
+    local key="${1:-}"
+
+    if (( $# != 1 )); then
+        tlog_error "registry" "has_registry requires one key"
+
+        return 2
+    fi
+
+    __validate_registry_key "$key" || return $?
+
+    [[ -v "__REGISTRY[$key]" ]]
+}
+
+##
 # set_registry <key> <value>
 #
 # Stores a value in the in-memory registry collection.
@@ -226,16 +253,19 @@ save_registry() {
 }
 
 ##
-# load_registry <canonical_id>
+# load_registry <canonical_id> [silent]
 #
 # Replaces the in-memory collection with one module's persisted registry.
 #
 # Parameters:
 #   canonical_id - Canonical module ID selecting the registry file.
+#   silent - Optional literal "silent" to skip the error log when no registry
+#            exists, for callers where a missing registry is expected, such as
+#            installed-state detection.
 #
 # Return:
 #   0 - The registry was loaded.
-#   1 - No registry exists.
+#   1 - No registry exists (logged as an error unless silent).
 #   2 - The registry path or content is invalid or unreadable.
 #
 load_registry() {
@@ -246,8 +276,8 @@ load_registry() {
     local registry_file
     local value
 
-    if (( $# != 1 )); then
-        tlog_error "registry" "load_registry requires one canonical ID"
+    if (( $# < 1 || $# > 2 )) || [[ -n "${2:-}" && "$2" != "silent" ]]; then
+        tlog_error "registry" "load_registry requires one canonical ID and an optional \"silent\" flag"
 
         return 2
     fi
@@ -257,6 +287,10 @@ load_registry() {
     __REGISTRY_CANONICAL_ID="$canonical_id"
 
     if [[ ! -e "$registry_file" ]]; then
+        if [[ "${2:-}" != "silent" ]]; then
+            tlog_error "registry:$canonical_id" "Registry not found: %s" "$registry_file"
+        fi
+
         return 1
     fi
 

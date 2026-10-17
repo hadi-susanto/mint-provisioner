@@ -59,6 +59,9 @@ category directory when several modules need them.
     - `pre-install.sh` for prerequisites, repositories, keys, downloads, and temporary setup.
     - `post-install.sh` for installation-adjacent adjustments after successful installation.
     - `cleanup.sh` for temporary state, downloads, and intermediate files.
+    - `remove.sh` to support `mp remove`, `mp uninstall`, and `mp purge`. Undo exactly what the install phases created
+      with the helpers in `lib/remover/`; user configuration and data are removed only through the helpers that honor
+      `PURGE`. Every module in the catalog ships one, so new modules should too.
 6. Add `helper.sh` and `resources/` when the module needs local reusable functions or payloads.
 7. Document the module in its category page with its installation method, supported environment variables, relevant
    registry behavior, integrations, and official project link.
@@ -108,8 +111,10 @@ save_registry "$CANONICAL_ID"
 
 Registry files are stored under `$HOME/.local/state/mint-provisioner/registry/<category>/<module>.registry`.
 `installed.sh` may load and verify the registry, but its presence alone must not be treated as proof of installation. Do
-not remove durable registry data in ordinary `cleanup.sh`; reserve removal for a future explicit uninstall or
-registry-management workflow.
+not remove durable registry data in ordinary `cleanup.sh`; removal belongs to `remove.sh`: the framework
+deletes the registry after `remove.sh` succeeds, and `remove.sh` reads it first with `remove_install_dir` or
+`remove_registry_data_dir`. When `remove_registry_data_dir` keeps the directory (no purge), it marks the registry
+`DATA_RETAINED=1` and the framework keeps the registry for a later `mp purge`.
 
 Use the state library for temporary values shared between phases, and ensure `cleanup.sh` removes temporary files that
 cannot be discovered from saved state.
