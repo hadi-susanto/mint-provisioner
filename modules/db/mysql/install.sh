@@ -9,6 +9,15 @@ load_states "$CANONICAL_ID" || exit $?
 root_login="$(get_state "MYSQL_ROOT_LOGIN")" || exit $?
 apt_install "$CANONICAL_ID" mysql-community-server || exit $?
 
-if [[ "$root_login" == "socket" ]]; then
-    add_message "$CANONICAL_ID" "info" "MySQL root has no password; log in with: sudo mysql"
-fi
+case "$root_login" in
+    socket)
+        add_message "$CANONICAL_ID" "info" "MySQL root has no password; log in with: sudo mysql"
+        ;;
+    password)
+        add_message "$CANONICAL_ID" "info" "MySQL root uses a password; log in with: mysql -u root -p"
+        ;;
+    existing)
+        add_message "$CANONICAL_ID" "info" \
+            "Existing /var/lib/mysql was reused; MySQL root keeps its previous credentials"
+        ;;
+esac

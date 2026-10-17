@@ -7,6 +7,7 @@ fi
 readonly __MINT_PROVISIONER_MYSQL_RESOLVER_LOADED=1
 
 source "$LIB_COMMON/common.sh"
+source "$LIB_INSTALLER/detection.sh"
 source "$LIB_INSTALLER/state.sh"
 
 ##
@@ -39,4 +40,42 @@ resolve_mysql_series() {
             return 1
             ;;
     esac
+}
+
+##
+# ensure_no_distro_mysql_server <canonical_id>
+#
+# Refuses to continue when an Ubuntu-packaged MySQL or MariaDB server is
+# installed. Installing mysql-community-server would replace it and attempt an
+# unsupported in-place upgrade of its data directory.
+#
+# Parameters:
+#   canonical_id - Canonical module ID used for logging.
+#
+# Return:
+#   1 - A distribution MySQL or MariaDB server is installed.
+#   2 - The package query failed.
+#
+ensure_no_distro_mysql_server() {
+    local canonical_id="$1"
+    local status=0
+
+    package_installed \
+        "$canonical_id" \
+        "mysql-server-core-8.0" \
+        "mysql-server-core-8.4" \
+        "mariadb-server-core" || status=$?
+
+    if (( status == 1 )); then
+        return 0
+    fi
+
+    if (( status == 0 )); then
+        tlog_error "$canonical_id" \
+            "An Ubuntu MySQL or MariaDB server is installed; remove it before installing MySQL Community Server"
+
+        return 1
+    fi
+
+    return "$status"
 }

@@ -7,6 +7,8 @@ source "$LIB_INSTALLER/prompt.sh"
 
 tag="interactive:$CANONICAL_ID"
 
+ensure_no_distro_mysql_server "$CANONICAL_ID" || exit $?
+
 selected_index="$(
     choose_option \
         "Which MySQL Server series do you want to install?" \
@@ -33,10 +35,31 @@ case "$selected_index" in
         ;;
 esac
 
-root_password="$(
-    ask_password "MySQL root password (leave empty to log in as root with 'sudo mysql')"
-)" || exit $?
+if mysql_data_dir_exists; then
+    tlog_warn "$tag" "Existing /var/lib/mysql found; its root credentials are kept"
+    set_state "MYSQL_ROOT_LOGIN" "existing"
+    save_states "$CANONICAL_ID"
 
-preseed_mysql_root_password "$CANONICAL_ID" "$root_password" || exit $?
+    exit $?
+fi
+
+while true; do
+    root_password="$(
+        ask_password "MySQL root password (leave empty to log in as root with 'sudo mysql')"
+    )" || exit $?
+
+    if validate_mysql_root_password "$root_password"; then
+        break
+    fi
+done
+
+# A non-empty password is preseeded here so it is never written to the state
+# file; an empty one is preseeded in pre-install, after sudo is cached.
+if [[ -z "$root_password" ]]; then
+    set_state "MYSQL_ROOT_LOGIN" "socket"
+else
+    preseed_mysql_root_password "$CANONICAL_ID" "$root_password" || exit $?
+    set_state "MYSQL_ROOT_LOGIN" "password"
+fi
 
 save_states "$CANONICAL_ID"
