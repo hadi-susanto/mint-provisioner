@@ -10,6 +10,8 @@ servers, database clients, management utilities, and other tools for working wit
 - [Memcached](#memcached-memcached)
 - [MongoDB Compass](#mongodb-compass-mongodb-compass-alias-compass)
 - [MongoDB Community](#mongodb-server-mongodb-community-alias-mongodb)
+- [MySQL Connectors](#mysql-connectors-mysql-tools)
+- [MySQL Server](#mysql-server-mysql)
 - [pgAdmin 4](#pgadmin-4-pg-admin-alias-pgadmin)
 - [PostgreSQL Server](#postgresql-server-postgresql)
 - [Redis](#redis-redis)
@@ -127,6 +129,78 @@ server versions independently of the default Ubuntu package repositories.
 ### Official Website
 
 https://www.mongodb.com/
+
+---
+
+## MySQL Connectors (`mysql-tools`)
+
+The official MySQL connectors for Java (Connector/J), Python (Connector/Python), ODBC (Connector/ODBC), and C++
+(Connector/C++).
+
+### Installation Method
+
+**Official MySQL APT repository (`mysql-tools` component)**
+
+Adds the `mysql-tools` component to the shared MySQL APT repository (see [MySQL Server](#mysql-server-mysql)), then
+installs `mysql-connector-j`, `mysql-connector-python-py3`, `mysql-connector-odbc`, and `libmysqlcppconn-dev`.
+
+Components enabled by `mysql` are kept. Removing this module drops only the `mysql-tools` component on `mp purge`.
+
+### Official Website
+
+https://dev.mysql.com/downloads/connector/
+
+---
+
+## MySQL Server (`mysql`)
+
+MySQL is a widely used open-source relational database server. This module installs MySQL Community Server from
+Oracle's official APT repository instead of the Ubuntu-packaged MySQL.
+
+### Installation Method
+
+**Official MySQL APT repository**
+
+Replaces Oracle's `mysql-apt-config` package. Adds the MySQL signing key and the repository
+`https://repo.mysql.com/apt/ubuntu` for the Ubuntu base codename (Linux Mint resolves to its Ubuntu base), then
+installs `mysql-community-server`. The repository URL is fixed and cannot be changed.
+
+The interactive session asks which server series (repository component) to install:
+
+| Series             | Notes             |
+|--------------------|-------------------|
+| `mysql-9.7-lts`    | Default (LTS)     |
+| `mysql-8.4-lts`    | Long-term support |
+| `mysql-innovation` | Innovation series |
+
+The non-interactive session installs `MYSQL_SERIES` (default `mysql-9.7-lts`) and preseeds an empty root password, so root logs in through
+`auth_socket` (`sudo mysql`). The interactive session also asks for the root password (masked, entered twice); leaving it empty selects
+`auth_socket`. The password is preseeded into debconf right away and is never written
+to the module state file; the server package clears it from debconf after use. When root has no password, the run
+summary reminds you to log in with `sudo mysql`.
+
+The `mysql` and `mysql-tools` modules share one APT source (`/etc/apt/sources.list.d/mysql.sources`) and keyring,
+because apt rejects two sources for the same repository with different signing keys. Each module adds or removes only
+its own component. Re-installing with another series replaces the server component; MySQL does not support
+downgrading an existing data directory to an older series.
+
+### Supported ENV
+
+- `MYSQL_SERIES`
+    - Selects the server series during a non-interactive installation.
+    - Supported values: `mysql-9.7-lts`, `mysql-8.4-lts`, and `mysql-innovation`.
+    - Any other value is rejected.
+    - Ignored during an interactive installation, which always asks.
+    - Default: `mysql-9.7-lts`
+
+### Removal
+
+`mp remove` removes the server packages and keeps the repository and `/var/lib/mysql`. `mp purge` also removes the
+series component (and the whole repository when `mysql-tools` is not enabled) and the data directory.
+
+### Official Website
+
+https://www.mysql.com/
 
 ---
 

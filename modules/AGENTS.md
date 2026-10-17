@@ -141,7 +141,7 @@ __resolve_module_name_yyy() {
 
 # prompt.sh is a loader: it uses whiptail dialogs when available, plain-bash prompts otherwise
 # (or when DISABLE_WHIPTAIL=true is set).
-# The API (choose_option returns an index, ask_number, ask_text) is identical either way.
+# The API (choose_option returns an index, ask_number, ask_text, ask_password) is identical either way.
 source "${LIB_INSTALLER}/prompt.sh"
 
 __ask_module_name_xxx() {

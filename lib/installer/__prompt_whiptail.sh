@@ -325,3 +325,48 @@ ask_text() {
         return 0
     done
 }
+
+##
+# ask_password
+#
+# Prompts twice for a password in masked whiptail dialogs. The password is not
+# trimmed and may be empty.
+#
+# Parameters:
+#   question - Question displayed above the password field.
+#
+# Output:
+#   Prints the confirmed password to standard output.
+#
+# Return:
+#   0 - Both entries matched.
+#   1 - Input is invalid or the dialog was cancelled.
+#
+ask_password() {
+    local question="${1:-}"
+    local password
+    local confirmation
+
+    if (( $# != 1 )) || [[ -z "$question" ]]; then
+        tlog_error "prompt" "ask_password requires a question"
+
+        return 1
+    fi
+
+    while true; do
+        password="$(__prompt_whiptail_run --title "Mint Provisioner" --passwordbox \
+            "$question" 12 70)" || return 1
+        confirmation="$(__prompt_whiptail_run --title "Mint Provisioner" --passwordbox \
+            "Confirm the password." 10 70)" || return 1
+
+        if [[ "$password" != "$confirmation" ]]; then
+            __prompt_whiptail_message "Passwords do not match."
+
+            continue
+        fi
+
+        printf '%s\n' "$password"
+
+        return 0
+    done
+}

@@ -419,3 +419,64 @@ ask_text() {
         printf '\n' >/dev/tty
     done
 }
+
+##
+# ask_password
+#
+# Prompts twice for a password without echoing the input. The password is not
+# trimmed and may be empty.
+#
+# Parameters:
+#   question - Question displayed before the input.
+#
+# Output:
+#   Prints the confirmed password to standard output.
+#
+# Return:
+#   0 - Both entries matched.
+#   1 - Input is invalid or reading from the terminal failed.
+#
+ask_password() {
+    local question="${1:-}"
+    local password
+    local confirmation
+
+    if (( $# != 1 )) || [[ -z "$question" ]]; then
+        tlog_error "prompt" "ask_password requires a question"
+
+        return 1
+    fi
+
+    while true; do
+        printf '%bQuestion:%b %s\n' "$COLOR_CYAN" "$COLOR_RESET" "$question" >/dev/tty
+        printf 'Password: ' >/dev/tty
+
+        if ! IFS= read -rs password </dev/tty; then
+            printf '\n' >/dev/tty
+            tlog_error "prompt" "Unable to read password input"
+
+            return 1
+        fi
+
+        printf '\nConfirm password: ' >/dev/tty
+
+        if ! IFS= read -rs confirmation </dev/tty; then
+            printf '\n' >/dev/tty
+            tlog_error "prompt" "Unable to read password input"
+
+            return 1
+        fi
+
+        printf '\n' >/dev/tty
+
+        if [[ "$password" != "$confirmation" ]]; then
+            printf '%b%s%b\n\n' "$COLOR_RED" "Passwords do not match." "$COLOR_RESET" >/dev/tty
+
+            continue
+        fi
+
+        printf '%s\n' "$password"
+
+        return 0
+    done
+}
