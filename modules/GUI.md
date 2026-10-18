@@ -4,6 +4,7 @@ Graphical applications for productivity, file management, security, and everyday
 
 ## Contents
 
+- [avda](#avda-avda)
 - [Cryptomator](#cryptomator-cryptomator)
 - [DeaDBeeF](#deadbeef-deadbeef)
 - [deskOTP](#deskotp-desk-otp)
@@ -19,6 +20,36 @@ Graphical applications for productivity, file management, security, and everyday
 - [OTPClient](#otpclient-otpclient-alias-totp-alias-otp-alias-hotp)
 - [Sunflower](#sunflower-sunflower)
 - [TLP UI](#tlp-ui-tlp-ui)
+
+---
+
+## avda (`avda`)
+
+avda is a desktop app for generating and viewing one-time passwords from Aegis Authenticator backups. Open an Aegis
+vault export and avda shows the live codes for its entries.
+
+### Installation Method
+
+**GitHub latest release (ZIP)**
+
+Downloads the latest `avda_linux.zip` and the application icon (from the release tag) from the official GitHub
+repository, extracts the `avda` binary into the installation directory, links it into the `bin` directory, and creates
+a desktop entry.
+
+### Supported ENV
+
+- `AVDA_INSTALL_DIR`
+    - Installation directory.
+    - Default: `${INSTALL_DIR}/avda`
+
+### Cleanup
+
+- Removes the downloaded archive and icon files.
+- Removes the module state file.
+
+### Official Website
+
+https://github.com/Sammy-T/avda
 
 ---
 

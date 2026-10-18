@@ -14,8 +14,8 @@ source "$LIB_INSTALLER/symlink.sh"
 ##
 # stateful_extract_install <canonical_id> <state_name> <archive_type> <install_dir> [<binary> <link_name>]... [-- <extractor args...>]
 #
-# Extracts an archive, creates symlinks for the specified binaries, and saves
-# the installation path to the registry.
+# Extracts an archive, marks the specified binaries executable, creates symlinks
+# for them, and saves the installation path to the registry.
 #
 # Parameters:
 #   canonical_id - Canonical module ID used for tagged logging and state.
@@ -80,6 +80,12 @@ stateful_extract_install() {
         "${extractor_args[@]}" || return $?
 
     for ((i = 0; i < ${#binaries[@]}; i++)); do
+        if ! chmod +x "${install_path}/${binaries[i]}"; then
+            tlog_error "$tag" "Failed to make binary executable: %s" "${install_path}/${binaries[i]}"
+
+            return 1
+        fi
+
         symlink_binary \
             "$canonical_id" "${install_path}/${binaries[i]}" "${link_names[i]}" || return $?
     done
