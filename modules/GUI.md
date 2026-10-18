@@ -11,6 +11,8 @@ Graphical applications for productivity, file management, security, and everyday
 - [fman](#fman-fman)
 - [Insync](#insync-insync)
 - [KeePassXC](#keepassxc-keepass-xc-alias-keepass-alias-keepassxc)
+- [Lapce](#lapce-lapce)
+- [Meld](#meld-meld)
 - [Mu Commander](#mu-commander-mu-commander-alias-mu-cmd)
 - [onedriver](#onedriver-onedriver)
 - [Sunflower](#sunflower-sunflower)
@@ -211,6 +213,88 @@ Configures the official KeePassXC Launchpad PPA, then installs KeePassXC using A
 ### Official Website
 
 https://keepassxc.org/
+
+---
+
+## Lapce (`lapce`)
+
+Lapce is a lightning-fast, open-source code editor written in Rust with a native GPU-rendered UI, built-in LSP
+support, remote development, and tree-sitter syntax highlighting.
+
+### Installation Method
+
+**GitHub latest release (.deb)**
+
+Downloads the `.deb` built for the system's Ubuntu base release (for example `noble` on Linux Mint 22, `jammy` on
+Linux Mint 21) from the official `lapce/lapce` releases and installs it using APT. Only `x86_64` is supported.
+
+**Tree-sitter grammars and queries**
+
+Lapce normally downloads these on first launch. The module pre-fetches the latest `grammars-linux-x86_64.tar.zst` and
+`queries.tar.zst` from `lapce/tree-sitter-grammars` so syntax highlighting works immediately. `zstd` is required.
+
+### Installed Configuration
+
+- Extracts grammars to `~/.local/share/lapce-stable/grammars`.
+- Extracts queries to `~/.config/lapce-stable/queries`.
+
+### Desktop Integration
+
+- The `.deb` installs the desktop entry and icon; the module does not create one.
+
+### Official Website
+
+https://lapce.dev/
+
+---
+
+## Meld (`meld`)
+
+Meld is a visual diff and merge tool for developers. It compares two or three files or directories side by side,
+supports interactive merging, and integrates with Git and other version control systems.
+
+### Installation Method
+
+**GNOME GitLab repository (source installation, `meld-3-24` branch)**
+
+Performs a shallow clone of the `meld-3-24` branch of the official Meld repository and runs Meld directly from the
+clone without a Meson build. The installer precompiles its GResource bundle, GSettings schema, and translations.
+
+`meld-3-24` is the last stable GTK 3 branch. The `main` branch targets GTK 4 and requires libadwaita 1.6, which Linux
+Mint 22 (Ubuntu 24.04) does not provide.
+
+The module requires:
+
+- Python 3
+- Git
+
+The following runtime packages are installed using APT:
+
+- `python3-gi`, `python3-gi-cairo`, `python3-cairo`
+- `gir1.2-gtk-3.0`, `gir1.2-gtksource-4`
+- `gsettings-desktop-schemas`
+- `libglib2.0-bin`, `libglib2.0-dev-bin` (`glib-compile-schemas`, `glib-compile-resources`)
+- `gettext` (`msgfmt` for translations)
+
+### Supported ENV
+
+- `MELD_INSTALL_DIR`
+    - Directory where the Meld Git repository is cloned.
+    - Default: `${INSTALL_DIR}/meld`
+
+### Installed Configuration
+
+- Creates a symbolic link for `bin/meld` named `meld`.
+
+### Desktop Integration
+
+- Installs `meld.desktop` into `/usr/share/applications`.
+- Installs the bundled icon into `/usr/share/icons/hicolor/scalable/apps/meld.svg`.
+- Accepts files and directories (`%F`) and registers Meld under the development category.
+
+### Official Website
+
+https://meldmerge.org/
 
 ---
 

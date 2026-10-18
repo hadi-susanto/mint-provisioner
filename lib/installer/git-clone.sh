@@ -45,18 +45,46 @@ __validate_git_clone_path() {
     return 0
 }
 
+##
+# git_clone <canonical_id> <git_url> <clone_path> [required_file]... [-- <git args...>]
+#
+# Shallow-clones a Git repository, or accepts an existing clone that contains the required files.
+#
+# Parameters:
+#   canonical_id - Canonical module ID used for tagged logging.
+#   git_url - Repository URL.
+#   clone_path - Clone destination directory; must be missing, empty, or an existing clone.
+#   required_file - File, relative to clone_path, that an existing clone must contain.
+#   git args... - Additional git clone arguments passed as-is, such as --branch <name>.
+#
+# Return:
+#   1 - The destination is invalid or cloning failed.
+#
 git_clone() {
     local canonical_id="$1"
     local git_url="$2"
     local clone_path="$3"
     local tag="git-clone:$canonical_id"
-    local arg
+    local -a required_files=()
+    local -a git_args=()
 
     shift 3
 
-    tlog_info "$tag" "Checking %s directory before cloning"
+    while (( $# > 0 )); do
+        # Everything after -- belongs to git clone.
+        if [[ "$1" == "--" ]]; then
+            shift
+            git_args=("$@")
+            break
+        fi
+
+        required_files+=("$1")
+        shift
+    done
+
+    tlog_info "$tag" "Checking %s directory before cloning" "$clone_path"
     if [[ -e "$clone_path" ]]; then
-        __validate_git_clone_path "$tag" "$clone_path" "$@" || return $?
+        __validate_git_clone_path "$tag" "$clone_path" "${required_files[@]}" || return $?
         if [[ -d "$clone_path/.git" ]]; then
             tlog_warn "$tag" "Skipping clone; %s is already a valid Git repository" "$clone_path"
 
@@ -71,7 +99,7 @@ git_clone() {
         return 1
     fi
 
-    if git clone --depth 1 "$git_url" "$clone_path"; then
+    if git clone --depth 1 "${git_args[@]}" "$git_url" "$clone_path"; then
         return 0
     fi
 
