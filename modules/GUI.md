@@ -6,6 +6,7 @@ Graphical applications for productivity, file management, security, and everyday
 
 - [Cryptomator](#cryptomator-cryptomator)
 - [DeaDBeeF](#deadbeef-deadbeef)
+- [deskOTP](#deskotp-desk-otp)
 - [Double Commander](#double-commander-double-commander-alias-db-cmd)
 - [Flameshot](#flameshot-flameshot)
 - [fman](#fman-fman)
@@ -15,6 +16,7 @@ Graphical applications for productivity, file management, security, and everyday
 - [Meld](#meld-meld)
 - [Mu Commander](#mu-commander-mu-commander-alias-mu-cmd)
 - [onedriver](#onedriver-onedriver)
+- [OTPClient](#otpclient-otpclient-alias-totp-alias-otp-alias-hotp)
 - [Sunflower](#sunflower-sunflower)
 - [TLP UI](#tlp-ui-tlp-ui)
 
@@ -77,6 +79,28 @@ extracts the standalone application into the configured installation directory a
 ### Official Website
 
 https://deadbeef.sourceforge.io/
+
+---
+
+## deskOTP (`desk-otp`)
+
+deskOTP is a desktop authenticator for TOTP, HOTP, and Steam Guard codes. It can import tokens from Aegis, 2FAS, andOTP,
+Authy, Google Authenticator, and other apps.
+
+### Installation Method
+
+**GitHub latest release (.deb)**
+
+Downloads the latest `deskotp_*_amd64.deb` package from the official GitHub releases page, stores the downloaded package path in a module state file, then installs the package using APT.
+
+### Cleanup
+
+- Removes the downloaded `.deb` package.
+- Removes the module state file.
+
+### Official Website
+
+https://github.com/extricator/deskOTP
 
 ---
 
@@ -339,6 +363,29 @@ account through the browser.
 ### Official Website
 
 https://github.com/jstaf/onedriver
+
+---
+
+## OTPClient (`otpclient`) [alias: `totp`] [alias: `otp`] [alias: `hotp`]
+
+OTPClient is a GTK desktop application for generating TOTP and HOTP codes. It can import and export Aegis Authenticator
+backups, which makes it a convenient desktop companion for tokens kept in Aegis on Android.
+
+### Installation Method
+
+**External APT repository**
+
+Configures the OTPClient repository from the openSUSE Build Service (`home:polslinux:otpclient`), then installs the
+`otpclient` package using APT. The repository path is derived from the detected Ubuntu version, so installation fails if
+the repository has no build for that version.
+
+### Supported ENV
+
+None.
+
+### Official Website
+
+https://github.com/paolostivanin/OTPClient
 
 ---
 

@@ -9,7 +9,7 @@ modules, see the [module contributor guide](CONTRIBUTING.md).
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **89 modules** across **10 categories**. A category is part of a module's canonical
+Mint Provisioner currently provides **91 modules** across **10 categories**. A category is part of a module's canonical
 ID:
 
 ```text
@@ -28,18 +28,18 @@ tui/lazy-git
 Each category page documents its modules' installation method, supported environment variables, shell integration, and
 official project links.
 
-| Category                        | ID     | Modules                                                                                                                                                          |
-|---------------------------------|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [Command Line](CLI.md)          | `cli`  | `adb`, `bat`, `delta`, `eza`, `git`, `mkvtoolnix`, `openconnect-saml`, `procs`, `rclone`, `tlp`                                                                  |
-| [Database](DB.md)               | `db`   | `dbeaver-community`, `dbgate-community`, `memcached`, `mongodb-community`, `mongodb-compass`, `mysql`, `mysql-tools`, `pg-admin`, `postgresql`, `redis`          |
-| [Development](DEV.md)           | `dev`  | `apache-maven`, `bruno`, `docker`, `gcloud`, `httptoolkit`, `kafdrop`, `mise`, `postman`, `sdkman`, `yaak`                                                       |
-| [Desktop Applications](GUI.md)  | `gui`  | `cryptomator`, `deadbeef`, `double-commander`, `flameshot`, `fman`, `insync`, `keepass-xc`, `lapce`, `meld`, `mu-commander`, `onedriver`, `sunflower`, `tlp-ui`  |
-| [IDE](IDE.md)                   | `ide`  | `clion`, `cudatext`, `datagrip`, `geany`, `goland`, `idea`, `phpstorm`, `pycharm`, `rider`, `rubymine`, `rustrover`, `vscode`, `vscodium`, `webstorm`            |
-| [System Administration](SYS.md) | `sys`  | `apt-fast`, `dconf-editor`, `dnscrypt-proxy`, `nerd-font`, `system-toolkit`                                                                                      |
-| [Terminal](TERM.md)             | `term` | `alacritty`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `terminator`, `zsh`                                                                |
-| [Terminal UI](TUI.md)           | `tui`  | `bottom`, `du-analyzer`, `du-rust`, `duf`, `git-ui`, `lazy-git`                                                                                                  |
-| [Web](WEB.md)                   | `web`  | `brave-browser`, `brave-origin`, `firefox`, `firefox-pwa`, `google-chrome`, `librewolf`, `microsoft-edge`                                                        |
-| [Miscellaneous](MISC.md)        | `misc` | `any-desk`, `claude-code`, `codex`, `junie`, `mkcert`, `virtual-box`                                                                                             |
+| Category                        | ID     | Modules                                                                                                                                                                                  |
+|---------------------------------|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [Command Line](CLI.md)          | `cli`  | `adb`, `bat`, `delta`, `eza`, `git`, `mkvtoolnix`, `openconnect-saml`, `procs`, `rclone`, `tlp`                                                                                          |
+| [Database](DB.md)               | `db`   | `dbeaver-community`, `dbgate-community`, `memcached`, `mongodb-community`, `mongodb-compass`, `mysql`, `mysql-tools`, `pg-admin`, `postgresql`, `redis`                                  |
+| [Development](DEV.md)           | `dev`  | `apache-maven`, `bruno`, `docker`, `gcloud`, `httptoolkit`, `kafdrop`, `mise`, `postman`, `sdkman`, `yaak`                                                                               |
+| [Desktop Applications](GUI.md)  | `gui`  | `cryptomator`, `deadbeef`, `desk-otp`, `double-commander`, `flameshot`, `fman`, `insync`, `keepass-xc`, `lapce`, `meld`, `mu-commander`, `onedriver`, `otpclient`, `sunflower`, `tlp-ui` |
+| [IDE](IDE.md)                   | `ide`  | `clion`, `cudatext`, `datagrip`, `geany`, `goland`, `idea`, `phpstorm`, `pycharm`, `rider`, `rubymine`, `rustrover`, `vscode`, `vscodium`, `webstorm`                                    |
+| [System Administration](SYS.md) | `sys`  | `apt-fast`, `dconf-editor`, `dnscrypt-proxy`, `nerd-font`, `system-toolkit`                                                                                                              |
+| [Terminal](TERM.md)             | `term` | `alacritty`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `terminator`, `zsh`                                                                                        |
+| [Terminal UI](TUI.md)           | `tui`  | `bottom`, `du-analyzer`, `du-rust`, `duf`, `git-ui`, `lazy-git`                                                                                                                          |
+| [Web](WEB.md)                   | `web`  | `brave-browser`, `brave-origin`, `firefox`, `firefox-pwa`, `google-chrome`, `librewolf`, `microsoft-edge`                                                                                |
+| [Miscellaneous](MISC.md)        | `misc` | `any-desk`, `claude-code`, `codex`, `junie`, `mkcert`, `virtual-box`                                                                                                                     |
 
 ## 📁 Directory Structure
 
