@@ -17,7 +17,7 @@ Graphical applications for productivity, file management, security, and everyday
 - [Meld](#meld-meld)
 - [Mu Commander](#mu-commander-mu-commander-alias-mu-cmd)
 - [onedriver](#onedriver-onedriver)
-- [OTPClient](#otpclient-otpclient-alias-totp-alias-otp-alias-hotp)
+- [OTPClient](#otpclient-otpclient)
 - [Sunflower](#sunflower-sunflower)
 - [TLP UI](#tlp-ui-tlp-ui)
 
@@ -397,7 +397,7 @@ https://github.com/jstaf/onedriver
 
 ---
 
-## OTPClient (`otpclient`) [alias: `totp`] [alias: `otp`] [alias: `hotp`]
+## OTPClient (`otpclient`)
 
 OTPClient is a GTK desktop application for generating TOTP and HOTP codes. It can import and export Aegis Authenticator
 backups, which makes it a convenient desktop companion for tokens kept in Aegis on Android.

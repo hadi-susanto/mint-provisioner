@@ -24,7 +24,6 @@ declare -Ar __MINT_PROVISIONER_MODULE_ALIASES=(
     [edge]="web/microsoft-edge"
     [keepass]="gui/keepass-xc"
     [keepassxc]="gui/keepass-xc"
-    [hotp]="gui/otpclient"
     [maven]="dev/apache-maven"
     [mkvmerge]="cli/mkvtoolnix"
     [mu-cmd]="gui/mu-commander"
@@ -32,11 +31,9 @@ declare -Ar __MINT_PROVISIONER_MODULE_ALIASES=(
     [mongodb]="db/mongodb-community"
     [omp]="term/oh-my-posh"
     [origin]="web/brave-origin"
-    [otp]="gui/otpclient"
     [pgadmin]="db/pg-admin"
     [plvl10k]="term/power-level-10k"
     [syskit]="sys/system-toolkit"
-    [totp]="gui/otpclient"
     [vbox]="misc/virtual-box"
 )
 
