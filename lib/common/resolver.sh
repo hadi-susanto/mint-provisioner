@@ -22,6 +22,7 @@ declare -Ar __MINT_PROVISIONER_MODULE_ALIASES=(
     [dust]="tui/du-rust"
     [chrome]="web/google-chrome"
     [edge]="web/microsoft-edge"
+    [gh]="cli/github-cli"
     [keepass]="gui/keepass-xc"
     [keepassxc]="gui/keepass-xc"
     [maven]="dev/apache-maven"
