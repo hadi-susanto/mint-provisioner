@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Resolve through the /usr/local/bin symlink to the OneDriveGUI installation directory.
+install_dir="$(dirname -- "$(realpath -- "${BASH_SOURCE[0]}")")"
+
+exec "$install_dir/.venv/bin/python" "$install_dir/src/OneDriveGUI.py" "$@"

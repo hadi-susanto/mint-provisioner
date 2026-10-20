@@ -16,6 +16,7 @@ Graphical applications for productivity, file management, security, and everyday
 - [Lapce](#lapce-lapce)
 - [Meld](#meld-meld)
 - [Mu Commander](#mu-commander-mu-commander-alias-mu-cmd)
+- [OneDriveGUI](#onedrivegui-onedrive-gui)
 - [onedriver](#onedriver-onedriver)
 - [OTPClient](#otpclient-otpclient)
 - [Sunflower](#sunflower-sunflower)
@@ -366,6 +367,54 @@ Downloads the latest x86_64 Debian package from the official GitHub releases pag
 ### Official Website
 
 https://www.mucommander.com/
+
+---
+
+## OneDriveGUI (`onedrive-gui`)
+
+OneDriveGUI is a Qt (PySide6) graphical frontend for the [OneDrive Client](CLI.md#onedrive-client-onedrive). It manages
+multiple OneDrive profiles, starts and stops sync processes, shows sync status, and handles account login. Unlike
+`onedriver`, which mounts OneDrive as an on-demand filesystem, it drives the `onedrive` sync client.
+
+### Installation Method
+
+**GitHub repository (source installation)**
+
+Performs a shallow clone of the official OneDriveGUI GitHub repository and runs it from Python source; the AppImage is
+not used. OneDriveGUI is not a Python package, so pipx cannot install it. Instead, its requirements are installed into a
+private virtual environment at `.venv` inside the installation directory.
+
+The module requires:
+
+- Python 3.10 or newer
+- Git
+- An existing OneDrive Client installation (`mp install cli/onedrive`)
+
+The following runtime packages are installed using APT:
+
+- `python3-venv`
+- `libxcb-cursor0`
+
+### Supported ENV
+
+- `ONEDRIVE_GUI_INSTALL_DIR`
+    - Directory where the OneDriveGUI Git repository is cloned; the virtual environment is created in its `.venv`.
+    - Default: `${INSTALL_DIR}/onedrive-gui`
+
+### Installed Configuration
+
+- Installs the `onedrivegui` launcher into the installation directory and links it as `/usr/local/bin/onedrivegui`.
+- The launcher runs `src/OneDriveGUI.py` with the virtual environment's Python.
+- OneDriveGUI's own "start on login" option finds `onedrivegui` on `PATH`, so the autostart entry it writes stays valid.
+
+### Desktop Integration
+
+- Installs `onedrive-gui.desktop` with the OneDriveGUI icon from the cloned repository.
+- Refreshes the desktop application database and icon cache when the required utilities are available.
+
+### Official Website
+
+https://github.com/bpozdena/OneDriveGUI
 
 ---
 

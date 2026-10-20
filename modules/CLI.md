@@ -12,6 +12,7 @@ applications.
 - [Eza](#eza-eza)
 - [Git](#git-git)
 - [MKVToolNix](#mkvtoolnix-mkvtoolnix-alias-mkvmerge)
+- [OneDrive Client](#onedrive-client-onedrive)
 - [OpenConnect SAML](#openconnect-saml-openconnect-saml)
 - [Procs](#procs-procs)
 - [rclone](#rclone-rclone)
@@ -188,6 +189,47 @@ This module has additional features that can be enabled by running SysKit. See t
 ### Official Website
 
 https://mkvtoolnix.download/
+
+---
+
+## OneDrive Client (`onedrive`)
+
+OneDrive Client is a free, open-source Microsoft OneDrive sync client for Linux by abraunegg. It supports personal,
+business, and SharePoint libraries, real-time monitoring, and multiple accounts through separate configuration
+directories.
+
+### Installation Method
+
+**External APT repository**
+
+Configures the upstream-recommended openSUSE Build Service repository (`home:npreining:debian-ubuntu-onedrive`), then
+installs the `onedrive` package using APT. The repository path is derived from the detected Ubuntu version, so
+installation fails if the repository has no build for that version. The outdated distribution `onedrive` package is not
+used.
+
+A warning is logged and shown in the run summary when `/etc/systemd/user/default.target.wants/onedrive.service`
+exists. Upstream recommends removing this leftover link from old distribution packages because it can cause restart
+loops; the module does not remove it.
+
+### Supported ENV
+
+None.
+
+### Usage
+
+Authorize your Microsoft account once, then enable background sync:
+
+```bash
+onedrive
+systemctl --user enable --now onedrive
+```
+
+For a graphical account manager, install [OneDriveGUI](GUI.md#onedrivegui-onedrive-gui) with
+`mp install gui/onedrive-gui`.
+
+### Official Website
+
+https://github.com/abraunegg/onedrive
 
 ---
 
