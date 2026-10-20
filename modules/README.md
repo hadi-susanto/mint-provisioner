@@ -9,7 +9,7 @@ modules, see the [module contributor guide](CONTRIBUTING.md).
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **96 modules** across **10 categories**. A category is part of a module's canonical
+Mint Provisioner currently provides **98 modules** across **10 categories**. A category is part of a module's canonical
 ID:
 
 ```text
@@ -32,7 +32,7 @@ official project links.
 |---------------------------------|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [Command Line](CLI.md)          | `cli`  | `adb`, `bat`, `delta`, `eza`, `git`, `github-cli`, `k6`, `mkvtoolnix`, `onedrive`, `openconnect-saml`, `procs`, `rclone`, `tlp`                                                                                        |
 | [Database](DB.md)               | `db`   | `dbeaver-community`, `dbgate-community`, `memcached`, `mongodb-community`, `mongodb-compass`, `mysql`, `mysql-tools`, `pg-admin`, `postgresql`, `redis`                                                          |
-| [Development](DEV.md)           | `dev`  | `apache-maven`, `bruno`, `docker`, `gcloud`, `httptoolkit`, `kafdrop`, `mise`, `postman`, `sdkman`, `yaak`                                                                                                       |
+| [Development](DEV.md)           | `dev`  | `apache-maven`, `bruno`, `consul`, `docker`, `gcloud`, `httptoolkit`, `kafdrop`, `mise`, `postman`, `sdkman`, `vault`, `yaak`                                                                                                       |
 | [Desktop Applications](GUI.md)  | `gui`  | `avda`, `cryptomator`, `deadbeef`, `desk-otp`, `double-commander`, `flameshot`, `fman`, `insync`, `keepass-xc`, `lapce`, `meld`, `mu-commander`, `onedrive-gui`, `onedriver`, `otpclient`, `sunflower`, `tlp-ui` |
 | [IDE](IDE.md)                   | `ide`  | `clion`, `cudatext`, `datagrip`, `geany`, `goland`, `idea`, `phpstorm`, `pycharm`, `rider`, `rubymine`, `rustrover`, `vscode`, `vscodium`, `webstorm`                                                            |
 | [System Administration](SYS.md) | `sys`  | `apt-fast`, `dconf-editor`, `dnscrypt-proxy`, `nerd-font`, `system-toolkit`                                                                                                                                      |

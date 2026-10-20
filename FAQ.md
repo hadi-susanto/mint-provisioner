@@ -63,3 +63,29 @@ DISABLE_WHIPTAIL=true mp install ...
 Mint Provisioner uses `whiptail` automatically when it is installed and
 `TERM` is set to something other than `dumb`; otherwise it already falls back
 to plain-text prompts. Only the exact value `true` disables `whiptail`.
+
+## How Do I Unseal Vault Automatically?
+
+### Problem
+
+Vault starts sealed, so every `vault server` start needs `vault-unseal` and the unseal key typed at its hidden prompt.
+
+### Solution
+
+For local development only, export the unseal key as `VAULT_UNSEAL_TOKEN`. When `vault-unseal` runs with no arguments, it
+unseals with that key:
+
+```bash
+export VAULT_UNSEAL_TOKEN="<unseal key printed by vault-init>"
+vault server &
+vault-unseal
+```
+
+The key is created by `vault-init` (one key share, threshold 1) and is only printed once, so save it first.
+
+Arguments always win: `vault-unseal <key>` ignores `VAULT_UNSEAL_TOKEN`. With neither, Vault asks for the key at its
+hidden prompt.
+
+> **Note:** The key is passed to Vault as a command-line argument, so it is visible in the process list while the
+> command runs, and wherever you export `VAULT_UNSEAL_TOKEN` (for example `~/.bashrc`) it is stored in plain text. Do not
+> use this for anything but a local development Vault.
