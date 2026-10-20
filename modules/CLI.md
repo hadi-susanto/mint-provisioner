@@ -11,6 +11,7 @@ applications.
 - [Delta](#delta-delta)
 - [Eza](#eza-eza)
 - [Git](#git-git)
+- [GitHub CLI](#github-cli-github-cli-alias-gh)
 - [MKVToolNix](#mkvtoolnix-mkvtoolnix-alias-mkvmerge)
 - [OneDrive Client](#onedrive-client-onedrive)
 - [OpenConnect SAML](#openconnect-saml-openconnect-saml)
@@ -135,6 +136,22 @@ This module has additional features that can be enabled by running SysKit. See t
 ### Official Website
 
 https://git-scm.com/
+
+---
+
+## GitHub CLI (`github-cli`) [alias: `gh`]
+
+GitHub CLI (`gh`) brings pull requests, issues, releases, Actions, and other GitHub workflows to the terminal.
+
+### Installation Method
+
+**Official APT repository**
+
+Installs the `gh` package from GitHub's official APT repository (`https://cli.github.com/packages`).
+
+### Official Website
+
+https://cli.github.com
 
 ---
 
