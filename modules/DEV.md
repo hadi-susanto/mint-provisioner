@@ -7,6 +7,7 @@ up and maintain a productive development environment.
 
 - [Apache Maven](#apache-maven-apache-maven-alias-maven-alias-mvn)
 - [Bruno](#bruno-bruno)
+- [Consul](#consul-consul)
 - [Docker](#docker-docker)
 - [Google Cloud CLI](#google-cloud-cli-gcloud)
 - [HTTP Toolkit](#http-toolkit-httptoolkit)
@@ -14,6 +15,7 @@ up and maintain a productive development environment.
 - [Mise](#mise-mise)
 - [Postman](#postman-postman)
 - [SDKMAN!](#sdkman-sdkman)
+- [Vault](#vault-vault)
 - [Yaak](#yaak-yaak)
 
 ---
@@ -61,6 +63,55 @@ https://www.usebruno.com/
 ### Documentation
 
 https://docs.usebruno.com/get-started/bruno-basics/download
+
+---
+
+## Consul (`consul`)
+
+Consul is HashiCorp's tool for service discovery, service mesh, and distributed key-value storage.
+
+### Installation Method
+
+**Official website (precompiled archive)**
+
+Resolves the latest release through HashiCorp's version API, downloads `consul_<version>_linux_amd64.zip` from
+`releases.hashicorp.com`, and installs it for on-demand use. No service, APT repository, or system configuration is
+created. Only AMD64 is supported.
+
+### Supported ENV
+
+- `CONSUL_INSTALL_DIR`
+    - Directory holding the binary, configuration, and wrapper scripts.
+    - Default: `${INSTALL_DIR}/consul`
+- `CONSUL_DATA_DIR`
+    - Directory used to store Consul data.
+    - Default: `${CONSUL_INSTALL_DIR}/data`
+
+Both must be absolute paths containing only letters, digits, and `. _ / @ + -` because they are written into the
+generated scripts and configuration.
+
+### Installation Layout
+
+```
+${CONSUL_INSTALL_DIR}/
+├── bin/consul   # real binary, not on PATH
+├── agent.json   # configuration, regenerated on every install
+├── consul       # wrapper, symlinked into /usr/local/bin
+└── data         # data directory (default location)
+```
+
+The `consul` wrapper runs the real binary and adds `-config-file=<dir>/agent.json` automatically for the `agent` subcommand unless
+you pass your own; every other subcommand is passed through unchanged.
+
+Start a single-node server with `consul agent`. The UI is available at http://127.0.0.1:8500.
+
+Install and reinstall overwrite the binary, configuration, and wrappers, so local edits to `agent.json` / `server.json` are lost on reinstall; pass your own `-config-file` / `-config`
+instead.
+`mp remove` deletes everything except the data directory; `mp purge` deletes that too.
+
+### Official Website
+
+https://developer.hashicorp.com/consul
 
 ---
 
@@ -244,77 +295,6 @@ https://mise.jdx.dev/
 
 ---
 
-## pgAdmin 4 (`pg-admin`) [alias: `pgadmin`]
-
-pgAdmin 4 is an open-source graphical administration and development platform for PostgreSQL. It provides tools for
-managing database servers, executing SQL queries, inspecting database objects, monitoring activity, performing
-maintenance, and backing up or restoring databases.
-
-### Installation Method
-
-**Official pgAdmin APT repository**
-
-Adds the official pgAdmin signing key and an Ubuntu-codename-specific APT repository, then installs the selected
-pgAdmin package.
-
-The available installation modes are:
-
-| `PGADMIN_UI` | Package installed  | Mode            |
-|--------------|--------------------|-----------------|
-| `desktop`    | `pgadmin4-desktop` | Desktop only    |
-| `web`        | `pgadmin4-web`     | Web only        |
-| `both`       | `pgadmin4`         | Desktop and web |
-
-When `PGADMIN_UI` is unset during an interactive installation, the module asks which package should be installed.
-Desktop mode is the first/default choice.
-
-During a non-interactive installation, an unset `PGADMIN_UI` defaults to desktop mode.
-
-### Supported ENV
-
-- `PGADMIN_UI`
-    - Selects the pgAdmin installation mode.
-    - Supported values: `desktop`, `web`, and `both`.
-    - `desktop` installs `pgadmin4-desktop`.
-    - `web` installs `pgadmin4-web`.
-    - `both` installs `pgadmin4`, providing desktop and web modes.
-    - Any other value is rejected.
-    - When unset during an interactive installation, the module asks which mode should be installed.
-    - Default: `desktop`
-
-### Installation Detection
-
-Installation detection follows `PGADMIN_UI`:
-
-- `desktop` requires `pgadmin4-desktop`.
-- `web` requires `pgadmin4-web`.
-- `both` requires either the `pgadmin4` meta-package or both desktop and web packages.
-- Any other value is rejected as a module configuration error.
-- When `PGADMIN_UI` is unset, detection defaults to `pgadmin4-desktop`.
-
-### Desktop Integration
-
-Desktop mode provides:
-
-- A pgAdmin 4 application-menu entry.
-- Icons in the system hicolor icon theme.
-- The standalone pgAdmin desktop runtime.
-
-### Web Configuration
-
-Installing `pgadmin4-web` or `pgadmin4` installs the web application package, but the web server must still be
-configured manually:
-
-```bash
-sudo /usr/pgadmin4/bin/setup-web.sh
-```
-
-### Official Website
-
-https://www.pgadmin.org/
-
----
-
 ## Postman (`postman`)
 
 Postman is a desktop API platform for designing, sending, testing, and documenting API requests.
@@ -403,6 +383,64 @@ export SDKMAN_DIR="/path/to/installed/sdkman"
 ### Official Website
 
 https://sdkman.io/
+
+---
+
+## Vault (`vault`)
+
+Vault is HashiCorp's tool for secrets management, encryption as a service, and privileged access management.
+
+### Installation Method
+
+**Official website (precompiled archive)**
+
+Resolves the latest release through HashiCorp's version API, downloads `vault_<version>_linux_amd64.zip` from
+`releases.hashicorp.com`, and installs it for on-demand use. No service, APT repository, or system configuration is
+created. Only AMD64 is supported.
+
+### Supported ENV
+
+- `VAULT_INSTALL_DIR`
+    - Directory holding the binary, configuration, and wrapper scripts.
+    - Default: `${INSTALL_DIR}/vault`
+- `VAULT_DATA_DIR`
+    - Directory used to store Vault data.
+    - Default: `${VAULT_INSTALL_DIR}/data`
+
+Both must be absolute paths containing only letters, digits, and `. _ / @ + -` because they are written into the
+generated scripts and configuration.
+
+### Installation Layout
+
+```
+${VAULT_INSTALL_DIR}/
+├── bin/vault    # real binary, not on PATH
+├── server.json  # configuration, regenerated on every install
+├── vault        # wrapper, symlinked into /usr/local/bin
+├── vault-init   # `vault operator init` with one key share, symlinked into /usr/local/bin
+├── vault-unseal # `vault operator unseal`, uses VAULT_UNSEAL_TOKEN if set, symlinked into /usr/local/bin
+└── data         # data directory (default location)
+```
+
+The `vault` wrapper runs the real binary and adds `-config=<dir>/server.json` automatically for the `server` subcommand unless you
+pass your own; every other subcommand is passed through unchanged.
+
+Start the server with `vault server` (UI at http://127.0.0.1:8200; `VAULT_ADDR` defaults to it in the wrapper).
+Initialize once with `vault-init`, which runs `vault operator init -key-shares=1 -key-threshold=1`, so a single unseal key
+is required. The key count is fixed at initialization, so it cannot be set in `server.json`. Unseal with
+`vault-unseal`, a wrapper for `vault operator unseal`: with no arguments and `VAULT_UNSEAL_TOKEN` set it unseals with that
+key (convenient for local development; the key is visible in the process list while the command runs). Otherwise
+arguments are passed through, or the key is typed at Vault's hidden prompt. The listener binds to `127.0.0.1` only. Vault locks its memory, which an unprivileged process may only do with
+`CAP_IPC_LOCK`, so the installer runs `sudo setcap cap_ipc_lock=+ep` on `bin/vault` (requires `setcap` from
+`libcap2-bin`). The capability is lost when the binary is replaced, so it is granted on every install.
+
+Install and reinstall overwrite the binary, configuration, and wrappers, so local edits to `agent.json` / `server.json` are lost on reinstall; pass your own `-config-file` / `-config`
+instead.
+`mp remove` deletes everything except the data directory; `mp purge` deletes that too.
+
+### Official Website
+
+https://developer.hashicorp.com/vault
 
 ---
 

@@ -12,6 +12,7 @@ applications.
 - [Eza](#eza-eza)
 - [Git](#git-git)
 - [GitHub CLI](#github-cli-github-cli-alias-gh)
+- [k6](#k6-k6)
 - [MKVToolNix](#mkvtoolnix-mkvtoolnix-alias-mkvmerge)
 - [OneDrive Client](#onedrive-client-onedrive)
 - [OpenConnect SAML](#openconnect-saml-openconnect-saml)
@@ -152,6 +153,23 @@ Installs the `gh` package from GitHub's official APT repository (`https://cli.gi
 ### Official Website
 
 https://cli.github.com
+
+---
+
+## k6 (`k6`)
+
+k6 is Grafana's open-source load-testing tool. Tests are written in JavaScript and run from the command line to measure
+the performance and reliability of APIs and web applications.
+
+### Installation Method
+
+**Official APT repository**
+
+Installs the `k6` package from Grafana's official APT repository (`https://dl.k6.io/deb`).
+
+### Official Website
+
+https://grafana.com/docs/k6/
 
 ---
 
