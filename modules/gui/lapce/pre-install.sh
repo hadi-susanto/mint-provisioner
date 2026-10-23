@@ -25,9 +25,12 @@ deb_regex="lapce[.]ubuntu[.]${codename}[.]amd64[.]deb$"
 grammars_regex="grammars-linux-x86_64[.]tar[.]zst$"
 queries_regex="queries[.]tar[.]zst$"
 
-deb_url="$(github_find_release "$CANONICAL_ID" "lapce" "lapce" "$deb_regex")" || exit $?
-grammars_url="$(github_find_release "$CANONICAL_ID" "lapce" "tree-sitter-grammars" "$grammars_regex")" || exit $?
-queries_url="$(github_find_release "$CANONICAL_ID" "lapce" "tree-sitter-grammars" "$queries_regex")" || exit $?
+declare -A deb_asset=()
+declare -A grammars_asset=()
+declare -A queries_asset=()
+github_find_release_asset "$CANONICAL_ID" "lapce" "lapce" "$deb_regex" deb_asset || exit $?
+github_find_release_asset "$CANONICAL_ID" "lapce" "tree-sitter-grammars" "$grammars_regex" grammars_asset || exit $?
+github_find_release_asset "$CANONICAL_ID" "lapce" "tree-sitter-grammars" "$queries_regex" queries_asset || exit $?
 
 __cleanup_downloads() {
     local key
@@ -40,9 +43,11 @@ __cleanup_downloads() {
     done
 }
 
-if ! stateful_download "$CANONICAL_ID" "DEB_FILE" "$deb_url" ".deb" 0 ||
-    ! stateful_download "$CANONICAL_ID" "GRAMMARS_FILE" "$grammars_url" ".tar.zst" 0 ||
-    ! stateful_download "$CANONICAL_ID" "QUERIES_FILE" "$queries_url" ".tar.zst" 0; then
+if ! stateful_download "$CANONICAL_ID" "DEB_FILE" "${deb_asset[URL]}" ".deb" 0 "${deb_asset[SHA256]}" ||
+    ! stateful_download "$CANONICAL_ID" "GRAMMARS_FILE" "${grammars_asset[URL]}" ".tar.zst" 0 \
+        "${grammars_asset[SHA256]}" ||
+    ! stateful_download "$CANONICAL_ID" "QUERIES_FILE" "${queries_asset[URL]}" ".tar.zst" 0 \
+        "${queries_asset[SHA256]}"; then
     __cleanup_downloads
 
     exit 1

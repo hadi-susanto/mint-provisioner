@@ -9,12 +9,30 @@ readonly __MINT_PROVISIONER_STATEFUL_DOWNLOADER_LOADED=1
 source "$LIB_INSTALLER/downloader.sh"
 source "$LIB_INSTALLER/state.sh"
 
+##
+# stateful_download
+#
+# Downloads an artifact to a temporary file and stores its path in a state.
+#
+# Parameters:
+#   canonical_id - Canonical module ID.
+#   state_name - State key that receives the temporary file path.
+#   url - URL of the file to download.
+#   suffix - Temporary file suffix, such as ".deb"; may be empty.
+#   auto_save - 1 to save states after setting the state (default), 0 to skip.
+#   sha256 - Optional expected SHA-256 checksum checked with verify_sha256.
+#       When empty, a warning says the download was not verified.
+#
+# Return:
+#   1 - The download, checksum verification, or state update failed.
+#
 stateful_download() {
     local canonical_id="$1"
     local state_name="$2"
     local url="$3"
     local suffix="$4"
     local auto_save="${5:-1}"
+    local sha256="${6:-}"
     local tag="downloader:$canonical_id"
     local temp_file
 
@@ -26,6 +44,12 @@ stateful_download() {
 
     if ! download_file "$canonical_id" "$url" "$temp_file"; then
         tlog_error "$tag" "Fail to download: $url"
+        rm -f -- "$temp_file" || true
+
+        return 1
+    fi
+
+    if ! verify_sha256 "$canonical_id" "$temp_file" "$sha256"; then
         rm -f -- "$temp_file" || true
 
         return 1

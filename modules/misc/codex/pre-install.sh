@@ -69,7 +69,6 @@ main() {
     local archive_url
     local checksum_url
     local expected_checksum
-    local archive_file
 
     valid_install_target "$canonical_id" "$raw_install_path" "CODEX_INSTALL_DIR" || return $?
 
@@ -87,18 +86,8 @@ main() {
     expected_checksum="$(__resolve_codex_checksum "$canonical_id" "$target" "$checksum_url")" || return $?
 
     tlog_info "pre-install:$canonical_id" "Downloading Codex CLI (%s)" "$target"
-    stateful_download "$canonical_id" "ARCHIVE_FILE" "$archive_url" ".tar.gz" 0 || return $?
-
-    archive_file="$(get_state "ARCHIVE_FILE")" || return $?
-    if [[ "$(sha256sum "$archive_file" | awk '{ print $1 }')" != "$expected_checksum" ]]; then
-        tlog_error "pre-install:$canonical_id" "Checksum verification failed"
-        rm -f -- "$archive_file"
-
-        return 1
-    fi
-
-    tlog_info "pre-install:$canonical_id" "Checksum verified"
-    save_states "$canonical_id"
+    stateful_download "$canonical_id" "ARCHIVE_FILE" "$archive_url" ".tar.gz" 1 \
+        "$expected_checksum"
 }
 
 main "$CANONICAL_ID" "${CODEX_INSTALL_DIR:-$INSTALL_DIR/codex}"

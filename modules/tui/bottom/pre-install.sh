@@ -7,5 +7,6 @@ source "$LIB_WORKFLOW/stateful-downloader.sh"
 regex="bottom-musl_.*_amd64\\.deb"
 tag="pre-install:$CANONICAL_ID"
 
-url="$(github_find_release "$CANONICAL_ID" "clementtsang" "bottom" "$regex")" || exit $?
-stateful_download "$CANONICAL_ID" "DEB_FILE" "$url" ".deb"
+declare -A asset=()
+github_find_release_asset "$CANONICAL_ID" "clementtsang" "bottom" "$regex" asset || exit $?
+stateful_download "$CANONICAL_ID" "DEB_FILE" "${asset[URL]}" ".deb" 1 "${asset[SHA256]}"

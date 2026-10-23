@@ -335,55 +335,32 @@ These rules apply to modules that download `.deb` packages or archives such as
 ### Download Phase (`pre-install.sh`)
 
 - Download installation assets during `pre-install.sh`.
-- Source `lib/installer/github.sh` (GitHub releases), `lib/installer/downloader.sh`, and `lib/installer/state.sh`.
-- Create temporary download paths with `mktemp`.
-- For GitHub releases:
-  - Use `github_find_release` to resolve the latest matching asset.
-  - Ensure the regular expression identifies exactly one release asset.
-  - Use `download_file` to download it.
-- For external vendor sources:
-  - Resolve the URL using a stable URL or appropriate vendor-specific discovery.
-  - Do not use `github_find_release` for non-GitHub sources.
-  - Use `download_file` for the actual download.
-- Delete the temporary file when URL resolution or downloading fails.
-- Store the downloaded path with `set_state`.
-- Save the state with `save_states`.
+- Prefer `stateful_download` (`lib/workflow/stateful-downloader.sh`). It creates the temporary file, downloads it,
+  verifies its SHA-256 checksum, stores the path with `set_state`, and saves the state:
+  `stateful_download <canonical_id> <state_name> <url> <suffix> [auto_save] [sha256]`.
+- Verify every download when a checksum is available:
+  - For GitHub releases, use `github_find_release_asset` (`lib/installer/github.sh`). It fills `[URL]` and
+    `[SHA256]` (GitHub's `sha256:` asset digest) in an associative array. Ensure the regular expression identifies
+    exactly one release asset. Use `github_find_release` (URL only) only when the asset is not downloaded, such as a
+    checksum file.
+  - For external vendor sources, pass the vendor's published SHA-256 checksum when one exists. Do not use the GitHub
+    helpers for non-GitHub sources.
+  - When a checksum is empty, the download is logged as not verified and continues. A mismatch always fails and
+    deletes the file.
+- When `download_file` (`lib/installer/downloader.sh`) is called directly, call `verify_sha256 <canonical_id> <file>
+  <sha256>` right after it, and delete the temporary file when either fails.
 
 Example for a GitHub release:
 
 ```bash
 source "${LIB_INSTALLER}/github.sh"
-source "${LIB_INSTALLER}/downloader.sh"
-source "${LIB_INSTALLER}/state.sh"
+source "${LIB_WORKFLOW}/stateful-downloader.sh"
 
-if ! download_file="$(mktemp --suffix=.tar.gz)"; then
-    log_error "[$CANONICAL_ID] Failed to create temporary file"
+regex="tool-.*-x86_64-unknown-linux-gnu[.]tar[.]gz$"
 
-    exit 1
-fi
-
-if ! url="$(
-    github_find_release \
-        "$CANONICAL_ID" \
-        "$OWNER" \
-        "$REPO" \
-        "$REGEX"
-)"; then
-    log_error "[$CANONICAL_ID] Failed to resolve latest release"
-    rm -f "$download_file"
-
-    exit 2
-fi
-
-if ! download_file "$CANONICAL_ID" "$url" "$download_file"; then
-    log_error "[$CANONICAL_ID] Download failed"
-    rm -f "$download_file"
-
-    exit 3
-fi
-
-set_state "ARCHIVE_FILE" "$download_file"
-save_states "$CANONICAL_ID" || exit 4
+declare -A asset=()
+github_find_release_asset "$CANONICAL_ID" "$OWNER" "$REPO" "$regex" asset || exit $?
+stateful_download "$CANONICAL_ID" "ARCHIVE_FILE" "${asset[URL]}" ".tar.gz" 1 "${asset[SHA256]}"
 ```
 
 ### Installation Phase (`install.sh`)

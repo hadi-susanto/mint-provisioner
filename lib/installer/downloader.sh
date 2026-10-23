@@ -107,6 +107,63 @@ aria2c_download() {
 }
 
 ##
+# verify_sha256
+#
+# Verifies a downloaded file against an expected SHA-256 checksum. An empty
+# checksum logs a warning that the file is unverified and succeeds.
+#
+# Parameters:
+#   canonical_id - Canonical module ID used for logging.
+#   file - Path of the file to verify.
+#   expected_sha256 - Expected checksum as 64 hex characters, optionally
+#       prefixed with "sha256:" as returned by the GitHub API. May be empty.
+#
+# Return:
+#   0 - The checksum matched, or no checksum was supplied.
+#   1 - The checksum is malformed or the file cannot be hashed.
+#   3 - The checksum did not match.
+#
+verify_sha256() {
+    local canonical_id="$1"
+    local file="$2"
+    local expected_sha256="${3#sha256:}"
+    local tag="checksum:$canonical_id"
+    local actual_sha256
+
+    if [[ -z "$expected_sha256" ]]; then
+        tlog_warn "$tag" "No checksum available; the download was not verified"
+
+        return 0
+    fi
+
+    expected_sha256="${expected_sha256,,}"
+    if [[ ! "$expected_sha256" =~ ^[0-9a-f]{64}$ ]]; then
+        tlog_error "$tag" "Invalid SHA-256 checksum: %s" "$3"
+
+        return 1
+    fi
+
+    if ! actual_sha256="$(sha256sum -- "$file")"; then
+        tlog_error "$tag" "Failed to compute the SHA-256 checksum of %s" "$file"
+
+        return 1
+    fi
+
+    actual_sha256="${actual_sha256%% *}"
+    if [[ "$actual_sha256" != "$expected_sha256" ]]; then
+        tlog_error "$tag" "Checksum mismatch for %s" "$file"
+        tlog_error "$tag" "Expected: %s" "$expected_sha256"
+        tlog_error "$tag" "Actual:   %s" "$actual_sha256"
+
+        return 3
+    fi
+
+    tlog_info "$tag" "SHA-256 checksum verified"
+
+    return 0
+}
+
+##
 # download_file
 #
 # Donwload an artifact with aria2c when the binary available

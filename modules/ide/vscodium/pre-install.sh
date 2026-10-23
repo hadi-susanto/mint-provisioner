@@ -7,5 +7,6 @@ source "$LIB_WORKFLOW/stateful-downloader.sh"
 regex="codium_.*_amd64\.deb$"
 tag="pre-install:$CANONICAL_ID"
 
-url="$(github_find_release "$CANONICAL_ID" "VSCodium" "vscodium" "$regex")" || exit $?
-stateful_download "$CANONICAL_ID" "DEB_FILE" "$url" ".deb"
+declare -A asset=()
+github_find_release_asset "$CANONICAL_ID" "VSCodium" "vscodium" "$regex" asset || exit $?
+stateful_download "$CANONICAL_ID" "DEB_FILE" "${asset[URL]}" ".deb" 1 "${asset[SHA256]}"
