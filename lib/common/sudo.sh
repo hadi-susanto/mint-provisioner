@@ -11,13 +11,20 @@ source "$LIB_COMMON/common.sh"
 ##
 # cache_sudo_privileges
 #
-# Offers to cache sudo privileges so modules can invoke sudo later.
+# Offers to cache sudo privileges so modules can invoke sudo later. Skips the
+# prompt when sudo is already cached or passwordless.
 #
 # Return:
 #   1 - The response could not be read or sudo could not be acquired.
 #
 cache_sudo_privileges() {
     local response
+
+    if sudo -n -v 2> /dev/null; then
+        log_info "Sudo privileges are already cached"
+
+        return 0
+    fi
 
     log_info \
         "Sudo privileges can be cached now so modules can invoke sudo when necessary."
