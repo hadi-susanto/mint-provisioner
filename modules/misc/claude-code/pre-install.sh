@@ -106,7 +106,6 @@ __download_claude_binary() {
     local use_zstd=0
     local asset_name="claude"
     local downloaded_file
-    local actual_checksum
 
     if __zstd_available; then
         use_zstd=1
@@ -150,15 +149,12 @@ __download_claude_binary() {
         return 1
     fi
 
-    actual_checksum="$(sha256sum "$result_ref" | awk '{ print $1 }')"
-    if [[ "${actual_checksum,,}" != "${checksum,,}" ]]; then
-        tlog_error "$tag" "Checksum verification failed"
+    # The manifest checksum is for the unpacked binary, so verify after extraction.
+    if ! verify_sha256 "$canonical_id" "$result_ref" "$checksum"; then
         rm -f -- "$result_ref"
 
         return 1
     fi
-
-    tlog_info "$tag" "Checksum verified"
 }
 
 main() {

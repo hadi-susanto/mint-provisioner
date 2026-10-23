@@ -38,6 +38,8 @@ main() {
     local install_path
     local data_path
     local version
+    local base_url
+    local checksum
 
     if [[ "$(dpkg --print-architecture)" != "amd64" ]]; then
         tlog_error "$tag" "Vault binary installation supports amd64 only"
@@ -74,8 +76,12 @@ main() {
     version="$(__resolve_version "$canonical_id")" || return $?
     tlog_info "$tag" "Latest Vault version: %s" "$version"
 
+    base_url="https://releases.hashicorp.com/vault/${version}"
+    checksum="$(fetch_sha256_from_sums "$canonical_id" \
+        "$base_url/vault_${version}_SHA256SUMS" "vault_${version}_linux_amd64.zip")" || return $?
+
     stateful_download "$canonical_id" "ARCHIVE_FILE" \
-        "https://releases.hashicorp.com/vault/${version}/vault_${version}_linux_amd64.zip" ".zip"
+        "$base_url/vault_${version}_linux_amd64.zip" ".zip" 1 "$checksum"
 }
 
 main "$CANONICAL_ID" "${VAULT_INSTALL_DIR:-$INSTALL_DIR/vault}" "${VAULT_DATA_DIR:-${VAULT_INSTALL_DIR:-$INSTALL_DIR/vault}/data}"

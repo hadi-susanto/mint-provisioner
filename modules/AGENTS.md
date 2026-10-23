@@ -343,8 +343,9 @@ These rules apply to modules that download `.deb` packages or archives such as
     `[SHA256]` (GitHub's `sha256:` asset digest) in an associative array. Ensure the regular expression identifies
     exactly one release asset. Use `github_find_release` (URL only) only when the asset is not downloaded, such as a
     checksum file.
-  - For external vendor sources, pass the vendor's published SHA-256 checksum when one exists. Do not use the GitHub
-    helpers for non-GitHub sources.
+  - For external vendor sources, pass the vendor's published SHA-256 checksum when one exists. For a
+    `SHA256SUMS`-style list, use `fetch_sha256_from_sums <canonical_id> <sums_url> <file_name>` (`downloader.sh`).
+    Do not use the GitHub helpers for non-GitHub sources.
   - When a checksum is empty, the download is logged as not verified and continues. A mismatch always fails and
     deletes the file.
 - When `download_file` (`lib/installer/downloader.sh`) is called directly, call `verify_sha256 <canonical_id> <file>

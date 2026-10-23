@@ -130,7 +130,7 @@ __download_artifact() {
         return 1
     fi
 
-    download_file "$canonical_id" "$url" "$archive_file" || download_status=$?
+    download_file "$canonical_id" "$url" "$target" || download_status=$?
     stop_sudo_refresher "$canonical_id" "$sudo_refresh_pid" || refresh_stop_status=$?
 
     if (( download_status != 0 )); then
@@ -157,7 +157,6 @@ __checksum_artifact() {
     local tag="checksum:$canonical_id"
     local checksum_file=""
     local expected_checksum
-    local actual_checksum
 
     if ! checksum_file="$(mktemp --suffix=.sha256)"; then
         tlog_error "$tag" "Failed to create checksum temporary file"
@@ -174,30 +173,21 @@ __checksum_artifact() {
     fi
 
     expected_checksum="$(awk 'NR == 1 { print $1 }' "$checksum_file")"
-    if [[ ! "$expected_checksum" =~ ^[[:xdigit:]]{64}$ ]]; then
-        tlog_error "$tag" "Official checksum data is invalid"
-        __cleanup_downloads "$target" "$checksum_file"
-
-        return 1
-    fi
-
-    tlog_info "$tag" "Calculating checksum of $archive_file"
-    if ! actual_checksum="$(sha256sum "$archive_file" | awk '{ print $1 }')"; then
-        tlog_error "$tag" "Failed to calculate the archive checksum"
-        __cleanup_downloads "$target" "$checksum_file"
-
-        return 1
-    fi
-
-    if [[ "${actual_checksum,,}" != "${expected_checksum,,}" ]]; then
-        tlog_error "$tag" "JetBrains archive checksum verification failed"
-        __cleanup_downloads "$target" "$checksum_file"
-
-        return 1
-    fi
-
-    tlog_info "$tag" "JetBrains archive checksum verified"
     __cleanup_downloads "$checksum_file"
+
+    # An empty checksum would only warn, but JetBrains always publishes one.
+    if [[ -z "$expected_checksum" ]]; then
+        tlog_error "$tag" "Official checksum data is empty"
+        __cleanup_downloads "$target"
+
+        return 1
+    fi
+
+    if ! verify_sha256 "$canonical_id" "$target" "$expected_checksum"; then
+        __cleanup_downloads "$target"
+
+        return 1
+    fi
 
     return 0
 }
@@ -235,8 +225,8 @@ main() {
 
         return 1
     fi
-    __download_artifact "$canonical_id" "${metadata[DOWNLOAD_URL]}" "$archive_file"
-    __checksum_artifact "$canonical_id" "${metadata[CHECKSUM_URL]}" "$archive_file"
+    __download_artifact "$canonical_id" "${metadata[DOWNLOAD_URL]}" "$archive_file" || return $?
+    __checksum_artifact "$canonical_id" "${metadata[CHECKSUM_URL]}" "$archive_file" || return $?
 
     if ! set_state "JETBRAINS_ARCHIVE_FILE" "$archive_file"; then
         __cleanup_downloads "$archive_file"

@@ -8,11 +8,16 @@ __download_artifacts() {
     local canonical_id="$1"
     local binary_url
     local themes_url
+    local binary_checksum
 
     binary_url="https://cdn.ohmyposh.dev/releases/latest/posh-linux-amd64"
     themes_url="https://cdn.ohmyposh.dev/releases/latest/themes.zip"
 
-    stateful_download "$canonical_id" "BINARY_FILE" "$binary_url" "" 0 || return $?
+    # checksums.txt lists the binary only; themes.zip stays unverified.
+    binary_checksum="$(fetch_sha256_from_sums "$canonical_id" \
+        "https://cdn.ohmyposh.dev/releases/latest/checksums.txt" "posh-linux-amd64")" || return $?
+
+    stateful_download "$canonical_id" "BINARY_FILE" "$binary_url" "" 0 "$binary_checksum" || return $?
     stateful_download "$canonical_id" "THEMES_FILE" "$themes_url" ".zip" 0 || return $?
     save_states "$canonical_id"
 }

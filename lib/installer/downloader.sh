@@ -164,6 +164,50 @@ verify_sha256() {
 }
 
 ##
+# fetch_sha256_from_sums
+#
+# Reads one file's checksum from a published SHA256SUMS-style list, where each
+# line is "<sha256>  <file_name>" (as written by sha256sum).
+#
+# Parameters:
+#   canonical_id - Canonical module ID used for logging.
+#   sums_url - URL of the checksum list.
+#   file_name - Name of the file whose checksum is wanted.
+#
+# Output:
+#   Prints the 64-character SHA-256 checksum to standard output.
+#
+# Return:
+#   1 - The checksum list could not be downloaded.
+#   2 - The list has no valid checksum for the file.
+#
+fetch_sha256_from_sums() {
+    local canonical_id="$1"
+    local sums_url="$2"
+    local file_name="$3"
+    local tag="checksum:$canonical_id"
+    local sums
+    local checksum
+
+    if ! sums="$(curl -fsSL "$sums_url")"; then
+        tlog_error "$tag" "Failed to download the checksum list: %s" "$sums_url"
+
+        return 1
+    fi
+
+    checksum="$(awk -v name="$file_name" \
+        '$2 == name || $2 == "*" name { print $1; exit }' <<<"$sums")"
+
+    if [[ ! "$checksum" =~ ^[[:xdigit:]]{64}$ ]]; then
+        tlog_error "$tag" "No SHA-256 checksum for %s in %s" "$file_name" "$sums_url"
+
+        return 2
+    fi
+
+    printf '%s\n' "$checksum"
+}
+
+##
 # download_file
 #
 # Donwload an artifact with aria2c when the binary available
