@@ -81,6 +81,9 @@ main() {
         install)
             exec bash "$MP_COMMAND/install.sh" "${args[@]}"
             ;;
+        plan)
+            exec bash "$MP_COMMAND/plan.sh" "${args[@]}"
+            ;;
         remove | uninstall)
             exec bash "$MP_COMMAND/remove.sh" "${args[@]}"
             ;;

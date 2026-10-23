@@ -480,3 +480,45 @@ ask_password() {
         return 0
     done
 }
+
+##
+# ask_confirm
+#
+# Asks a yes/no question on one line. An empty answer means no.
+#
+# Parameters:
+#   question - Question displayed before the [y/N] hint.
+#
+# Return:
+#   0 - The user answered yes.
+#   1 - The user answered no or submitted an empty answer.
+#   2 - Input is invalid or reading from the terminal failed.
+#
+ask_confirm() {
+    local question="${1:-}"
+    local answer
+
+    __trim question
+
+    if (( $# != 1 )) || [[ -z "$question" ]]; then
+        tlog_error "prompt" "ask_confirm requires a non-empty question"
+
+        return 2
+    fi
+
+    while true; do
+        printf '%s [y/N]: ' "$question" >/dev/tty
+
+        if ! IFS= read -r answer </dev/tty; then
+            tlog_error "prompt" "Unable to read user confirmation"
+
+            return 2
+        fi
+
+        case "$answer" in
+            [Yy] | [Yy][Ee][Ss]) return 0 ;;
+            '' | [Nn] | [Nn][Oo]) return 1 ;;
+            *) __prompt_show_input_error 'Invalid answer. Enter Y or N.' ;;
+        esac
+    done
+}

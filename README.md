@@ -23,6 +23,12 @@ mp list modules
 mp list modules --category gui --status not-installed
 ```
 
+Preview what an install would do, then confirm to continue with the installation (default no):
+
+```bash
+mp plan git gui/flameshot term/kitty
+```
+
 Install modules using their canonical `<category>/<module>` or unique short `<module>` IDs:
 
 ```bash
@@ -116,6 +122,21 @@ mp install <module> [options]
 `<module>` may be a canonical module ID, a unique short module ID, or a registered alias. Do not run `mp install` with
 `sudo` or as root; module installers invoke `sudo` only when required.
 
+### Preview an Installation
+
+```bash
+mp plan <module> [options]
+```
+
+Accepts the same `-f`/`--force` and `-ni`/`--non-interactive`/`--unattended` options as `mp install`. Resolves the
+modules, runs installed-state detection, and prints each module's action (`install`, `reinstall`, `skip`, `blocked`, or
+`error`), `SOURCE`, the phases that would run, and notes. Detection never prompts, installs, or uses `sudo`. Exits `1`
+when a module is blocked (no non-interactive support under `-ni`) or detection fails.
+
+When modules are queued, nothing is blocked, and a terminal is attached, `mp plan` then asks
+`Continue with installation? [y/N]` (default no). Answering yes runs `mp install` with the same modules and options.
+Piped or redirected runs only print the plan.
+
 ### Remove Modules
 
 ```bash
@@ -144,10 +165,12 @@ mint-provisioner/
 │   ├── help.sh                         # Command help
 │   ├── list.sh                         # Category and module catalog listings
 │   ├── install.sh                      # Module installation command
+│   ├── plan.sh                         # Read-only installation preview
 │   └── remove.sh                       # Module removal command (remove, uninstall, purge)
 ├── lib/                                # Reusable framework libraries
 │   ├── common/
 │   │   ├── common.sh                   # Logging and shared utilities
+│   │   ├── install-plan.sh             # Install/skip/reinstall decisions shared by install and plan
 │   │   ├── metadata.sh                 # Metadata loading
 │   │   ├── resolver.sh                 # Module resolution
 │   │   ├── run-report.sh               # Per-module banners, timing, and result summaries

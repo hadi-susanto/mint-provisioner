@@ -15,6 +15,7 @@ Commands:
   help [command]  Show basic help or details for a command.
   list            List available modules or categories.
   install         Install one or more modules.
+  plan            Preview what install would do, without changing anything.
   remove          Remove one or more modules (alias: uninstall).
   purge           Remove modules and their well-known configuration.
 
@@ -98,6 +99,41 @@ EOF
         "$COLOR_YELLOW" "$COLOR_RESET"
 }
 
+__plan_help() {
+    cat <<'EOF'
+Mint Provisioner
+----------------
+
+Usage:
+  mp plan [OPTIONS] MODULE...
+
+Options:
+  -f,  --force            Plan reinstallation of modules that are already
+                          installed.
+  -ni, --non-interactive  Plan a non-interactive run; modules without
+                          non-interactive support are marked blocked.
+       --unattended       Alias for --non-interactive.
+  -h,  --help             Show this help.
+
+Arguments:
+  MODULE  A canonical ID, unique module ID, or registered alias.
+
+Description:
+  Resolves modules and runs installed-state detection exactly like
+  mp install, then prints one row per module with its action (install,
+  reinstall, skip, blocked or error), SOURCE, the phases that would run,
+  and notes. Detection never prompts, installs, or uses sudo.
+
+  When modules are queued, nothing is blocked, and a terminal is attached,
+  mp plan asks "Continue with installation? [y/N]". Answering yes runs
+  mp install with the same modules and options; the default is no. Piped or
+  redirected runs only print the plan.
+
+  Exits 0 when the install would proceed (or was declined), 1 when a module
+  is blocked or detection fails, and 2 for usage errors or unknown modules.
+EOF
+}
+
 __root_warning() {
     printf '\n%bWARNING: Do not run mp remove or mp purge with sudo or as root.%b\n' \
         "$COLOR_RED" "$COLOR_RESET"
@@ -171,6 +207,9 @@ main() {
             ;;
         install)
             __install_help
+            ;;
+        plan)
+            __plan_help
             ;;
         list)
             __list_help
