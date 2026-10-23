@@ -89,3 +89,31 @@ hidden prompt.
 > **Note:** The key is passed to Vault as a command-line argument, so it is visible in the process list while the
 > command runs, and wherever you export `VAULT_UNSEAL_TOKEN` (for example `~/.bashrc`) it is stored in plain text. Do not
 > use this for anything but a local development Vault.
+
+## XML Files Still Open in My Old Editor After Installing Gram
+
+### Problem
+
+After installing Gram and setting it as the default text editor, `.xml` files still open in another editor
+(for example `xed`).
+
+Gram's desktop entry declares only the `text/plain` MIME type. Setting a default text editor changes only that type,
+while XML files use `application/xml` (also known as `text/xml`).
+
+### Solution
+
+Set Gram as the default for the XML types:
+
+```bash
+gio mime application/xml app.liten.Gram.desktop
+gio mime text/xml app.liten.Gram.desktop
+```
+
+If `gio` refuses, use `xdg-mime` instead:
+
+```bash
+xdg-mime default app.liten.Gram.desktop application/xml text/xml
+```
+
+Both commands change only your user settings in `~/.config/mimeapps.list`. Other file types, such as `.json`, `.md`,
+and `.yaml`, have their own MIME types and may need the same command.

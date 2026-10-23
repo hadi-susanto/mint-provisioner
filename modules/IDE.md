@@ -166,6 +166,10 @@ Gram is a fast, lightweight code editor forked from Zed, without telemetry or AI
 
 **Official Gram APT repository** (Codeberg, amd64; Ubuntu 24.04 or later), using the `gram` package.
 
+### Notes
+
+XML files keep their current default editor after installation; see the [FAQ](../FAQ.md) to make Gram the default.
+
 ### Official Website
 
 https://gram-editor.com/
