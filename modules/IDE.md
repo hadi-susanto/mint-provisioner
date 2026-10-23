@@ -11,6 +11,7 @@ ranging from lightweight editors and full-featured IDEs.
 - [DataGrip](#datagrip-datagrip)
 - [Geany](#geany-geany)
 - [GoLand](#goland-goland)
+- [Gram](#gram-gram)
 - [IntelliJ IDEA](#intellij-idea-idea)
 - [PhpStorm](#phpstorm-phpstorm)
 - [PyCharm](#pycharm-pycharm)
@@ -154,6 +155,24 @@ GoLand is JetBrains' IDE for Go development, with integrated code analysis, refa
 ### Official Website
 
 https://www.jetbrains.com/go/
+
+---
+
+## Gram (`gram`)
+
+Gram is a fast, lightweight code editor forked from Zed, without telemetry or AI features.
+
+### Installation Method
+
+**Official Gram APT repository** (Codeberg, amd64; Ubuntu 24.04 or later), using the `gram` package.
+
+### Notes
+
+XML files keep their current default editor after installation; see the [FAQ](../FAQ.md) to make Gram the default.
+
+### Official Website
+
+https://gram-editor.com/
 
 ---
 
