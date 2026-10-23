@@ -16,6 +16,7 @@ applications.
 - [MKVToolNix](#mkvtoolnix-mkvtoolnix-alias-mkvmerge)
 - [OneDrive Client](#onedrive-client-onedrive)
 - [OpenConnect SAML](#openconnect-saml-openconnect-saml)
+- [pay-respects](#pay-respects-pay-respects)
 - [Procs](#procs-procs)
 - [rclone](#rclone-rclone)
 - [TLP](#tlp-tlp)
@@ -299,6 +300,40 @@ executable in `/usr/local/bin`. No environment or shell rc files are modified.
 ### Official Website
 
 https://github.com/mschabhuettl/openconnect-saml
+
+---
+
+## pay-respects (`pay-respects`)
+
+pay-respects is a fast, lightweight Rust command-line typo corrector, similar to `thefuck`. After a failed command it
+suggests a fix and applies it on request. It runs only when invoked, so it adds no background process.
+
+### Installation Method
+
+**GitHub latest release (.deb)**
+
+Downloads the latest AMD64 Debian package from the official GitHub releases page and installs it using APT. The package
+includes the runtime-rules and AI-fallback helper executables.
+
+### Shell Integration
+
+Add the alias to your shell config, then press `F` after a failed command:
+
+```bash
+eval "$(pay-respects bash --alias)"   # ~/.bashrc
+eval "$(pay-respects zsh --alias)"    # ~/.zshrc
+```
+
+The AI fallback sends requests to an external service; set `_PR_AI_DISABLE` to turn it off.
+
+### System Toolkit Integration
+
+This module has additional features that can be enabled by running SysKit. See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
+
+### Official Website
+
+https://github.com/iffse/pay-respects
 
 ---
 
