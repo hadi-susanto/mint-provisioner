@@ -9,7 +9,7 @@ modules, see the [module contributor guide](CONTRIBUTING.md).
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **98 modules** across **10 categories**. A category is part of a module's canonical
+Mint Provisioner currently provides **99 modules** across **10 categories**. A category is part of a module's canonical
 ID:
 
 ```text
@@ -30,11 +30,11 @@ official project links.
 
 | Category                        | ID     | Modules                                                                                                                                                                                                          |
 |---------------------------------|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [Command Line](CLI.md)          | `cli`  | `adb`, `bat`, `delta`, `eza`, `git`, `github-cli`, `k6`, `mkvtoolnix`, `onedrive`, `openconnect-saml`, `procs`, `rclone`, `tlp`                                                                                        |
+| [Command Line](CLI.md)          | `cli`  | `adb`, `bat`, `delta`, `eza`, `git`, `github-cli`, `k6`, `mkvtoolnix`, `onedrive`, `openconnect-saml`, `procs`, `rclone`, `tlp`                                                                                  |
 | [Database](DB.md)               | `db`   | `dbeaver-community`, `dbgate-community`, `memcached`, `mongodb-community`, `mongodb-compass`, `mysql`, `mysql-tools`, `pg-admin`, `postgresql`, `redis`                                                          |
-| [Development](DEV.md)           | `dev`  | `apache-maven`, `bruno`, `consul`, `docker`, `gcloud`, `httptoolkit`, `kafdrop`, `mise`, `postman`, `sdkman`, `vault`, `yaak`                                                                                                       |
+| [Development](DEV.md)           | `dev`  | `apache-maven`, `bruno`, `consul`, `docker`, `gcloud`, `httptoolkit`, `kafdrop`, `mise`, `postman`, `sdkman`, `vault`, `yaak`                                                                                    |
 | [Desktop Applications](GUI.md)  | `gui`  | `avda`, `cryptomator`, `deadbeef`, `desk-otp`, `double-commander`, `flameshot`, `fman`, `insync`, `keepass-xc`, `lapce`, `meld`, `mu-commander`, `onedrive-gui`, `onedriver`, `otpclient`, `sunflower`, `tlp-ui` |
-| [IDE](IDE.md)                   | `ide`  | `clion`, `cudatext`, `datagrip`, `geany`, `goland`, `idea`, `phpstorm`, `pycharm`, `rider`, `rubymine`, `rustrover`, `vscode`, `vscodium`, `webstorm`                                                            |
+| [IDE](IDE.md)                   | `ide`  | `clion`, `cudatext`, `datagrip`, `geany`, `goland`, `gram`, `idea`, `phpstorm`, `pycharm`, `rider`, `rubymine`, `rustrover`, `vscode`, `vscodium`, `webstorm`                                                    |
 | [System Administration](SYS.md) | `sys`  | `apt-fast`, `dconf-editor`, `dnscrypt-proxy`, `nerd-font`, `system-toolkit`                                                                                                                                      |
 | [Terminal](TERM.md)             | `term` | `alacritty`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `terminator`, `zsh`                                                                                                                |
 | [Terminal UI](TUI.md)           | `tui`  | `bottom`, `du-analyzer`, `du-rust`, `duf`, `git-ui`, `lazy-git`                                                                                                                                                  |
@@ -124,15 +124,15 @@ registry data, files, package variants, or multiple application artifacts.
 
 ### Phase responsibilities
 
-| Phase                | Required | Responsibility                                                                                         |
-|----------------------|:--------:|--------------------------------------------------------------------------------------------------------|
-| `installed.sh`       |    No    | Determine installed state when the default command detection is insufficient.                          |
-| `interactive.sh`     |    No    | Collect required answers or apply user-selected installation customization before installation starts. |
-| `non-interactive.sh` |    No    | Provide the non-prompt equivalent of `interactive.sh`; valid only when `interactive.sh` exists.        |
-| `pre-install.sh`     |    No    | Prepare repositories, dependencies, downloads, keys, or temporary files.                               |
-| `install.sh`         |   Yes    | Perform the software installation and save durable installation facts when needed.                     |
-| `post-install.sh`    |    No    | Apply an installation-adjacent adjustment after a successful installation.                             |
-| `cleanup.sh`         |    No    | Remove temporary state, downloads, and intermediate files.                                             |
+| Phase                | Required | Responsibility                                                                                               |
+|----------------------|:--------:|--------------------------------------------------------------------------------------------------------------|
+| `installed.sh`       |    No    | Determine installed state when the default command detection is insufficient.                                |
+| `interactive.sh`     |    No    | Collect required answers or apply user-selected installation customization before installation starts.       |
+| `non-interactive.sh` |    No    | Provide the non-prompt equivalent of `interactive.sh`; valid only when `interactive.sh` exists.              |
+| `pre-install.sh`     |    No    | Prepare repositories, dependencies, downloads, keys, or temporary files.                                     |
+| `install.sh`         |   Yes    | Perform the software installation and save durable installation facts when needed.                           |
+| `post-install.sh`    |    No    | Apply an installation-adjacent adjustment after a successful installation.                                   |
+| `cleanup.sh`         |    No    | Remove temporary state, downloads, and intermediate files.                                                   |
 | `remove.sh`          |    No    | Undo the installation for `mp remove`, `mp uninstall`, and `mp purge`; modules without it cannot be removed. |
 
 ### Interactive setup
