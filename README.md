@@ -10,6 +10,23 @@ Although designed primarily for Linux Mint, many modules may also work on Ubuntu
 
 ## ⚡ TL;DR
 
+Install Mint Provisioner into `./mint-provisioner` (run it from the folder that should hold it, as your normal user):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hadi-susanto/mint-provisioner/main/bootstrap.sh | bash
+```
+
+The bootstrap installs missing dependencies (`git`, `jq`, `aria2`, `curl`, `bash-completion`) with `apt-get`, clones
+the repository over SSH when your GitHub key is authorized (HTTPS otherwise), links `mp` to `/usr/local/bin/mp`, and
+sets up bash completion. It asks for your `sudo` password for the package install and the link. Run it again to
+update an existing clone (`git pull --ff-only`).
+
+To try another branch, fetch the script from that branch and set `MP_BRANCH` for the clone:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hadi-susanto/mint-provisioner/<branch>/bootstrap.sh | MP_BRANCH=<branch> bash
+```
+
 List the available categories:
 
 ```bash
@@ -158,7 +175,8 @@ plain-text prompts (see the [FAQ](FAQ.md)).
 ### Shell Completion
 
 Tab completion covers commands, options, `list` targets, categories and statuses, and module IDs (canonical IDs,
-unique short IDs, and aliases). It requires `mp` on your `PATH`.
+unique short IDs, and aliases). It requires `mp` on your `PATH`. The bootstrap installer sets up bash completion
+automatically and prints the zsh lines when zsh is your login shell.
 
 Bash: add to `~/.bashrc` (or link the file into `~/.local/share/bash-completion/completions/mp`):
 
@@ -178,6 +196,7 @@ autoload -Uz compinit && compinit
 ```text
 mint-provisioner/
 ├── mp                                  # Root command dispatcher
+├── bootstrap.sh                        # curl | bash installer: dependencies, clone, /usr/local/bin/mp, completion
 ├── completion/                         # Shell completion
 │   ├── mp.bash                         # Bash completion
 │   └── _mp                             # Zsh completion
