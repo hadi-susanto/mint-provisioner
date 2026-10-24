@@ -1,0 +1,15 @@
+#compdef mp
+# Zsh completion for Mint Provisioner (mp).
+#
+# Enable it by adding this directory to fpath before compinit in ~/.zshrc:
+#   fpath=(/path/to/mint-provisioner/completion $fpath)
+#   autoload -Uz compinit && compinit
+#
+# Candidates come from the hidden 'mp __complete' command, so module IDs and
+# aliases always match the installed catalog.
+
+local -a candidates
+
+candidates=("${(@f)$("${words[1]}" __complete "${(@)words[2,CURRENT]}" 2>/dev/null)}")
+candidates=(${candidates:#})
+compadd -a candidates

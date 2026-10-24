@@ -29,39 +29,6 @@ __resolve_codex_target() {
     esac
 }
 
-__resolve_codex_checksum() {
-    local canonical_id="$1"
-    local target="$2"
-    local checksum_url="$3"
-    local tag="checksum:$canonical_id"
-    local checksum_file
-    local expected
-
-    if ! checksum_file="$(mktemp --suffix=.sha256)"; then
-        tlog_error "$tag" "Failed to create checksum temporary file"
-
-        return 1
-    fi
-
-    if ! curl_download "$canonical_id" "$checksum_url" "$checksum_file"; then
-        tlog_error "$tag" "Failed to download the release checksum file"
-        rm -f -- "$checksum_file"
-
-        return 1
-    fi
-
-    expected="$(awk -v name="codex-package-$target.tar.gz" '$2 == name { print $1 }' "$checksum_file")"
-    rm -f -- "$checksum_file"
-
-    if [[ ! "$expected" =~ ^[a-f0-9]{64}$ ]]; then
-        tlog_error "$tag" "Checksum not found for target: %s" "$target"
-
-        return 1
-    fi
-
-    printf '%s\n' "$expected"
-}
-
 main() {
     local canonical_id="$1"
     local raw_install_path="$2"
@@ -69,7 +36,6 @@ main() {
     local archive_url
     local checksum_url
     local expected_checksum
-    local archive_file
 
     valid_install_target "$canonical_id" "$raw_install_path" "CODEX_INSTALL_DIR" || return $?
 
@@ -84,21 +50,13 @@ main() {
             "codex-package_SHA256SUMS$"
     )" || return $?
 
-    expected_checksum="$(__resolve_codex_checksum "$canonical_id" "$target" "$checksum_url")" || return $?
+    expected_checksum="$(
+        fetch_sha256_from_sums "$canonical_id" "$checksum_url" "codex-package-$target.tar.gz"
+    )" || return $?
 
     tlog_info "pre-install:$canonical_id" "Downloading Codex CLI (%s)" "$target"
-    stateful_download "$canonical_id" "ARCHIVE_FILE" "$archive_url" ".tar.gz" 0 || return $?
-
-    archive_file="$(get_state "ARCHIVE_FILE")" || return $?
-    if [[ "$(sha256sum "$archive_file" | awk '{ print $1 }')" != "$expected_checksum" ]]; then
-        tlog_error "pre-install:$canonical_id" "Checksum verification failed"
-        rm -f -- "$archive_file"
-
-        return 1
-    fi
-
-    tlog_info "pre-install:$canonical_id" "Checksum verified"
-    save_states "$canonical_id"
+    stateful_download "$canonical_id" "ARCHIVE_FILE" "$archive_url" ".tar.gz" 1 \
+        "$expected_checksum"
 }
 
 main "$CANONICAL_ID" "${CODEX_INSTALL_DIR:-$INSTALL_DIR/codex}"

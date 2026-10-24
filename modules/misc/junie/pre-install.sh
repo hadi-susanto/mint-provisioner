@@ -81,7 +81,6 @@ main() {
     local raw_install_path="$2"
     local platform
     local -A release=()
-    local archive_file
 
     valid_install_target "$canonical_id" "$raw_install_path" "JUNIE_INSTALL_DIR" || return $?
 
@@ -90,18 +89,8 @@ main() {
 
     tlog_info "pre-install:$canonical_id" "Downloading Junie %s (%s)" \
         "${release[VERSION]}" "$platform"
-    stateful_download "$canonical_id" "ARCHIVE_FILE" "${release[URL]}" ".zip" 0 || return $?
-
-    archive_file="$(get_state "ARCHIVE_FILE")" || return $?
-    if [[ "$(sha256sum "$archive_file" | awk '{ print $1 }')" != "${release[CHECKSUM]}" ]]; then
-        tlog_error "pre-install:$canonical_id" "Checksum verification failed"
-        rm -f -- "$archive_file"
-
-        return 1
-    fi
-
-    tlog_info "pre-install:$canonical_id" "Checksum verified"
-    save_states "$canonical_id"
+    stateful_download "$canonical_id" "ARCHIVE_FILE" "${release[URL]}" ".zip" 1 \
+        "${release[CHECKSUM]}"
 }
 
 main "$CANONICAL_ID" "${JUNIE_INSTALL_DIR:-$INSTALL_DIR/junie}"

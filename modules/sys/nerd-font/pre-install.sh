@@ -13,20 +13,21 @@ __download_font_archive() {
     local archive_file="$3"
     local tag="pre-install:$canonical_id"
     local regex
-    local url
+    local -A asset=()
 
     regex="${font_family//./[.]}"
     regex="${regex//+/[+]}\.tar\.xz$"
 
     tlog_info "$tag" "Resolving the latest release for: %s" "$font_family"
 
-    if ! url="$(github_find_release "$canonical_id" ryanoasis nerd-fonts "$regex")"; then
+    if ! github_find_release_asset "$canonical_id" ryanoasis nerd-fonts "$regex" asset; then
         tlog_error "$tag" "Failed to resolve a release for: %s" "$font_family"
 
         return 2
     fi
 
-    if ! download_file "$canonical_id" "$url" "$archive_file"; then
+    if ! download_file "$canonical_id" "${asset[URL]}" "$archive_file" ||
+        ! verify_sha256 "$canonical_id" "$archive_file" "${asset[SHA256]}"; then
         tlog_error "$tag" "Failed to download Nerd Font family: %s" "$font_family"
 
         return 3

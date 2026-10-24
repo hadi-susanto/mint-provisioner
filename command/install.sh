@@ -2,16 +2,12 @@
 set -euo pipefail
 
 source "$LIB_COMMON/common.sh"
-source "$LIB_COMMON/metadata.sh"
+source "$LIB_COMMON/install-plan.sh"
 source "$LIB_COMMON/resolver.sh"
 source "$LIB_COMMON/run-report.sh"
 source "$LIB_COMMON/sudo.sh"
-source "$LIB_INSTALLER/detection.sh"
 source "$LIB_INSTALLER/execution.sh"
 source "$LIB_INSTALLER/messages.sh"
-
-declare -A __MODULE_NAMES=()
-declare -A __MODULE_DESCRIPTIONS=()
 
 __parse_args() {
     local options_name="$1"
@@ -71,93 +67,30 @@ __validate_options() {
 }
 
 ##
-# __filter_installed_modules <force> <result_array> <canonical_id...>
+# __log_plan_summary <force> <canonical_id...>
 #
-# Filters resolved module IDs using one metadata parse and detection call per
-# unique canonical ID. Selector order and duplicates are preserved.
+# Logs which modules are queued for installation or reinstallation and which
+# are skipped because they are already installed.
 #
-# Returns:
-#   1 after inspecting every unique module when metadata or detection fails.
-#   2 when the filter arguments are invalid.
-#
-__filter_installed_modules() {
-    local force="${1:-}"
-    local result_name="${2:-}"
+__log_plan_summary() {
+    local force="$1"
+    shift
 
-    if (( $# < 2 )) || [[ "$force" != "0" && "$force" != "1" ]] ||
-        [[ ! "$result_name" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
-        log_error \
-            "Module filtering requires a force value of 0 or 1 and a result array"
-
-        return 2
-    fi
-
-    shift 2
-
-    local -n result_ref="$result_name"
-    local -A metadata=()
     local canonical_id
-    local module_name
-    local failed=0
-    local status
+    local joined
     local -a queued=()
     local -a installed=()
-    local joined
 
-    result_ref=()
-    __MODULE_NAMES=()
-    __MODULE_DESCRIPTIONS=()
-
-    tlog_info "installation" "Verifying module installation status..."
     for canonical_id in "$@"; do
-        metadata=()
-
-        if ! parse_module_metadata "$MP_MODULES/$canonical_id" metadata; then
-            tlog_error "installation:$canonical_id" \
-                "Unable to load module metadata: %s" "$canonical_id"
-            failed=1
-
-            continue
-        fi
-
-        module_name="${metadata[NAME]}"
-        __MODULE_NAMES["$canonical_id"]="$module_name"
-        __MODULE_DESCRIPTIONS["$canonical_id"]="${metadata[DESCRIPTION]}"
-
-        if module_installed "$canonical_id" metadata; then
-            status=0
-        else
-            status=$?
-        fi
-
-        if (( status > 1 )); then
-            tlog_error "installation:$canonical_id" \
-                "Installed-state detection failed for %s (status: %d)" \
-                "$module_name" "$status"
-            failed=1
-
-            continue
-        fi
-
-        if (( status != 0 )); then
-            result_ref+=("$canonical_id")
-            queued+=("$module_name")
-
-            continue
-        fi
-
-        installed+=("$module_name")
-        if (( force )); then
-            result_ref+=("$canonical_id")
-        fi
+        case "${INSTALL_PLAN_ACTIONS[$canonical_id]:-}" in
+            install)
+                queued+=("${INSTALL_PLAN_NAMES[$canonical_id]}")
+                ;;
+            reinstall | skip)
+                installed+=("${INSTALL_PLAN_NAMES[$canonical_id]}")
+                ;;
+        esac
     done
-
-    if (( failed )); then
-        tlog_error "installation" \
-            "Installation was aborted. Please review the logs above for more details."
-
-        return "$failed"
-    fi
 
     if (( ${#queued[@]} > 0 )); then
         joined=$(printf '%s, ' "${queued[@]}")
@@ -169,7 +102,6 @@ __filter_installed_modules() {
     if (( ${#installed[@]} == 0 )); then
         return 0
     fi
-
 
     joined=$(printf '%s, ' "${installed[@]}")
     joined=${joined%, }
@@ -239,8 +171,8 @@ __run_installation() {
         print_module_header \
             "Installing" \
             "$canonical_id" \
-            "${__MODULE_NAMES[$canonical_id]:-$canonical_id}" \
-            "${__MODULE_DESCRIPTIONS[$canonical_id]:-}"
+            "${INSTALL_PLAN_NAMES[$canonical_id]:-$canonical_id}" \
+            "${INSTALL_PLAN_DESCRIPTIONS[$canonical_id]:-}"
 
         start_time_ms="$(current_time_ms)" || return $?
         if exec_install "$canonical_id"; then
@@ -265,7 +197,7 @@ __run_installation() {
     format_total_duration "$((total_end_time_ms - total_start_time_ms))" total_duration
 
     print_run_results "Installation Results" "$total_duration" \
-        __MODULE_NAMES canonical_ids results durations
+        INSTALL_PLAN_NAMES canonical_ids results durations
 
     if ! delete_all_messages; then
         tlog_error "installation" "Failed to delete stored installation messages"
@@ -278,7 +210,6 @@ main() {
     local -A options=()
     local -a args=()
     local -a canonical_ids=()
-    local -a filtered_ids=()
     local -a original_args=("$@")
     local status=0
 
@@ -311,26 +242,31 @@ main() {
         return 2
     fi
 
-    if ! __filter_installed_modules "${options[FORCE]}" filtered_ids "${canonical_ids[@]}"; then
+    tlog_info "installation" "Verifying module installation status..."
+    if ! plan_install_modules "${options[FORCE]}" "${canonical_ids[@]}"; then
+        tlog_error "installation" \
+            "Installation was aborted. Please review the logs above for more details."
         log_error "Installation aborted because module filtering failed"
 
         return 1
     fi
 
-    if (( ${#filtered_ids[@]} == 0 )); then
+    __log_plan_summary "${options[FORCE]}" "${canonical_ids[@]}"
+
+    if (( ${#INSTALL_PLAN_QUEUE[@]} == 0 )); then
         log_info "No modules require installation."
 
         return 0
     fi
 
     __run_interactive_session \
-        "${options[NON_INTERACTIVE]}" "${filtered_ids[@]}" || return $?
+        "${options[NON_INTERACTIVE]}" "${INSTALL_PLAN_QUEUE[@]}" || return $?
     if (( ${options[NON_INTERACTIVE]} )); then
         validate_sudo_privileges install "${original_args[@]}"
     else
         cache_sudo_privileges || return $?
     fi
-    __run_installation "${filtered_ids[@]}"
+    __run_installation "${INSTALL_PLAN_QUEUE[@]}"
 }
 
 main "$@"

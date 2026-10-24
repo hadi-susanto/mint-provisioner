@@ -17,8 +17,14 @@ if ! zip_file="$(mktemp --suffix=.zip)"; then
 
     exit 1
 fi
-url="$(github_find_release "$CANONICAL_ID" "flameshot-org" "flameshot" "$regex")" || exit $?
-download_file "$CANONICAL_ID" "$url" "$zip_file" || exit $?
+declare -A asset=()
+github_find_release_asset "$CANONICAL_ID" "flameshot-org" "flameshot" "$regex" asset || exit $?
+download_file "$CANONICAL_ID" "${asset[URL]}" "$zip_file" || exit $?
+if ! verify_sha256 "$CANONICAL_ID" "$zip_file" "${asset[SHA256]}"; then
+    rm -f -- "$zip_file" || true
+
+    exit 1
+fi
 
 # Extract and find the .deb file
 if ! extract_dir="$(mktemp -d)"; then

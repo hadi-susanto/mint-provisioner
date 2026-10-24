@@ -38,6 +38,8 @@ main() {
     local install_path
     local data_path
     local version
+    local base_url
+    local checksum
 
     if [[ "$(dpkg --print-architecture)" != "amd64" ]]; then
         tlog_error "$tag" "Consul binary installation supports amd64 only"
@@ -68,8 +70,12 @@ main() {
     version="$(__resolve_version "$canonical_id")" || return $?
     tlog_info "$tag" "Latest Consul version: %s" "$version"
 
+    base_url="https://releases.hashicorp.com/consul/${version}"
+    checksum="$(fetch_sha256_from_sums "$canonical_id" \
+        "$base_url/consul_${version}_SHA256SUMS" "consul_${version}_linux_amd64.zip")" || return $?
+
     stateful_download "$canonical_id" "ARCHIVE_FILE" \
-        "https://releases.hashicorp.com/consul/${version}/consul_${version}_linux_amd64.zip" ".zip"
+        "$base_url/consul_${version}_linux_amd64.zip" ".zip" 1 "$checksum"
 }
 
 main "$CANONICAL_ID" "${CONSUL_INSTALL_DIR:-$INSTALL_DIR/consul}" "${CONSUL_DATA_DIR:-${CONSUL_INSTALL_DIR:-$INSTALL_DIR/consul}/data}"

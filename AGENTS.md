@@ -115,6 +115,28 @@ resolve_package() {
 }
 ```
 
+### Exception: Library Result Sets
+
+A library function whose result needs three or more output arrays may publish them as library-owned globals
+instead of taking one nameref parameter per array. One or two outputs still use nameref parameters.
+
+* Declare the arrays at file scope with `declare -g`, after the double-sourcing guard.
+* Use a public, library-specific uppercase prefix (for example `INSTALL_PLAN_*`), because callers read them.
+* Reset every array at the start of each call that fills them, so callers never see a previous result.
+* Document each array in the filling function's comment block. Callers read them and must not modify them.
+
+```bash
+declare -ga INSTALL_PLAN_QUEUE=()
+declare -gA INSTALL_PLAN_ACTIONS=()
+
+plan_install_modules() {
+    INSTALL_PLAN_QUEUE=()
+    INSTALL_PLAN_ACTIONS=()
+
+    ...
+}
+```
+
 ## Return and Exit Statements
 
 Place a blank line before standalone `return` and `exit` statements when they follow another statement in the same block.

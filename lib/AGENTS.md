@@ -377,6 +377,7 @@ Initialization at file scope should be limited to:
 * Double-sourcing guards.
 * Sourcing required dependencies.
 * Declaring constants.
+* Declaring result-set globals (see "Exception: Library Result Sets" in the root `AGENTS.md`).
 * Defining functions.
 
 ## Variable Scope
@@ -392,7 +393,8 @@ resolve_package() {
 
 Use `readonly` for library-level constants where appropriate.
 
-Avoid modifying global variables unless the library API explicitly exists to do so.
+Avoid modifying global variables unless the library API explicitly exists to do so. A function that needs three or
+more output arrays may publish them as result-set globals; see "Exception: Library Result Sets" in the root `AGENTS.md`.
 
 When receiving arrays by name, use namerefs:
 

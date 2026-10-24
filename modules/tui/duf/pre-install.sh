@@ -9,5 +9,6 @@ regex="duf_.*_linux_x86_64\.tar\.gz$"
 install_dir="${DUF_INSTALL_DIR:-$INSTALL_DIR/duf}"
 
 valid_install_target "$CANONICAL_ID" "$install_dir" "DUF_INSTALL_DIR" || exit $?
-url="$(github_find_release "$CANONICAL_ID" "muesli" "duf" "$regex")" || exit $?
-stateful_download "$CANONICAL_ID" "ARCHIVE_FILE" "$url" ".tar.gz"
+declare -A asset=()
+github_find_release_asset "$CANONICAL_ID" "muesli" "duf" "$regex" asset || exit $?
+stateful_download "$CANONICAL_ID" "ARCHIVE_FILE" "${asset[URL]}" ".tar.gz" 1 "${asset[SHA256]}"

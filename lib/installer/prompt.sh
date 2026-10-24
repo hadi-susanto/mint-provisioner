@@ -27,7 +27,7 @@ else
 fi
 
 # Loader: selects the whiptail backend when usable, otherwise the pure-bash one.
-# Both backends expose choose_option, ask_number, ask_text and ask_password with the same contract.
+# Both backends expose choose_option, ask_number, ask_text, ask_password and ask_confirm with the same contract.
 # Set DISABLE_WHIPTAIL=true to force the pure-bash backend.
 if [[ "${DISABLE_WHIPTAIL:-false}" != "true" ]] &&
     command -v whiptail >/dev/null 2>&1 &&

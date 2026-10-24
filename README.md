@@ -10,6 +10,23 @@ Although designed primarily for Linux Mint, many modules may also work on Ubuntu
 
 ## ⚡ TL;DR
 
+Install Mint Provisioner into `./mint-provisioner` (run it from the folder that should hold it, as your normal user):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hadi-susanto/mint-provisioner/main/bootstrap.sh | bash
+```
+
+The bootstrap installs missing dependencies (`git`, `jq`, `aria2`, `curl`, `bash-completion`) with `apt-get`, clones
+the repository over SSH when your GitHub key is authorized (HTTPS otherwise), links `mp` to `/usr/local/bin/mp`, and
+sets up bash completion. It asks for your `sudo` password for the package install and the link. Run it again to
+update an existing clone (`git pull --ff-only`).
+
+To try another branch, fetch the script from that branch and set `MP_BRANCH` for the clone:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hadi-susanto/mint-provisioner/<branch>/bootstrap.sh | MP_BRANCH=<branch> bash
+```
+
 List the available categories:
 
 ```bash
@@ -21,6 +38,12 @@ List available modules, optionally filtering by category or installation status:
 ```bash
 mp list modules
 mp list modules --category gui --status not-installed
+```
+
+Preview what an install would do, then confirm to continue with the installation (default no):
+
+```bash
+mp plan git gui/flameshot term/kitty
 ```
 
 Install modules using their canonical `<category>/<module>` or unique short `<module>` IDs:
@@ -116,6 +139,21 @@ mp install <module> [options]
 `<module>` may be a canonical module ID, a unique short module ID, or a registered alias. Do not run `mp install` with
 `sudo` or as root; module installers invoke `sudo` only when required.
 
+### Preview an Installation
+
+```bash
+mp plan <module> [options]
+```
+
+Accepts the same `-f`/`--force` and `-ni`/`--non-interactive`/`--unattended` options as `mp install`. Resolves the
+modules, runs installed-state detection, and prints each module's action (`install`, `reinstall`, `skip`, `blocked`, or
+`error`), `SOURCE`, the phases that would run, and notes. Detection never prompts, installs, or uses `sudo`. Exits `1`
+when a module is blocked (no non-interactive support under `-ni`) or detection fails.
+
+When modules are queued, nothing is blocked, and a terminal is attached, `mp plan` then asks
+`Continue with installation? [y/N]` (default no). Answering yes runs `mp install` with the same modules and options.
+Piped or redirected runs only print the plan.
+
 ### Remove Modules
 
 ```bash
@@ -134,20 +172,46 @@ ships `remove.sh`; otherwise it is reported as failed. Do not run these commands
 Interactive questions use `whiptail` dialogs when `whiptail` is installed. Set `DISABLE_WHIPTAIL=true` to force
 plain-text prompts (see the [FAQ](FAQ.md)).
 
+### Shell Completion
+
+Tab completion covers commands, options, `list` targets, categories and statuses, and module IDs (canonical IDs,
+unique short IDs, and aliases). It requires `mp` on your `PATH`. The bootstrap installer sets up bash completion
+automatically and prints the zsh lines when zsh is your login shell.
+
+Bash: add to `~/.bashrc` (or link the file into `~/.local/share/bash-completion/completions/mp`):
+
+```bash
+source /path/to/mint-provisioner/completion/mp.bash
+```
+
+Zsh: add to `~/.zshrc` before `compinit`:
+
+```zsh
+fpath=(/path/to/mint-provisioner/completion $fpath)
+autoload -Uz compinit && compinit
+```
+
 ## 📁 Project Structure
 
 ```text
 mint-provisioner/
 ├── mp                                  # Root command dispatcher
+├── bootstrap.sh                        # curl | bash installer: dependencies, clone, /usr/local/bin/mp, completion
+├── completion/                         # Shell completion
+│   ├── mp.bash                         # Bash completion
+│   └── _mp                             # Zsh completion
 ├── command/                            # Command implementations
 │   ├── main.sh                         # Command routing
+│   ├── complete.sh                     # Hidden 'mp __complete' candidates for shell completion
 │   ├── help.sh                         # Command help
 │   ├── list.sh                         # Category and module catalog listings
 │   ├── install.sh                      # Module installation command
+│   ├── plan.sh                         # Read-only installation preview
 │   └── remove.sh                       # Module removal command (remove, uninstall, purge)
 ├── lib/                                # Reusable framework libraries
 │   ├── common/
 │   │   ├── common.sh                   # Logging and shared utilities
+│   │   ├── install-plan.sh             # Install/skip/reinstall decisions shared by install and plan
 │   │   ├── metadata.sh                 # Metadata loading
 │   │   ├── resolver.sh                 # Module resolution
 │   │   ├── run-report.sh               # Per-module banners, timing, and result summaries

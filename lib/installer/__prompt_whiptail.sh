@@ -370,3 +370,36 @@ ask_password() {
         return 0
     done
 }
+
+##
+# ask_confirm
+#
+# Asks a yes/no question in a whiptail dialog with No selected by default.
+#
+# Parameters:
+#   question - Question displayed in the dialog.
+#
+# Return:
+#   0 - The user selected Yes.
+#   1 - The user selected No or closed the dialog.
+#   2 - Input is invalid.
+#
+ask_confirm() {
+    local question="${1:-}"
+
+    __trim question
+
+    if (( $# != 1 )) || [[ -z "$question" ]]; then
+        tlog_error "prompt" "ask_confirm requires a non-empty question"
+
+        return 2
+    fi
+
+    if env -u NEWT_COLORS_FILE NEWT_COLORS="$__prompt_whiptail_colors" \
+        whiptail --title "Mint Provisioner" --defaultno --yesno "$question" 10 70 \
+        </dev/tty >/dev/tty 2>&1; then
+        return 0
+    fi
+
+    return 1
+}
