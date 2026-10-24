@@ -383,3 +383,39 @@ resolve_module_aliases() {
 
     return 0
 }
+
+##
+# list_module_selectors
+#
+# Lists every selector that resolve_module_selectors accepts: canonical IDs,
+# unique short module IDs, and aliases whose target module exists.
+#
+# Parameters:
+#   selectors_name - Name of the indexed array that receives the selectors,
+#                    sorted and without duplicates.
+#
+# Return:
+#   1 - The module catalog could not be loaded.
+#
+list_module_selectors() {
+    local selectors_name="$1"
+    local -n selectors_ref="$selectors_name"
+    local -A seen=()
+    local selector
+    local LC_ALL=C
+
+    selectors_ref=()
+    __preload_all_modules || return $?
+
+    for selector in "${__ALL_MODULES[@]}" "${!__UNIQUE_MODULES[@]}"; do
+        seen["$selector"]=1
+    done
+
+    for selector in "${!__MINT_PROVISIONER_MODULE_ALIASES[@]}"; do
+        if [[ -v "__CANONICAL_MODULES[${__MINT_PROVISIONER_MODULE_ALIASES[$selector]}]" ]]; then
+            seen["$selector"]=1
+        fi
+    done
+
+    mapfile -t selectors_ref < <(printf '%s\n' "${!seen[@]}" | sort)
+}

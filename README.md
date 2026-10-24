@@ -155,13 +155,35 @@ ships `remove.sh`; otherwise it is reported as failed. Do not run these commands
 Interactive questions use `whiptail` dialogs when `whiptail` is installed. Set `DISABLE_WHIPTAIL=true` to force
 plain-text prompts (see the [FAQ](FAQ.md)).
 
+### Shell Completion
+
+Tab completion covers commands, options, `list` targets, categories and statuses, and module IDs (canonical IDs,
+unique short IDs, and aliases). It requires `mp` on your `PATH`.
+
+Bash: add to `~/.bashrc` (or link the file into `~/.local/share/bash-completion/completions/mp`):
+
+```bash
+source /path/to/mint-provisioner/completion/mp.bash
+```
+
+Zsh: add to `~/.zshrc` before `compinit`:
+
+```zsh
+fpath=(/path/to/mint-provisioner/completion $fpath)
+autoload -Uz compinit && compinit
+```
+
 ## 📁 Project Structure
 
 ```text
 mint-provisioner/
 ├── mp                                  # Root command dispatcher
+├── completion/                         # Shell completion
+│   ├── mp.bash                         # Bash completion
+│   └── _mp                             # Zsh completion
 ├── command/                            # Command implementations
 │   ├── main.sh                         # Command routing
+│   ├── complete.sh                     # Hidden 'mp __complete' candidates for shell completion
 │   ├── help.sh                         # Command help
 │   ├── list.sh                         # Category and module catalog listings
 │   ├── install.sh                      # Module installation command

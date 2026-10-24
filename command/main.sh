@@ -61,8 +61,9 @@ main() {
         return "$parse_status"
     fi
 
-    # Short-circuit an immediate post-command help request.
-    if [[ "${options[CMD]}" != "help" ]]; then
+    # Short-circuit an immediate post-command help request. Completion words
+    # are data, so 'mp __complete help' must not become a help request.
+    if [[ "${options[CMD]}" != "help" && "${options[CMD]}" != "__complete" ]]; then
         case "${args[0]:-}" in
             help | -h | --help)
                 args=("${options[CMD]}")
@@ -83,6 +84,10 @@ main() {
             ;;
         plan)
             exec bash "$MP_COMMAND/plan.sh" "${args[@]}"
+            ;;
+        __complete)
+            # Hidden: candidates for completion/mp.bash and completion/_mp.
+            exec bash "$MP_COMMAND/complete.sh" "${args[@]}"
             ;;
         remove | uninstall)
             exec bash "$MP_COMMAND/remove.sh" "${args[@]}"
