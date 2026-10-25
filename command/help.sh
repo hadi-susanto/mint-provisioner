@@ -168,7 +168,9 @@ Description:
   are limited to 60 per hour; set GITHUB_TOKEN to raise the limit.
 
   UPDATE_MODE=external compares the recorded version with the version printed
-  by the module's latest.sh, which queries the vendor.
+  by the module's latest.sh, which queries the vendor. UPDATE_MODE=git
+  compares the cloned commit with the latest commit of its branch, and
+  UPDATE_MODE=none marks modules whose version is not tracked.
 
   Exits 0 when versions were checked, 1 when detection or a version query
   fails, and 2 for usage errors or unknown modules.

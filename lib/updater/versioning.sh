@@ -9,6 +9,7 @@ readonly __MINT_PROVISIONER_VERSIONING_LOADED=1
 source "$LIB_COMMON/common.sh"
 source "$LIB_UPDATER/apt-versioning.sh"
 source "$LIB_INSTALLER/github.sh"
+source "$LIB_UPDATER/git-versioning.sh"
 source "$LIB_UPDATER/recorded-versioning.sh"
 source "$LIB_WORKFLOW/latest-version.sh"
 
@@ -151,6 +152,37 @@ __resolve_external_versions() {
     __resolve_recorded_versions "$canonical_id" "$latest" "$versions_name"
 }
 
+__resolve_git_versions() {
+    local canonical_id="$1"
+    local -n versions_ref="$2"
+    local -A commits=()
+    local status=0
+
+    git_commits "$canonical_id" commits || status=$?
+    if (( status == 1 )); then
+        versions_ref[NOTE]="install path not recorded"
+
+        return 0
+    fi
+
+    if (( status != 0 )); then
+        versions_ref[NOTE]="version query failed"
+
+        return 1
+    fi
+
+    versions_ref[INSTALLED]="${commits[INSTALLED]:0:7}"
+    versions_ref[LATEST]="${commits[LATEST]:0:7}"
+
+    if [[ "${commits[INSTALLED]}" == "${commits[LATEST]}" ]]; then
+        versions_ref[STATE]="current"
+        versions_ref[NOTE]="up to date"
+    else
+        versions_ref[STATE]="outdated"
+        versions_ref[NOTE]="update available"
+    fi
+}
+
 ##
 # resolve_module_versions
 #
@@ -162,7 +194,8 @@ __resolve_external_versions() {
 #   metadata_name - Name of the associative array containing module metadata.
 #   versions_name - Name of the associative array that receives INSTALLED,
 #                   LATEST, STATE, and NOTE. STATE is one of outdated, current,
-#                   unknown, or unsupported. Unresolved versions are empty.
+#                   unknown, unsupported, or untracked (UPDATE_MODE=none).
+#                   Unresolved versions are empty.
 #
 # Return:
 #   1 - A version query failed; STATE is unknown.
@@ -191,6 +224,12 @@ resolve_module_versions() {
             ;;
         external)
             __resolve_external_versions "$canonical_id" "$versions_name" || return $?
+            ;;
+        git)
+            __resolve_git_versions "$canonical_id" "$versions_name" || return $?
+            ;;
+        none)
+            versions_ref=([INSTALLED]="-" [LATEST]="-" [STATE]="untracked" [NOTE]="version not tracked")
             ;;
         "")
             versions_ref[STATE]="unsupported"

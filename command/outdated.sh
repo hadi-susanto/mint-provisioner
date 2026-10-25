@@ -206,6 +206,7 @@ __print_versions() {
         [current]=0
         [unknown]=0
         [unsupported]=0
+        [untracked]=0
         [missing]=0
         [error]=0
     )
@@ -284,6 +285,10 @@ __print_versions() {
     printf '\n%d update available, %d up to date, %d unknown' \
         "${counts[outdated]}" "${counts[current]}" \
         "$(( counts[unknown] + counts[unsupported] ))"
+
+    if (( counts[untracked] > 0 )); then
+        printf ', %d not tracked' "${counts[untracked]}"
+    fi
 
     if (( counts[missing] > 0 )); then
         printf ', %d not installed' "${counts[missing]}"

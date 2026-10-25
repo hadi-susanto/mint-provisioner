@@ -62,6 +62,12 @@ When creating or updating `metadata.conf`, follow these rules:
     `$LIB_WORKFLOW/latest-version.sh`, builds the download URL from it, and passes it as the `version` argument of
     `stateful_download` (or stores it with `set_state "VERSION"` when it downloads by other means). Recording in
     the registry works as for `github`.
+  - `git`: For modules installed as a git clone. Compares the commit checked out in the registry `INSTALL_PATH` with
+    the latest commit of the same branch on its `origin` remote (`git ls-remote`; nothing is fetched). The install
+    phase must save the clone directory as registry `INSTALL_PATH` (`git_clone_install` does this). No version is
+    recorded at install time.
+  - `none`: Explicit opt-out for modules without a single meaningful version, such as `sys/nerd-font`. Always
+    reported as `-` with no update.
   Modules without `UPDATE_MODE` are listed by `mp outdated` with unknown versions.
 - In `modules/README.md` and category documentation, display source names in human-readable form: `Native`, `PPA`, `APT`, `GitHub`, `SourceForge`, and `External`.
 

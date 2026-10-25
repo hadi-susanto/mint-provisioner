@@ -168,7 +168,8 @@ first. Modules with `UPDATE_MODE="github"` compare the release recorded at insta
 release; installs that predate version recording are reported as having an update available. Unauthenticated GitHub
 API calls are limited to 60 per hour, so set `GITHUB_TOKEN` when checking many modules. Modules with
 `UPDATE_MODE="external"` compare the recorded version with the vendor's latest version printed by the module's
-`latest.sh`. Exits `1` when detection or a
+`latest.sh`. Modules with `UPDATE_MODE="git"` compare the cloned commit with the latest commit of the same branch,
+and `UPDATE_MODE="none"` marks modules whose version is not tracked. Exits `1` when detection or a
 version query fails.
 
 ### Remove Modules
