@@ -142,14 +142,31 @@ The official MySQL connectors for Java (Connector/J), Python (Connector/Python),
 **Official MySQL APT repository (`mysql-tools` component)**
 
 Adds the `mysql-tools` component to the shared MySQL APT repository (see [MySQL Server](#mysql-server-mysql)), then
-installs `mysql-connector-j`, `mysql-connector-python-py3`, `mysql-connector-odbc`, and `libmysqlcppconn-dev`.
+installs **one** connector per run, chosen interactively (connectors already installed are marked `(installed)`):
+
+| Choice   | Package                      |
+|----------|------------------------------|
+| `java`   | `mysql-connector-j`          |
+| `python` | `mysql-connector-python-py3` |
+| `odbc`   | `mysql-connector-odbc`       |
+| `cpp`    | `libmysqlcppconn-dev`        |
+
+Run `mp install mysql-tools` again to add another connector.
 
 Components enabled by `mysql` are kept. Removing this module drops only the `mysql-tools` component on `mp purge`.
 
 ### Installation Detection
 
 The module counts as installed only when all four connector packages are installed, so a single distribution package
-(for example Ubuntu's `libmysqlcppconn-dev`) does not skip the installation.
+(for example Ubuntu's `libmysqlcppconn-dev`) does not skip the installation. Until all four are present, the module
+stays "not installed" and can be run again to add more connectors without `--force`.
+
+### Supported ENV
+
+- `MYSQL_TOOLS_CONNECTOR`
+    - Connector to install: `java`, `python`, `odbc`, or `cpp`.
+    - Skips the interactive prompt when set to a valid value.
+    - Required for `mp install --non-interactive`; there is no default.
 
 ### Official Website
 
