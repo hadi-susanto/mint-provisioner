@@ -154,6 +154,19 @@ When modules are queued, nothing is blocked, and a terminal is attached, `mp pla
 `Continue with installation? [y/N]` (default no). Answering yes runs `mp install` with the same modules and options.
 Piped or redirected runs only print the plan.
 
+### Check for Updates
+
+```bash
+mp outdated [module...]          # alias: mp update
+```
+
+Lists installed modules (or only the selected ones) with their installed version, latest version, and notes. Rows with
+an update available are blue; rows that cannot be checked, such as modules without `UPDATE_MODE` metadata, are yellow.
+Nothing is upgraded. Modules with `UPDATE_MODE="apt"` read versions from dpkg and the APT cache; when apt-mode modules are
+checked, the cache is older than 7 days, and a terminal is attached, `mp outdated` offers to run `sudo apt-get update`
+first. Exits `1` when
+detection or a version query fails.
+
 ### Remove Modules
 
 ```bash

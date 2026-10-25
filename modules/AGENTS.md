@@ -43,6 +43,10 @@ When creating or updating `metadata.conf`, follow these rules:
   - `github`: The module downloads an artifact from GitHub or installs from a GitHub repository.
   - `sourceforge`: The module downloads an artifact from SourceForge.
   - `external`: The module downloads an artifact directly from a third-party vendor source.
+- `UPDATE_MODE` is optional and opts the module into `mp outdated`. Supported values:
+  - `apt`: Versions come from dpkg and the APT cache. Requires `UPDATE_PACKAGE`, the main Debian package passed to
+    `apt_install` (for example `UPDATE_PACKAGE="keepassxc"`).
+  Modules without `UPDATE_MODE` are listed by `mp outdated` with unknown versions.
 - In `modules/README.md` and category documentation, display source names in human-readable form: `Native`, `PPA`, `APT`, `GitHub`, `SourceForge`, and `External`.
 
 ### Module Documentation

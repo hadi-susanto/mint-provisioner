@@ -149,7 +149,8 @@ parse_category_metadata() {
 #   metadata_name - Name of the associative array that receives parsed values.
 #
 # Returns:
-#   1 when parsing fails, required metadata is missing, or SOURCE is invalid.
+#   1 when parsing fails, required metadata is missing, or SOURCE or UPDATE_MODE
+#   is invalid.
 #
 parse_module_metadata() {
     local directory="$1"
@@ -166,6 +167,21 @@ parse_module_metadata() {
         *)
             tlog_error "metadata" "Invalid module metadata SOURCE in %s: %s" \
                 "$directory/metadata.conf" "${metadata_ref[SOURCE]}"
+
+            return 1
+            ;;
+    esac
+
+    case "${metadata_ref[UPDATE_MODE]:-}" in
+        "")
+            ;;
+        apt)
+            __validate_required_metadata \
+                "$metadata_name" "$directory/metadata.conf" UPDATE_PACKAGE || return $?
+            ;;
+        *)
+            tlog_error "metadata" "Invalid module metadata UPDATE_MODE in %s: %s" \
+                "$directory/metadata.conf" "${metadata_ref[UPDATE_MODE]}"
 
             return 1
             ;;

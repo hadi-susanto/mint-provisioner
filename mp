@@ -11,6 +11,7 @@ export LIB_COMMON="$MP_ROOT/lib/common"
 export LIB_INSTALLER="$MP_ROOT/lib/installer"
 export LIB_WORKFLOW="$MP_ROOT/lib/workflow"
 export LIB_REMOVER="$MP_ROOT/lib/remover"
+export LIB_UPDATER="$MP_ROOT/lib/updater"
 
 if [[ -z "${INSTALL_DIR:-}" ]]; then
     export INSTALL_DIR="${MP_ROOT%/*}"
