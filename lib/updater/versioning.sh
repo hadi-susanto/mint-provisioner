@@ -10,26 +10,47 @@ source "$LIB_COMMON/common.sh"
 source "$LIB_UPDATER/apt-versioning.sh"
 source "$LIB_UPDATER/github-versioning.sh"
 
+##
+# __resolve_apt_versions <packages> <versions_name>
+#
+# Resolves versions for the first installed package of a comma-separated
+# candidate list, such as "code,code-insiders".
+#
 __resolve_apt_versions() {
-    local package="$1"
+    local packages="$1"
     local -n versions_ref="$2"
+    local -a candidates=()
+    local package=""
+    local candidate
     local installed
     local latest
     local status
 
-    if installed="$(apt_installed_version "$package")"; then
-        versions_ref[INSTALLED]="$installed"
-    else
-        status=$?
-        if (( status == 1 )); then
-            versions_ref[NOTE]="package $package not installed via apt"
+    IFS=',' read -r -a candidates <<< "$packages"
 
-            return 0
+    for candidate in "${candidates[@]}"; do
+        __trim candidate
+
+        if installed="$(apt_installed_version "$candidate")"; then
+            package="$candidate"
+            versions_ref[INSTALLED]="$installed"
+
+            break
+        else
+            status=$?
         fi
 
-        versions_ref[NOTE]="version query failed"
+        if (( status != 1 )); then
+            versions_ref[NOTE]="version query failed"
 
-        return 1
+            return 1
+        fi
+    done
+
+    if [[ -z "$package" ]]; then
+        versions_ref[NOTE]="package ${packages//,/ or } not installed via apt"
+
+        return 0
     fi
 
     if latest="$(apt_candidate_version "$package")"; then

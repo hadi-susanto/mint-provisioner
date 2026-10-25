@@ -45,7 +45,9 @@ When creating or updating `metadata.conf`, follow these rules:
   - `external`: The module downloads an artifact directly from a third-party vendor source.
 - `UPDATE_MODE` is optional and opts the module into `mp outdated`. Supported values:
   - `apt`: Versions come from dpkg and the APT cache. Requires `UPDATE_PACKAGE`, the main Debian package passed to
-    `apt_install` (for example `UPDATE_PACKAGE="keepassxc"`).
+    `apt_install` (for example `UPDATE_PACKAGE="keepassxc"`). When the package depends on an installation choice, list
+    every candidate separated by commas without spaces (for example `UPDATE_PACKAGE="code,code-insiders"`); the first
+    installed candidate is checked.
   - `github`: Compares the installed release recorded in the module registry `VERSION` with the latest GitHub
     release tag. Requires `UPDATE_REPOSITORY`, the `owner/repo` of the main release (for example
     `UPDATE_REPOSITORY="sharkdp/bat"`). To record the version, `pre-install.sh` passes `"${asset[VERSION]}"` from

@@ -178,6 +178,13 @@ parse_module_metadata() {
         apt)
             __validate_required_metadata \
                 "$metadata_name" "$directory/metadata.conf" UPDATE_PACKAGE || return $?
+
+            if [[ ! "${metadata_ref[UPDATE_PACKAGE]}" =~ ^[a-z0-9][a-z0-9.+-]*(,[a-z0-9][a-z0-9.+-]*)*$ ]]; then
+                tlog_error "metadata" "Invalid module metadata UPDATE_PACKAGE in %s: %s" \
+                    "$directory/metadata.conf" "${metadata_ref[UPDATE_PACKAGE]}"
+
+                return 1
+            fi
             ;;
         github)
             __validate_required_metadata \
