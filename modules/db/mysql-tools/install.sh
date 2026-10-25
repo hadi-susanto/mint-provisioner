@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$LIB_INSTALLER/apt.sh"
+source "$LIB_WORKFLOW/stateful-apt-install.sh"
 
-apt_install \
-    "$CANONICAL_ID" \
-    mysql-connector-j \
-    mysql-connector-python-py3 \
-    mysql-connector-odbc \
-    libmysqlcppconn-dev
+stateful_apt_install "$CANONICAL_ID" "MYSQL_TOOLS_PACKAGE"

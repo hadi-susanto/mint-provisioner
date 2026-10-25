@@ -10,6 +10,7 @@ source "$LIB_INSTALLER/downloader.sh"
 source "$LIB_INSTALLER/state.sh"
 source "$LIB_WORKFLOW/sudo-refresher.sh"
 source "$LIB_WORKFLOW/install-target.sh"
+source "$LIB_WORKFLOW/jetbrains-release.sh"
 
 __auto_install_dependency() {
     local canonical_id="$1"
@@ -50,67 +51,6 @@ __cleanup_downloads() {
     if (( $# > 0 )); then
         rm -f -- "$@" || true
     fi
-}
-
-__extract_metadata() {
-    local canonical_id="$1"
-    local release_code="$2"
-    local result_name="$3"
-    local tag="metadata:$canonical_id"
-    local metadata_file
-    local metadata_url
-    local release_data
-    local download_url
-    local checksum_url
-    local version
-
-    declare -n result_ref="$result_name"
-    result_ref=()
-
-    metadata_url="https://data.services.jetbrains.com/products/releases?code=${release_code}&latest=true&type=release"
-
-    if ! metadata_file="$(mktemp --suffix=.json)"; then
-        tlog_error "$tag" "Failed to create metadata temporary file"
-
-        return 1
-    fi
-
-    # Use plain cURL to download small metadata file
-    if ! curl_download "$canonical_id" "$metadata_url" "$metadata_file"; then
-        tlog_error "$tag" "Failed to download JetBrains release metadata"
-        __cleanup_downloads "$metadata_file"
-
-        return 2
-    fi
-
-    if ! release_data="$(
-        jq -er \
-            --arg code "$release_code" \
-            '.[$code][0] as $release
-             | [$release.downloads.linux.link,
-                $release.downloads.linux.checksumLink,
-                $release.version]
-             | if all(.[]; type == "string" and length > 0)
-               then @tsv
-               else error("release download metadata is incomplete")
-               end' \
-            "$metadata_file"
-    )"; then
-        tlog_error "$tag" "Failed to resolve the latest JetBrains Linux release"
-        __cleanup_downloads "$metadata_file"
-
-        return 3
-    fi
-
-    __cleanup_downloads "$metadata_file"
-
-    IFS=$'\t' read -r download_url checksum_url version <<< "$release_data"
-
-    result_ref[DOWNLOAD_URL]="$download_url"
-    result_ref[CHECKSUM_URL]="$checksum_url"
-    result_ref[VERSION]="$version"
-
-    return 0
 }
 
 __download_artifact() {
@@ -217,7 +157,7 @@ main() {
     valid_install_target "$canonical_id" "$raw_install_path" "$env_name" >/dev/null || return $?
 
     tlog_info "$tag" "Resolving %s metadata from JetBrains" "$product_name"
-    __extract_metadata "$canonical_id" "$product_release_code" metadata || return $?
+    jetbrains_latest_release "$canonical_id" "$product_release_code" metadata || return $?
 
     tlog_info "$tag" "Metadata resolved, downloading %s artifact" "$product_name"
     if ! archive_file="$(mktemp --suffix=.tar.gz)"; then
@@ -228,7 +168,8 @@ main() {
     __download_artifact "$canonical_id" "${metadata[DOWNLOAD_URL]}" "$archive_file" || return $?
     __checksum_artifact "$canonical_id" "${metadata[CHECKSUM_URL]}" "$archive_file" || return $?
 
-    if ! set_state "JETBRAINS_ARCHIVE_FILE" "$archive_file"; then
+    if ! set_state "JETBRAINS_ARCHIVE_FILE" "$archive_file" ||
+        ! set_state "VERSION" "${metadata[VERSION]}"; then
         __cleanup_downloads "$archive_file"
 
         return 1

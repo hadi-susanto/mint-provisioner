@@ -70,6 +70,24 @@ get_state() {
 }
 
 ##
+# has_state
+#
+# Checks whether an in-memory state exists, without logging.
+#
+# Parameters:
+#   key - State key to check.
+#
+# Return:
+#   0 - The state exists.
+#   1 - The state does not exist.
+#
+has_state() {
+    local key="$1"
+
+    [[ -v "__STATES[$key]" ]]
+}
+
+##
 # set_state
 #
 # Stores a value in the in-memory state collection.

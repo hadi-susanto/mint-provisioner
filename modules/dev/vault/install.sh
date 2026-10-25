@@ -7,6 +7,7 @@ source "$LIB_INSTALLER/path.sh"
 source "$LIB_INSTALLER/registry.sh"
 source "$LIB_INSTALLER/symlink.sh"
 source "$LIB_WORKFLOW/stateful-extractor.sh"
+source "$LIB_WORKFLOW/version-registry.sh"
 
 install_path="$(expand_path "${VAULT_INSTALL_DIR:-$INSTALL_DIR/vault}")" || exit $?
 data_path="$(expand_path "${VAULT_DATA_DIR:-$install_path/data}")" || exit $?
@@ -132,6 +133,7 @@ symlink_binary "$CANONICAL_ID" "$install_path/vault-unseal" "vault-unseal" || ex
 set_registry "INSTALL_PATH" "$install_path" || exit $?
 set_registry "DATA_PATH" "$data_path" || exit $?
 save_registry "$CANONICAL_ID" || exit $?
+record_version_registry "$CANONICAL_ID"
 
 message="Vault was installed.
 

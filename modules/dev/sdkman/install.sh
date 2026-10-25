@@ -83,7 +83,7 @@ __write_sdkman_vars() {
     local sdkman_version
     local sdkman_native_version
 
-    sdkman_version="$(get_state "SDKMAN_VERSION")" || return 1
+    sdkman_version="$(get_state "VERSION")" || return 1
     sdkman_native_version="$(get_state "SDKMAN_NATIVE_VERSION")" || return 1
 
     if ! printf '%s\n' "$sdkman_version" >"$install_path/var/version"; then
@@ -111,11 +111,11 @@ __save_sdkman_registry() {
     local sdkman_native_version
     local sdkman_version
 
-    sdkman_version="$(get_state "SDKMAN_VERSION")" || return 1
+    sdkman_version="$(get_state "VERSION")" || return 1
     sdkman_native_version="$(get_state "SDKMAN_NATIVE_VERSION")" || return 1
 
     set_registry "INSTALL_PATH" "$install_path" || return 10
-    set_registry "SDKMAN_VERSION" "$sdkman_version" || return 10
+    set_registry "VERSION" "$sdkman_version" || return 10
     set_registry "SDKMAN_NATIVE_VERSION" "$sdkman_native_version" || return 10
 
     if ! save_registry "$canonical_id"; then

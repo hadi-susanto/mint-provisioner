@@ -107,9 +107,9 @@ for Git status, runtime information, icons, and many other prompt segments.
 
 **Official website (precompiled binary and archive)**
 
-Downloads the latest Oh My Posh binary from the official CDN using the configured platform suffix, downloads the latest
-themes archive, installs the binary into the configured installation directory, extracts themes, and creates a symbolic
-link in `/usr/local/bin`.
+Resolves the latest Oh My Posh version from the official CDN (`latest.sh`), downloads that release's binary (verified
+against its published `checksums.txt`) and themes archive, installs the binary into the configured installation
+directory, extracts themes, and creates a symbolic link in `/usr/local/bin`.
 
 ### Supported ENV
 

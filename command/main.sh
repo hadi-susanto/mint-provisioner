@@ -85,6 +85,9 @@ main() {
         plan)
             exec bash "$MP_COMMAND/plan.sh" "${args[@]}"
             ;;
+        outdated | update)
+            exec bash "$MP_COMMAND/outdated.sh" "${args[@]}"
+            ;;
         __complete)
             # Hidden: candidates for completion/mp.bash and completion/_mp.
             exec bash "$MP_COMMAND/complete.sh" "${args[@]}"

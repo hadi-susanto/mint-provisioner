@@ -8,6 +8,7 @@ readonly __MINT_PROVISIONER_STATEFUL_DEB_LOADED=1
 
 source "$LIB_INSTALLER/apt.sh"
 source "$LIB_INSTALLER/state.sh"
+source "$LIB_WORKFLOW/version-registry.sh"
 
 ##
 # stateful_deb_install <canonical_id> <state_name>
@@ -57,6 +58,7 @@ stateful_deb_install() {
         return 1
     fi
 
+    record_version_registry "$canonical_id"
     tlog_info "$tag" "Successfully installed from DEB file"
 
     return 0

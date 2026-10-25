@@ -43,7 +43,8 @@ __cleanup_downloads() {
     done
 }
 
-if ! stateful_download "$CANONICAL_ID" "DEB_FILE" "${deb_asset[URL]}" ".deb" 0 "${deb_asset[SHA256]}" ||
+if ! stateful_download "$CANONICAL_ID" "DEB_FILE" "${deb_asset[URL]}" ".deb" 0 \
+    "${deb_asset[SHA256]}" "${deb_asset[VERSION]}" ||
     ! stateful_download "$CANONICAL_ID" "GRAMMARS_FILE" "${grammars_asset[URL]}" ".tar.zst" 0 \
         "${grammars_asset[SHA256]}" ||
     ! stateful_download "$CANONICAL_ID" "QUERIES_FILE" "${queries_asset[URL]}" ".tar.zst" 0 \

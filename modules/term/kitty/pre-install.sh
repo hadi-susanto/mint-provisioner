@@ -11,4 +11,4 @@ install_dir="${KITTY_INSTALL_DIR:-$INSTALL_DIR/adb}"
 valid_install_target "$CANONICAL_ID" "$install_dir" "KITTY_INSTALL_DIR" || exit $?
 declare -A asset=()
 github_find_release_asset "$CANONICAL_ID" "kovidgoyal" "kitty" "$regex" asset || exit $?
-stateful_download "$CANONICAL_ID" "ARCHIVE_FILE" "${asset[URL]}" ".txz" 1 "${asset[SHA256]}"
+stateful_download "$CANONICAL_ID" "ARCHIVE_FILE" "${asset[URL]}" ".txz" 1 "${asset[SHA256]}" "${asset[VERSION]}"

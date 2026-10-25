@@ -4,31 +4,8 @@ set -euo pipefail
 source "$LIB_COMMON/common.sh"
 source "$LIB_INSTALLER/path.sh"
 source "$LIB_WORKFLOW/install-target.sh"
+source "$LIB_WORKFLOW/latest-version.sh"
 source "$LIB_WORKFLOW/stateful-downloader.sh"
-
-# Prints the latest Vault version published by HashiCorp.
-__resolve_version() {
-    local canonical_id="$1"
-    local tag="pre-install:$canonical_id"
-    local response
-    local version
-
-    if ! response="$(curl -fsSL "https://checkpoint-api.hashicorp.com/v1/check/vault")"; then
-        tlog_error "$tag" "Failed to query the latest Vault version"
-
-        return 1
-    fi
-
-    version="$(sed -n 's/.*"current_version" *: *"\([0-9][0-9A-Za-z.+-]*\)".*/\1/p' <<<"$response")"
-
-    if [[ -z "$version" ]]; then
-        tlog_error "$tag" "Failed to determine the latest Vault version"
-
-        return 1
-    fi
-
-    printf '%s\n' "$version"
-}
 
 main() {
     local canonical_id="$1"
@@ -73,7 +50,7 @@ main() {
         return 1
     fi
 
-    version="$(__resolve_version "$canonical_id")" || return $?
+    version="$(module_latest_version "$canonical_id")" || return $?
     tlog_info "$tag" "Latest Vault version: %s" "$version"
 
     base_url="https://releases.hashicorp.com/vault/${version}"
@@ -81,7 +58,7 @@ main() {
         "$base_url/vault_${version}_SHA256SUMS" "vault_${version}_linux_amd64.zip")" || return $?
 
     stateful_download "$canonical_id" "ARCHIVE_FILE" \
-        "$base_url/vault_${version}_linux_amd64.zip" ".zip" 1 "$checksum"
+        "$base_url/vault_${version}_linux_amd64.zip" ".zip" 1 "$checksum" "$version"
 }
 
 main "$CANONICAL_ID" "${VAULT_INSTALL_DIR:-$INSTALL_DIR/vault}" "${VAULT_DATA_DIR:-${VAULT_INSTALL_DIR:-$INSTALL_DIR/vault}/data}"

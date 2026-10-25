@@ -4,6 +4,7 @@ set -euo pipefail
 source "$LIB_INSTALLER/path.sh"
 source "$LIB_INSTALLER/registry.sh"
 source "$LIB_WORKFLOW/stateful-extractor.sh"
+source "$LIB_WORKFLOW/version-registry.sh"
 
 main() {
     local canonical_id="$1"
@@ -39,6 +40,7 @@ main() {
     add_to_path "$canonical_id" "$install_path" || return $?
     set_registry "INSTALL_PATH" "$install_path" || return $?
     save_registry "$canonical_id" || return $?
+    record_version_registry "$canonical_id"
 
     tlog_info "$tag" "Installation completed successfully"
 }

@@ -32,7 +32,8 @@ debugging, application deployment, shell access, file transfer, log collection, 
 
 **Official website (precompiled archive)**
 
-Downloads the latest Android Platform Tools ZIP archive directly from Google's official distribution server.
+Resolves the latest Android Platform Tools version from Google's SDK repository manifest (`latest.sh`) and downloads
+the matching `platform-tools_r<version>-linux.zip` archive from Google's official distribution server.
 
 ### Supported ENV
 
@@ -285,8 +286,8 @@ Installs the following APT packages, adding `openconnect` only when it is not al
 - `libxcb-cursor0`
 - `openconnect` (only when missing)
 
-Then installs `openconnect-saml[gui]` with pipx into a dedicated directory and creates a symbolic link to the
-executable in `/usr/local/bin`. No environment or shell rc files are modified.
+Then installs the latest `openconnect-saml[gui]` release from PyPI, pinned to the version resolved during
+pre-install, with pipx into a dedicated directory and creates a symbolic link to the executable in `/usr/local/bin`. No environment or shell rc files are modified.
 
 ### Supported ENV
 

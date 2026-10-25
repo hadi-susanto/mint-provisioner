@@ -11,4 +11,4 @@ install_dir="${PROCS_INSTALL_DIR:-$INSTALL_DIR/procs}"
 valid_install_target "$CANONICAL_ID" "$install_dir" "PROCS_INSTALL_DIR" || exit $?
 declare -A asset=()
 github_find_release_asset "$CANONICAL_ID" "dalance" "procs" "$regex" asset || exit $?
-stateful_download "$CANONICAL_ID" "ARCHIVE_FILE" "${asset[URL]}" ".zip" 1 "${asset[SHA256]}"
+stateful_download "$CANONICAL_ID" "ARCHIVE_FILE" "${asset[URL]}" ".zip" 1 "${asset[SHA256]}" "${asset[VERSION]}"

@@ -1,17 +1,22 @@
 # ❓ Frequently Asked Questions
 
-## GitHub Module Fails with `403 Rate Limited`
+## GitHub Module or `mp outdated` Fails with `403 Rate Limited`
 
 ### Problem
 
-The GitHub module fails with a cURL error similar to:
+A GitHub module installation fails with a cURL error similar to:
 
 ```text
 403 Rate Limited
 ```
 
+Or `mp outdated` / `mp update` reports `version query failed` for modules
+with `UPDATE_MODE="github"`.
+
 This happens when GitHub's API rate limit for unauthenticated requests
-has been exceeded.
+(60 per hour) has been exceeded. `mp outdated` makes one GitHub API
+request for every installed GitHub module, so a few runs can use up the
+limit quickly.
 
 ### Solution
 
@@ -32,12 +37,14 @@ Then run the Mint Provisioner command again:
 
 ```bash
 mp install ...
+mp outdated
 ```
 
 Alternatively, provide the token for a single invocation:
 
 ```bash
 GITHUB_TOKEN="github_pat_..." mp install ...
+GITHUB_TOKEN="github_pat_..." mp outdated
 ```
 
 > **Note:** Mint Provisioner only requires the token for GitHub API

@@ -16,6 +16,7 @@ Commands:
   list            List available modules or categories.
   install         Install one or more modules.
   plan            Preview what install would do, without changing anything.
+  outdated        List installed modules and their version status (alias: update).
   remove          Remove one or more modules (alias: uninstall).
   purge           Remove modules and their well-known configuration.
 
@@ -134,6 +135,48 @@ Description:
 EOF
 }
 
+__outdated_help() {
+    cat <<'EOF'
+Mint Provisioner
+----------------
+
+Usage:
+  mp outdated [OPTIONS] [MODULE...]
+  mp update [OPTIONS] [MODULE...]
+
+Options:
+  -h, --help  Show this help.
+
+Arguments:
+  MODULE  A canonical ID, unique module ID, or registered alias. When omitted,
+          every installed module is listed.
+
+Description:
+  Lists installed modules with their installed and latest versions. Rows with
+  an available update are blue; rows whose versions cannot be resolved, such
+  as modules without UPDATE_MODE metadata, are yellow. Selected modules that
+  are not installed are listed as not installed. Nothing is upgraded.
+
+  UPDATE_MODE=apt reads versions from dpkg and the APT cache. When apt-mode
+  modules are checked and the cache is older than 7 days, mp outdated offers
+  to run sudo apt-get update first if a terminal is attached; otherwise it
+  only warns.
+
+  UPDATE_MODE=github compares the release recorded at install time with the
+  latest GitHub release; modules installed before versions were recorded are
+  reported as having an update available. Unauthenticated GitHub API calls
+  are limited to 60 per hour; set GITHUB_TOKEN to raise the limit.
+
+  UPDATE_MODE=external compares the recorded version with the version printed
+  by the module's latest.sh, which queries the vendor. UPDATE_MODE=git
+  compares the cloned commit with the latest commit of its branch, and
+  UPDATE_MODE=none marks modules whose version is not tracked.
+
+  Exits 0 when versions were checked, 1 when detection or a version query
+  fails, and 2 for usage errors or unknown modules.
+EOF
+}
+
 __root_warning() {
     printf '\n%bWARNING: Do not run mp remove or mp purge with sudo or as root.%b\n' \
         "$COLOR_RED" "$COLOR_RESET"
@@ -210,6 +253,9 @@ main() {
             ;;
         plan)
             __plan_help
+            ;;
+        outdated | update)
+            __outdated_help
             ;;
         list)
             __list_help

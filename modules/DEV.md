@@ -29,7 +29,8 @@ testing, packaging, and plugin execution using the standard Maven project struct
 
 **Official website (precompiled archive)**
 
-Automatically downloads the latest binary TAR.GZ release from the Apache Maven project.
+Resolves the latest final release from the Maven Central metadata (`latest.sh`) and downloads its binary TAR.GZ
+archive from Maven Central.
 
 ### Supported ENV
 
@@ -303,8 +304,9 @@ Postman is a desktop API platform for designing, sending, testing, and documenti
 
 **Official Linux archive**
 
-Downloads the latest Linux x64 archive from Postman, extracts it into the configured installation directory, creates
-the global `postman` command, and installs a system-wide desktop entry using the icon included in the archive.
+Resolves the latest version from Postman's version API (`latest.sh`), downloads that version's Linux x64 archive,
+extracts it into the configured installation directory, creates the global `postman` command, and installs a
+system-wide desktop entry using the icon included in the archive.
 
 ### Supported ENV
 
@@ -339,7 +341,7 @@ between multiple versions of Java, Maven, Gradle, Kotlin, Scala, Groovy, Spring 
 
 **Official installation script**
 
-Reads the official SDKMAN! bootstrap script to discover the current component versions, then downloads and installs the
+Queries the SDKMAN! broker API for the current stable script and native versions, then downloads and installs the
 standard and native Linux x86_64 (`linuxx64`) archives in a non-interactive manner. Other SDKMAN! platforms are not
 currently supported by this module. The bundled SDKMAN! configuration is installed into
 `${SDKMAN_INSTALL_DIR}/etc/config`.

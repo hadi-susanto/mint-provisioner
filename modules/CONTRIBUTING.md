@@ -50,9 +50,17 @@ category directory when several modules need them.
    Every comma-separated command must be non-empty and resolve on `PATH`. Omit `CLI` when the module ID basename is
    sufficient.
 
-4. Implement the required `install.sh` with a shebang and `set -euo pipefail` immediately after it.
-5. Add optional lifecycle scripts only when needed:
+4. Set `UPDATE_MODE` so `mp outdated` can report the module's versions (see "Version Tracking" below):
+
+   ```ini
+   UPDATE_MODE="github"
+   UPDATE_REPOSITORY="example/example-app"
+   ```
+
+5. Implement the required `install.sh` with a shebang and `set -euo pipefail` immediately after it.
+6. Add optional lifecycle scripts only when needed:
     - `installed.sh` for an installed-state check more accurate than command detection.
+    - `latest.sh` to print the latest available version; required by `UPDATE_MODE="external"`.
     - `interactive.sh` for choices or validation that must complete before any selected module is installed.
     - `non-interactive.sh` for the no-prompt equivalent of `interactive.sh`. It is valid only when `interactive.sh`
       exists; without it, the module does not support non-interactive installation.
@@ -62,8 +70,8 @@ category directory when several modules need them.
     - `remove.sh` to support `mp remove`, `mp uninstall`, and `mp purge`. Undo exactly what the install phases created
       with the helpers in `lib/remover/`; user configuration and data are removed only through the helpers that honor
       `PURGE`. Every module in the catalog ships one, so new modules should too.
-6. Add `helper.sh` and `resources/` when the module needs local reusable functions or payloads.
-7. Document the module in its category page with its installation method, supported environment variables, relevant
+7. Add `helper.sh` and `resources/` when the module needs local reusable functions or payloads.
+8. Document the module in its category page with its installation method, supported environment variables, relevant
    registry behavior, integrations, and official project link.
 
 ## Installed-State Detection
@@ -77,6 +85,24 @@ The framework checks, in order:
 Keep `installed.sh` free of side effects. Return `0` when installed, `1` when not installed, and another non-zero status
 when detection itself fails. Use this script when validating package variants, files, registry data, or several related
 artifacts.
+
+## Version Tracking
+
+Choose the `UPDATE_MODE` that matches how the module installs:
+
+- `apt`: packages from APT. Set `UPDATE_PACKAGE` to the main package, or to comma-separated candidates without spaces
+  when the package depends on an installation choice (the first installed one is checked).
+- `github`: release assets found with `github_find_release_asset`. Set `UPDATE_REPOSITORY="owner/repo"` and pass
+  `"${asset[VERSION]}"` as the last argument of `stateful_download` for the main download.
+- `external`: vendor downloads. Add a read-only `latest.sh` that prints the latest version, resolve the version in
+  `pre-install.sh` with `module_latest_version` (`lib/workflow/latest-version.sh`), build the download URL from it,
+  and pass it to `stateful_download`.
+- `git`: git clones. Save the clone directory as registry `INSTALL_PATH` (`git_clone_install` does this).
+- `none`: modules without one meaningful version.
+
+For `github` and `external`, `stateful_deb_install`, `stateful_extract_install`, and `stateful_binary_install` record
+the version as registry `VERSION`. A custom `install.sh` must call `record_version_registry "$CANONICAL_ID"`
+(`lib/workflow/version-registry.sh`). The full rules are in [AGENTS.md](AGENTS.md).
 
 ## Interactive and Non-Interactive Behavior
 
