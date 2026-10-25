@@ -166,7 +166,9 @@ Nothing is upgraded. Modules with `UPDATE_MODE="apt"` read versions from dpkg an
 checked, the cache is older than 7 days, and a terminal is attached, `mp outdated` offers to run `sudo apt-get update`
 first. Modules with `UPDATE_MODE="github"` compare the release recorded at install time with the latest GitHub
 release; installs that predate version recording are reported as having an update available. Unauthenticated GitHub
-API calls are limited to 60 per hour, so set `GITHUB_TOKEN` when checking many modules. Exits `1` when detection or a
+API calls are limited to 60 per hour, so set `GITHUB_TOKEN` when checking many modules. Modules with
+`UPDATE_MODE="external"` compare the recorded version with the vendor's latest version printed by the module's
+`latest.sh`. Exits `1` when detection or a
 version query fails.
 
 ### Remove Modules

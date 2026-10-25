@@ -7,6 +7,7 @@ source "$LIB_INSTALLER/path.sh"
 source "$LIB_INSTALLER/registry.sh"
 source "$LIB_INSTALLER/state.sh"
 source "$LIB_INSTALLER/symlink.sh"
+source "$LIB_WORKFLOW/version-registry.sh"
 
 __install_binary() {
     local canonical_id="$1"
@@ -58,6 +59,7 @@ __install_themes "$CANONICAL_ID" "$install_path/themes" || exit $?
 
 set_registry "INSTALL_PATH" "$install_path" || exit $?
 save_registry "$CANONICAL_ID" || exit $?
+record_version_registry "$CANONICAL_ID"
 
 msg="Oh My Posh requires a Nerd Font to be installed. Ensure you
 have a Nerd Font installed.

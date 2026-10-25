@@ -2,6 +2,7 @@
 set -euo pipefail
 
 source "$LIB_WORKFLOW/install-target.sh"
+source "$LIB_WORKFLOW/latest-version.sh"
 source "$LIB_WORKFLOW/stateful-downloader.sh"
 
 declare -r SDKMAN_API="https://api.sdkman.io/2"
@@ -38,7 +39,7 @@ __download_artifacts() {
     url="${SDKMAN_API}/candidates/all"
     stateful_download "$canonical_id" "CANDIDATES_FILE" "$url" ".txt" 0 || return $?
 
-    save_states "$canonical_id" || $return $?
+    save_states "$canonical_id" || return $?
     tlog_info "pre-install:$canonical_id" "SDKMAN! states saved"
 }
 
@@ -64,16 +65,18 @@ main() {
     local sdkman_version
     local sdkman_native_version
     local status
+    local tag="pre-install:$canonical_id"
 
     valid_install_target "$canonical_id" "$raw_install_path" "SDKMAN_INSTALL_DIR" || return $?
-    sdkman_version="$(__resolve_sdkman_latest_version "$canonical_id" "script")" || return $?
-    if ! set_state "SDKMAN_VERSION" "$sdkman_version"; then
-        tlog_error "$tag" "Failed to save state: SDKMAN_VERSION"
+    sdkman_version="$(module_latest_version "$canonical_id")" || return $?
+    tlog_info "$tag" "Resolved SDKMAN! script version: %s" "$sdkman_version"
+    if ! set_state "VERSION" "$sdkman_version"; then
+        tlog_error "$tag" "Failed to save state: VERSION"
 
         return 1
     fi
     sdkman_native_version="$(__resolve_sdkman_latest_version "$canonical_id" "native")" || return $?
-     if ! set_state "SDKMAN_NATIVE_VERSION" "$sdkman_native_version"; then
+    if ! set_state "SDKMAN_NATIVE_VERSION" "$sdkman_native_version"; then
         tlog_error "$tag" "Failed to save state: SDKMAN_NATIVE_VERSION"
 
         return 1

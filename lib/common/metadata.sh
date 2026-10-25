@@ -173,7 +173,7 @@ parse_module_metadata() {
     esac
 
     case "${metadata_ref[UPDATE_MODE]:-}" in
-        "")
+        "" | external)
             ;;
         apt)
             __validate_required_metadata \

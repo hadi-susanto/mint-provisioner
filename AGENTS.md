@@ -140,6 +140,45 @@ plan_install_modules() {
 }
 ```
 
+### Nameref Shadowing
+
+A nameref resolves the caller's variable name inside the called function's scope. When that function (or anything it
+calls) declares a local with the same name, the nameref binds to the local instead of the caller's array. An
+associative array then silently becomes a string or an indexed array, and a key such as `[DOWNLOAD_URL]` is evaluated
+arithmetically, failing under `set -u` with `DOWNLOAD_URL: unbound variable`.
+
+* Name nameref variables with a `_ref` suffix (`result_ref`, `versions_ref`) and never reuse that name for anything else.
+* Do not declare locals with generic names that callers commonly use for output arrays (`metadata`, `result`,
+  `release`, `asset`, `versions`, `notes`, `options`, `args`) in a function that receives a nameref. Use specific
+  names such as `metadata_json` or `row_notes`.
+* Check every function between the caller and the function that dereferences the nameref; a nested helper that
+  receives the same name can be shadowed by a local of an intermediate function.
+* Test functions that fill a caller's array with the variable name real callers use, not only a convenient test name.
+
+Prefer:
+
+```bash
+jetbrains_latest_release() {
+    local -n release_ref="$3"
+    local metadata_json
+
+    metadata_json="$(curl -fsSL "$url")"
+    ...
+}
+```
+
+Instead of:
+
+```bash
+jetbrains_latest_release() {
+    local -n release_ref="$3"
+    local metadata  # Shadows a caller that passes "metadata".
+
+    metadata="$(curl -fsSL "$url")"
+    ...
+}
+```
+
 ## Return and Exit Statements
 
 Place a blank line before standalone `return` and `exit` statements when they follow another statement in the same block.

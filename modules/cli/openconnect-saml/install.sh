@@ -4,7 +4,9 @@ set -euo pipefail
 source "${LIB_INSTALLER}/apt.sh"
 source "${LIB_INSTALLER}/path.sh"
 source "${LIB_INSTALLER}/registry.sh"
+source "${LIB_INSTALLER}/state.sh"
 source "${LIB_INSTALLER}/symlink.sh"
+source "${LIB_WORKFLOW}/version-registry.sh"
 
 __ensure_dependencies() {
     local tag="dependency:$CANONICAL_ID"
@@ -34,6 +36,7 @@ __pipx_binary() {
 
 __install_with_pipx() {
     local install_path="$1"
+    local version="$2"
     local tag="pipx:$CANONICAL_ID"
 
     if ! mkdir -p "$install_path"; then
@@ -42,8 +45,8 @@ __install_with_pipx() {
         return 1
     fi
 
-    tlog_info "$tag" "Installing openconnect-saml with pipx into %s" "$install_path"
-    if ! PIPX_HOME="$install_path" pipx install --force "openconnect-saml[gui]"; then
+    tlog_info "$tag" "Installing openconnect-saml %s with pipx into %s" "$version" "$install_path"
+    if ! PIPX_HOME="$install_path" pipx install --force "openconnect-saml[gui]==$version"; then
         tlog_error "$tag" "pipx failed to install openconnect-saml"
 
         return 1
@@ -59,13 +62,17 @@ __install_with_pipx() {
 main() {
     local raw_install_path="$1"
     local install_path
+    local version
 
     install_path="$(expand_path "$raw_install_path")" || return $?
+    load_states "$CANONICAL_ID" || return $?
+    version="$(get_state "VERSION")" || return $?
     __ensure_dependencies || return $?
-    __install_with_pipx "$install_path" || return $?
+    __install_with_pipx "$install_path" "$version" || return $?
     symlink_binary "$CANONICAL_ID" "$(__pipx_binary "$install_path")" || return $?
     set_registry "INSTALL_PATH" "$install_path" || return $?
-    save_registry "$CANONICAL_ID"
+    save_registry "$CANONICAL_ID" || return $?
+    record_version_registry "$CANONICAL_ID"
 }
 
 main "${PIPX_INSTALL_DIR:-$INSTALL_DIR/pipx}"

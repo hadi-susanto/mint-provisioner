@@ -8,6 +8,7 @@
   modules/<category-name>/<module-name>/
   ├── metadata.conf      # Mandatory: NAME, DESCRIPTION, and SOURCE
   ├── installed.sh       # Optional: Detect whether the software is installed
+  ├── latest.sh          # Optional: Print the latest available version; required by UPDATE_MODE="external"
   ├── interactive.sh     # Optional: Collect and validate installation choices
   ├── non-interactive.sh # Optional: No-prompt alternative; requires interactive.sh
   ├── pre-install.sh     # Optional: Configure prerequisites, repositories, or keys
@@ -56,6 +57,11 @@ When creating or updating `metadata.conf`, follow these rules:
     A custom `install.sh` must call `record_version_registry "$CANONICAL_ID"` from
     `$LIB_WORKFLOW/version-registry.sh` after a successful install. A module without a recorded `VERSION` is
     reported as having an update available.
+  - `external`: Compares the registry `VERSION` with the version printed by the module's `latest.sh` (see
+    "Latest Version Detection"). `pre-install.sh` resolves the version with `module_latest_version` from
+    `$LIB_WORKFLOW/latest-version.sh`, builds the download URL from it, and passes it as the `version` argument of
+    `stateful_download` (or stores it with `set_state "VERSION"` when it downloads by other means). Recording in
+    the registry works as for `github`.
   Modules without `UPDATE_MODE` are listed by `mp outdated` with unknown versions.
 - In `modules/README.md` and category documentation, display source names in human-readable form: `Native`, `PPA`, `APT`, `GitHub`, `SourceForge`, and `External`.
 
@@ -77,6 +83,32 @@ When creating or updating `metadata.conf`, follow these rules:
 - Any other value when installation detection encounters an error.
 
 `installed.sh` must remain read-only and must not modify the system.
+
+## Latest Version Detection
+
+`latest.sh` prints the latest available version for `UPDATE_MODE="external"`:
+
+- It must use `set -euo pipefail` and `exit` instead of `return` outside functions.
+- It prints only the version, as one line without whitespace, to stdout and exits `0`.
+- On failure it logs an error to stderr and exits non-zero. It stays silent on success so the `mp outdated`
+  progress line is not broken.
+- It must be read-only: no prompts, no `sudo`, and no state or registry writes.
+- When parsing JSON (including shared resolvers it sources), prefer `jq` when it is available
+  (`command -v jq`) and keep a `sed`/`grep` fallback for systems without it, unless the module already requires
+  `jq` (for example the JetBrains modules).
+- When the version lookup is more than a few lines, or `pre-install.sh` needs more than the version from the same
+  query (URL, checksum), put it in `lib/workflow/<category>/<module>/resolver.sh` and source it from both scripts
+  (for example `lib/workflow/misc/junie/resolver.sh` and `lib/workflow/jetbrains-release.sh`).
+- `pre-install.sh` reuses it so the downloaded version and the reported latest version come from one source:
+
+```bash
+source "$LIB_WORKFLOW/latest-version.sh"
+
+version="$(module_latest_version "$CANONICAL_ID")" || exit $?
+url="https://example.com/releases/${version}/tool-${version}-linux-x64.tar.gz"
+
+stateful_download "$CANONICAL_ID" "ARCHIVE_FILE" "$url" ".tar.gz" 1 "$checksum" "$version"
+```
 
 ## Canonical ID and Logging
 

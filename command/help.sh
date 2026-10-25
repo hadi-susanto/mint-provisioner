@@ -167,6 +167,9 @@ Description:
   reported as having an update available. Unauthenticated GitHub API calls
   are limited to 60 per hour; set GITHUB_TOKEN to raise the limit.
 
+  UPDATE_MODE=external compares the recorded version with the version printed
+  by the module's latest.sh, which queries the vendor.
+
   Exits 0 when versions were checked, 1 when detection or a version query
   fails, and 2 for usage errors or unknown modules.
 EOF

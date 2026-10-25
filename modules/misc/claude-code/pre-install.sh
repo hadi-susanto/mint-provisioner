@@ -5,6 +5,7 @@ source "$LIB_INSTALLER/downloader.sh"
 source "$LIB_INSTALLER/extractor.sh"
 source "$LIB_INSTALLER/state.sh"
 source "$LIB_WORKFLOW/install-target.sh"
+source "$LIB_WORKFLOW/latest-version.sh"
 
 declare -r CLAUDE_DOWNLOAD_BASE_URL="https://downloads.claude.ai/claude-code-releases"
 
@@ -35,23 +36,6 @@ __resolve_claude_platform() {
     fi
 
     printf '%s\n' "$platform"
-}
-
-__resolve_claude_version() {
-    local canonical_id="$1"
-    local tag="version:$canonical_id"
-    local version
-
-    tlog_info "$tag" "Resolving latest Claude Code version"
-    version="$(curl -fsSL "$CLAUDE_DOWNLOAD_BASE_URL/latest")" || return $?
-
-    if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
-        tlog_error "$tag" "Received an unexpected version value: %s" "${version:-<empty>}"
-
-        return 1
-    fi
-
-    printf '%s\n' "$version"
 }
 
 __resolve_claude_checksum() {
@@ -168,13 +152,13 @@ main() {
     valid_install_target "$canonical_id" "$raw_install_path" "CLAUDE_INSTALL_DIR" || return $?
 
     platform="$(__resolve_claude_platform "$canonical_id")" || return $?
-    version="$(__resolve_claude_version "$canonical_id")" || return $?
+    version="$(module_latest_version "$canonical_id")" || return $?
     checksum="$(__resolve_claude_checksum "$canonical_id" "$version" "$platform")" || return $?
 
     tlog_info "pre-install:$canonical_id" "Downloading Claude Code %s (%s)" "$version" "$platform"
     __download_claude_binary "$canonical_id" "$version" "$platform" "$checksum" binary_file || return $?
 
-    if ! set_state "BINARY_FILE" "$binary_file"; then
+    if ! set_state "BINARY_FILE" "$binary_file" || ! set_state "VERSION" "$version"; then
         rm -f -- "$binary_file"
 
         return 1
