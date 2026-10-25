@@ -32,7 +32,8 @@ debugging, application deployment, shell access, file transfer, log collection, 
 
 **Official website (precompiled archive)**
 
-Downloads the latest Android Platform Tools ZIP archive directly from Google's official distribution server.
+Resolves the latest Android Platform Tools version from Google's SDK repository manifest (`latest.sh`) and downloads
+the matching `platform-tools_r<version>-linux.zip` archive from Google's official distribution server.
 
 ### Supported ENV
 

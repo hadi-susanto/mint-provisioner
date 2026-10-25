@@ -86,7 +86,8 @@ radio, metadata editing, gapless playback, equalization, and an extensible plugi
 
 **Official website (precompiled archive)**
 
-Locates and downloads the latest Linux x86_64 TAR.BZ2 release from the official DeaDBeeF download page. The module
+Resolves the latest Linux x86_64 TAR.BZ2 release from the official DeaDBeeF download page (`latest.sh`) and downloads
+it from the project's SourceForge `Builds` directory. The module
 extracts the standalone application into the configured installation directory and creates a symbolic link for the main
 `deadbeef` executable.
 

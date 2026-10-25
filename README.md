@@ -225,6 +225,7 @@ mint-provisioner/
 │   ├── list.sh                         # Category and module catalog listings
 │   ├── install.sh                      # Module installation command
 │   ├── plan.sh                         # Read-only installation preview
+│   ├── outdated.sh                     # Installed vs latest versions (outdated, update)
 │   └── remove.sh                       # Module removal command (remove, uninstall, purge)
 ├── lib/                                # Reusable framework libraries
 │   ├── common/
@@ -254,11 +255,18 @@ mint-provisioner/
 │   │   ├── registry.sh                 # Installed-module registry
 │   │   ├── state.sh                    # Persistent module state
 │   │   └── ...                         # Download, path, prompt, and system helpers
+│   ├── updater/                        # Version lookups for mp outdated
+│   │   ├── versioning.sh               # Dispatch on UPDATE_MODE (apt, github, external, git, none)
+│   │   ├── apt-versioning.sh           # dpkg installed version, APT candidate, cache age
+│   │   ├── recorded-versioning.sh      # Registry VERSION recorded at install time
+│   │   └── git-versioning.sh           # Cloned commit vs remote branch commit
 │   └── workflow/                       # Reusable module installation workflows
 │       ├── install-target.sh           # Resolve and validate installation destinations
 │       ├── stateful-downloader.sh      # Download and persist temporary artifacts
 │       ├── stateful-*-install.sh       # Shared APT, Debian-package, and archive installation steps
-│       ├── jetbrains-*.sh              # Shared JetBrains IDE workflow phases
+│       ├── latest-version.sh           # Run a module's latest.sh (pre-install and mp outdated)
+│       ├── version-registry.sh         # Record the installed VERSION in the registry
+│       ├── jetbrains-*.sh              # Shared JetBrains IDE workflow phases and release lookup
 │       ├── state-cleaner.sh            # Clean temporary module state
 │       └── <category>/<module>/        # Product-specific resolvers and installers
 ├── modules/                            # Module catalog and lifecycle scripts
@@ -266,7 +274,7 @@ mint-provisioner/
 │   ├── CONTRIBUTING.md                 # Category and module contribution guide
 │   ├── CLI.md, DEV.md, GUI.md, ...     # Category documentation
 │   └── <category>/<module>/            # Self-contained module directories
-├── AGENTS.md, FAQ.md                   # Contributor guidelines and troubleshooting
+├── AGENTS.md, FAQ.md                   # Contributor/agent guidelines and troubleshooting
 └── README.md
 ```
 

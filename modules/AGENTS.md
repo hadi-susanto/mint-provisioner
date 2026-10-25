@@ -389,10 +389,12 @@ These rules apply to modules that download `.deb` packages or archives such as
 - Download installation assets during `pre-install.sh`.
 - Prefer `stateful_download` (`lib/workflow/stateful-downloader.sh`). It creates the temporary file, downloads it,
   verifies its SHA-256 checksum, stores the path with `set_state`, and saves the state:
-  `stateful_download <canonical_id> <state_name> <url> <suffix> [auto_save] [sha256]`.
+  `stateful_download <canonical_id> <state_name> <url> <suffix> [auto_save] [sha256] [version]`.
+- Pass the artifact version as `version` for the main download so the install workflows record it as registry
+  `VERSION` for `mp outdated` (see `UPDATE_MODE` under Metadata). Pass `""` for `sha256` when no checksum exists.
 - Verify every download when a checksum is available:
   - For GitHub releases, use `github_find_release_asset` (`lib/installer/github.sh`). It fills `[URL]` and
-    `[SHA256]` (GitHub's `sha256:` asset digest) in an associative array. Ensure the regular expression identifies
+    `[SHA256]` (GitHub's `sha256:` asset digest) and `[VERSION]` (the release tag) in an associative array. Ensure the regular expression identifies
     exactly one release asset. Use `github_find_release` (URL only) only when the asset is not downloaded, such as a
     checksum file.
   - For external vendor sources, pass the vendor's published SHA-256 checksum when one exists. For a
@@ -413,7 +415,7 @@ regex="tool-.*-x86_64-unknown-linux-gnu[.]tar[.]gz$"
 
 declare -A asset=()
 github_find_release_asset "$CANONICAL_ID" "$OWNER" "$REPO" "$regex" asset || exit $?
-stateful_download "$CANONICAL_ID" "ARCHIVE_FILE" "${asset[URL]}" ".tar.gz" 1 "${asset[SHA256]}"
+stateful_download "$CANONICAL_ID" "ARCHIVE_FILE" "${asset[URL]}" ".tar.gz" 1 "${asset[SHA256]}" "${asset[VERSION]}"
 ```
 
 ### Installation Phase (`install.sh`)
@@ -424,6 +426,9 @@ stateful_download "$CANONICAL_ID" "ARCHIVE_FILE" "${asset[URL]}" ".tar.gz" 1 "${
 - Verify that the downloaded file exists before using it.
 - Install or extract the asset into its final destination.
 - Perform required symbolic-link or PATH registration in this phase.
+- Prefer `stateful_deb_install`, `stateful_extract_install`, or `stateful_binary_install`; they also record the
+  `VERSION` state in the registry. A custom installation must call `record_version_registry "$CANONICAL_ID"`
+  (`lib/workflow/version-registry.sh`) after it succeeds.
 
 For `.deb` packages:
 
