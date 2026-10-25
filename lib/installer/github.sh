@@ -8,6 +8,39 @@ readonly __MINT_PROVISIONER_GITHUB_LOADED=1
 
 source "$LIB_COMMON/common.sh"
 
+__github_fetch_latest_release() {
+    local tag="$1"
+    local owner="$2"
+    local repository="$3"
+    local api_url="https://api.github.com/repos/$owner/$repository/releases/latest"
+    local -a curl_args=(-fsSL)
+
+    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+        curl_args+=(-H "Authorization: Bearer $GITHUB_TOKEN")
+    fi
+
+    if ! curl "${curl_args[@]}" "$api_url"; then
+        tlog_error "$tag" "Failed to fetch the GitHub release API"
+
+        return 1
+    fi
+}
+
+__github_release_tag() {
+    local body="$1"
+    local tag_name
+
+    if command -v jq >/dev/null 2>&1; then
+        tag_name="$(printf '%s\n' "$body" | jq -r '.tag_name // ""')" || return 1
+    else
+        tag_name="$(printf '%s\n' "$body" | grep -o -m 1 '"tag_name": *"[^"]*"' || true)"
+        tag_name="${tag_name%\"}"
+        tag_name="${tag_name##*\"}"
+    fi
+
+    printf '%s\n' "$tag_name"
+}
+
 ##
 # github_find_release_asset
 #
@@ -19,9 +52,10 @@ source "$LIB_COMMON/common.sh"
 #   owner - GitHub repository owner.
 #   repository - GitHub repository name.
 #   pattern - Extended regular expression matched against asset URLs.
-#   result_name - Name of the associative array that receives [URL] and
-#       [SHA256]. SHA256 is "sha256:<hex>", or empty when GitHub has no digest
-#       for the asset or jq is unavailable.
+#   result_name - Name of the associative array that receives [URL],
+#       [SHA256], and [VERSION]. SHA256 is "sha256:<hex>", or empty when GitHub
+#       has no digest for the asset or jq is unavailable. VERSION is the
+#       release tag, or empty when it cannot be read.
 #
 # Return:
 #   1 - The GitHub release API request failed or could not be parsed.
@@ -35,7 +69,6 @@ github_find_release_asset() {
     local -n asset_ref="$5"
     local tag="github:$canonical_id"
 
-    local api_url="https://api.github.com/repos/$owner/$repository/releases/latest"
     local body
     local assets
     local url
@@ -45,19 +78,8 @@ github_find_release_asset() {
 
     asset_ref=()
 
-    tlog_info "$tag" "Finding latest GitHub release: %s" "$api_url"
-
-    local -a curl_args=(-fsSL)
-
-    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
-        curl_args+=(-H "Authorization: Bearer $GITHUB_TOKEN")
-    fi
-
-    if ! body="$(curl "${curl_args[@]}" "$api_url")"; then
-        tlog_error "$tag" "Failed to fetch the GitHub release API"
-
-        return 1
-    fi
+    tlog_info "$tag" "Finding latest GitHub release: %s/%s" "$owner" "$repository"
+    body="$(__github_fetch_latest_release "$tag" "$owner" "$repository")" || return 1
 
     # Each line is "<url><TAB><digest>"; the digest is empty without jq.
     if command -v jq >/dev/null 2>&1; then
@@ -94,6 +116,42 @@ github_find_release_asset() {
 
     asset_ref[URL]="${matched_urls[0]}"
     asset_ref[SHA256]="${matched_digests[0]}"
+    asset_ref[VERSION]="$(__github_release_tag "$body" || true)"
+}
+
+##
+# github_latest_release_version
+#
+# Reads the tag of the latest GitHub release.
+#
+# Parameters:
+#   canonical_id - Canonical module ID used for logging.
+#   owner - GitHub repository owner.
+#   repository - GitHub repository name.
+#
+# Output:
+#   Prints the release tag to standard output.
+#
+# Return:
+#   1 - The GitHub release API request failed or has no tag.
+#
+github_latest_release_version() {
+    local canonical_id="$1"
+    local owner="$2"
+    local repository="$3"
+    local tag="github:$canonical_id"
+    local body
+    local tag_name
+
+    body="$(__github_fetch_latest_release "$tag" "$owner" "$repository")" || return 1
+
+    if ! tag_name="$(__github_release_tag "$body")" || [[ -z "$tag_name" ]]; then
+        tlog_error "$tag" "Failed to read the GitHub release tag"
+
+        return 1
+    fi
+
+    printf '%s\n' "$tag_name"
 }
 
 ##

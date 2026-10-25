@@ -6,6 +6,7 @@ source "$LIB_INSTALLER/path.sh"
 source "$LIB_INSTALLER/registry.sh"
 source "$LIB_INSTALLER/state.sh"
 source "$LIB_INSTALLER/symlink.sh"
+source "$LIB_WORKFLOW/version-registry.sh"
 
 __install_binary() {
     local install_path="$1"
@@ -98,6 +99,7 @@ main() {
     __write_executable_wrapper "$install_path"
 
     save_registry "$CANONICAL_ID" || return $?
+    record_version_registry "$CANONICAL_ID"
 
     if command -v java >/dev/null 2>&1; then
         return 0

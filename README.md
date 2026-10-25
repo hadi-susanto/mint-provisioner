@@ -164,8 +164,10 @@ Lists installed modules (or only the selected ones) with their installed version
 an update available are blue; rows that cannot be checked, such as modules without `UPDATE_MODE` metadata, are yellow.
 Nothing is upgraded. Modules with `UPDATE_MODE="apt"` read versions from dpkg and the APT cache; when apt-mode modules are
 checked, the cache is older than 7 days, and a terminal is attached, `mp outdated` offers to run `sudo apt-get update`
-first. Exits `1` when
-detection or a version query fails.
+first. Modules with `UPDATE_MODE="github"` compare the release recorded at install time with the latest GitHub
+release; installs that predate version recording are reported as having an update available. Unauthenticated GitHub
+API calls are limited to 60 per hour, so set `GITHUB_TOKEN` when checking many modules. Exits `1` when detection or a
+version query fails.
 
 ### Remove Modules
 

@@ -179,6 +179,17 @@ parse_module_metadata() {
             __validate_required_metadata \
                 "$metadata_name" "$directory/metadata.conf" UPDATE_PACKAGE || return $?
             ;;
+        github)
+            __validate_required_metadata \
+                "$metadata_name" "$directory/metadata.conf" UPDATE_REPOSITORY || return $?
+
+            if [[ ! "${metadata_ref[UPDATE_REPOSITORY]}" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+                tlog_error "metadata" "Invalid module metadata UPDATE_REPOSITORY in %s: %s" \
+                    "$directory/metadata.conf" "${metadata_ref[UPDATE_REPOSITORY]}"
+
+                return 1
+            fi
+            ;;
         *)
             tlog_error "metadata" "Invalid module metadata UPDATE_MODE in %s: %s" \
                 "$directory/metadata.conf" "${metadata_ref[UPDATE_MODE]}"

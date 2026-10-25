@@ -22,6 +22,8 @@ source "$LIB_INSTALLER/state.sh"
 #   auto_save - 1 to save states after setting the state (default), 0 to skip.
 #   sha256 - Optional expected SHA-256 checksum checked with verify_sha256.
 #       When empty, a warning says the download was not verified.
+#   version - Optional artifact version stored in the VERSION state, which
+#       install workflows record in the module registry.
 #
 # Return:
 #   1 - The download, checksum verification, or state update failed.
@@ -33,6 +35,7 @@ stateful_download() {
     local suffix="$4"
     local auto_save="${5:-1}"
     local sha256="${6:-}"
+    local version="${7:-}"
     local tag="downloader:$canonical_id"
     local temp_file
 
@@ -57,6 +60,13 @@ stateful_download() {
     
     if ! set_state "$state_name" "$temp_file"; then
         tlog_error "$tag" "Failed to set $state_name state"
+        rm -f -- "$temp_file" || true
+
+        return 1
+    fi
+
+    if [[ -n "$version" ]] && ! set_state "VERSION" "$version"; then
+        tlog_error "$tag" "Failed to set VERSION state"
         rm -f -- "$temp_file" || true
 
         return 1

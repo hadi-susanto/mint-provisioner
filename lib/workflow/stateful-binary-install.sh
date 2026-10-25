@@ -10,6 +10,7 @@ source "$LIB_INSTALLER/path.sh"
 source "$LIB_INSTALLER/registry.sh"
 source "$LIB_INSTALLER/state.sh"
 source "$LIB_INSTALLER/symlink.sh"
+source "$LIB_WORKFLOW/version-registry.sh"
 
 ##
 # stateful_binary_install <canonical_id> <state_name> <install_dir> <binary> [<link_name>]
@@ -52,6 +53,7 @@ stateful_binary_install() {
 
     set_registry "INSTALL_PATH" "$install_path" || return $?
     save_registry "$canonical_id" || return $?
+    record_version_registry "$canonical_id"
 
     tlog_info "$tag" "Installation completed successfully"
 }

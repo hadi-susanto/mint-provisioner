@@ -81,4 +81,5 @@ if ! rm -rf -- "$extract_dir"; then
 fi
 
 set_state "DEB_FILE" "$state_file" || exit $?
+set_state "VERSION" "${asset[VERSION]}" || exit $?
 save_states "$CANONICAL_ID"

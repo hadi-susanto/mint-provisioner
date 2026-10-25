@@ -8,6 +8,7 @@ readonly __MINT_PROVISIONER_VERSIONING_LOADED=1
 
 source "$LIB_COMMON/common.sh"
 source "$LIB_UPDATER/apt-versioning.sh"
+source "$LIB_UPDATER/github-versioning.sh"
 
 __resolve_apt_versions() {
     local package="$1"
@@ -55,6 +56,48 @@ __resolve_apt_versions() {
     fi
 }
 
+__resolve_github_versions() {
+    local canonical_id="$1"
+    local repository="$2"
+    local -n versions_ref="$3"
+    local installed
+    local latest
+    local status=0
+
+    if ! latest="$(github_latest_release_version \
+        "$canonical_id" "${repository%%/*}" "${repository#*/}")"; then
+        versions_ref[NOTE]="version query failed"
+
+        return 1
+    fi
+
+    versions_ref[LATEST]="$latest"
+
+    installed="$(github_recorded_version "$canonical_id")" || status=$?
+    if (( status == 1 )); then
+        versions_ref[STATE]="outdated"
+        versions_ref[NOTE]="update available (version not recorded)"
+
+        return 0
+    fi
+
+    if (( status != 0 )); then
+        versions_ref[NOTE]="version query failed"
+
+        return 1
+    fi
+
+    versions_ref[INSTALLED]="$installed"
+
+    if [[ "$installed" == "$latest" ]]; then
+        versions_ref[STATE]="current"
+        versions_ref[NOTE]="up to date"
+    else
+        versions_ref[STATE]="outdated"
+        versions_ref[NOTE]="update available"
+    fi
+}
+
 ##
 # resolve_module_versions
 #
@@ -88,6 +131,10 @@ resolve_module_versions() {
     case "${metadata_ref[UPDATE_MODE]:-}" in
         apt)
             __resolve_apt_versions "${metadata_ref[UPDATE_PACKAGE]}" "$versions_name" || return $?
+            ;;
+        github)
+            __resolve_github_versions \
+                "$canonical_id" "${metadata_ref[UPDATE_REPOSITORY]}" "$versions_name" || return $?
             ;;
         "")
             versions_ref[STATE]="unsupported"

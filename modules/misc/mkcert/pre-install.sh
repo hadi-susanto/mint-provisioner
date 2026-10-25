@@ -11,4 +11,4 @@ install_dir="${MKCERT_INSTALL_DIR:-$INSTALL_DIR/mkcert}"
 valid_install_target "$CANONICAL_ID" "$install_dir" "MKCERT_INSTALL_DIR" || exit $?
 declare -A asset=()
 github_find_release_asset "$CANONICAL_ID" "FiloSottile" "mkcert" "$regex" asset || exit $?
-stateful_download "$CANONICAL_ID" "BINARY_FILE" "${asset[URL]}" "" 1 "${asset[SHA256]}"
+stateful_download "$CANONICAL_ID" "BINARY_FILE" "${asset[URL]}" "" 1 "${asset[SHA256]}" "${asset[VERSION]}"

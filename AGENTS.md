@@ -77,6 +77,9 @@ resolve_package() {
 * Keep global variable usage to a minimum. Use globals only when the value genuinely represents shared script or framework state.
 * When a global variable is intended for internal use only, prefix its name with `__` to indicate that it is private.
 * Do not use a global variable merely to avoid passing a parameter.
+* A command script may keep per-run result state in `__`-prefixed file-scope globals that only that command fills and
+  reads (for example `__MODULE_*` in `command/list.sh` and `__VERSION_*` in `command/outdated.sh`). Choose names that
+  do not collide with globals of sourced libraries, such as `__STATES` in `lib/installer/state.sh`.
 * Prefer `local` variables inside functions unless the variable intentionally needs to affect a broader scope.
 
 Prefer:

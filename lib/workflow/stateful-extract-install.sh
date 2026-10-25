@@ -10,6 +10,7 @@ source "$LIB_WORKFLOW/stateful-extractor.sh"
 source "$LIB_INSTALLER/path.sh"
 source "$LIB_INSTALLER/registry.sh"
 source "$LIB_INSTALLER/symlink.sh"
+source "$LIB_WORKFLOW/version-registry.sh"
 
 ##
 # stateful_extract_install <canonical_id> <state_name> <archive_type> <install_dir> [<binary> <link_name>]... [-- <extractor args...>]
@@ -92,6 +93,7 @@ stateful_extract_install() {
 
     set_registry "INSTALL_PATH" "$install_path" || return $?
     save_registry "$canonical_id" || return $?
+    record_version_registry "$canonical_id"
 
     tlog_info "$tag" "Installation completed successfully"
 }

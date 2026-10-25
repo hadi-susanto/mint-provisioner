@@ -46,6 +46,14 @@ When creating or updating `metadata.conf`, follow these rules:
 - `UPDATE_MODE` is optional and opts the module into `mp outdated`. Supported values:
   - `apt`: Versions come from dpkg and the APT cache. Requires `UPDATE_PACKAGE`, the main Debian package passed to
     `apt_install` (for example `UPDATE_PACKAGE="keepassxc"`).
+  - `github`: Compares the installed release recorded in the module registry `VERSION` with the latest GitHub
+    release tag. Requires `UPDATE_REPOSITORY`, the `owner/repo` of the main release (for example
+    `UPDATE_REPOSITORY="sharkdp/bat"`). To record the version, `pre-install.sh` passes `"${asset[VERSION]}"` from
+    `github_find_release_asset` as the `version` argument of `stateful_download` (only for the main artifact), and
+    `stateful_deb_install`, `stateful_extract_install`, and `stateful_binary_install` copy it into the registry.
+    A custom `install.sh` must call `record_version_registry "$CANONICAL_ID"` from
+    `$LIB_WORKFLOW/version-registry.sh` after a successful install. A module without a recorded `VERSION` is
+    reported as having an update available.
   Modules without `UPDATE_MODE` are listed by `mp outdated` with unknown versions.
 - In `modules/README.md` and category documentation, display source names in human-readable form: `Native`, `PPA`, `APT`, `GitHub`, `SourceForge`, and `External`.
 

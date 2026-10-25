@@ -162,6 +162,11 @@ Description:
   to run sudo apt-get update first if a terminal is attached; otherwise it
   only warns.
 
+  UPDATE_MODE=github compares the release recorded at install time with the
+  latest GitHub release; modules installed before versions were recorded are
+  reported as having an update available. Unauthenticated GitHub API calls
+  are limited to 60 per hour; set GITHUB_TOKEN to raise the limit.
+
   Exits 0 when versions were checked, 1 when detection or a version query
   fails, and 2 for usage errors or unknown modules.
 EOF

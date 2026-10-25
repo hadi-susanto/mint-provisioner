@@ -11,10 +11,10 @@ readonly __APT_CACHE_MAX_AGE_DAYS=7
 
 # Inspection results, filled by __inspect_modules and read by __print_versions.
 declare -a __SHOWN_IDS=()
-declare -A __INSTALLED=()
-declare -A __LATEST=()
-declare -A __STATES=()
-declare -A __NOTES=()
+declare -A __VERSION_INSTALLED=()
+declare -A __VERSION_LATEST=()
+declare -A __VERSION_STATES=()
+declare -A __VERSION_NOTES=()
 __FAILED=0
 
 __parse_args() {
@@ -77,8 +77,8 @@ __clear_status() {
 # __inspect_modules <canonical_id...>
 #
 # Detects the installed state and versions of each module and stores the
-# results in the __SHOWN_IDS, __INSTALLED, __LATEST, __STATES, and __NOTES
-# globals. Sets __FAILED when detection or a version query fails.
+# results in the __SHOWN_IDS and __VERSION_* globals. Sets __FAILED when
+# detection or a version query fails.
 #
 # Return:
 #   Non-zero when module metadata cannot be parsed.
@@ -124,10 +124,10 @@ __inspect_modules() {
                 ;;
         esac
 
-        __INSTALLED["$canonical_id"]="${versions[INSTALLED]}"
-        __LATEST["$canonical_id"]="${versions[LATEST]}"
-        __STATES["$canonical_id"]="${versions[STATE]}"
-        __NOTES["$canonical_id"]="${versions[NOTE]}"
+        __VERSION_INSTALLED["$canonical_id"]="${versions[INSTALLED]}"
+        __VERSION_LATEST["$canonical_id"]="${versions[LATEST]}"
+        __VERSION_STATES["$canonical_id"]="${versions[STATE]}"
+        __VERSION_NOTES["$canonical_id"]="${versions[NOTE]}"
     done
 
     __clear_status
@@ -221,7 +221,7 @@ __print_versions() {
     local latest_width=6
 
     for canonical_id in "${__SHOWN_IDS[@]}"; do
-        state="${__STATES[$canonical_id]}"
+        state="${__VERSION_STATES[$canonical_id]}"
         if [[ "$state" == "missing" ]] && (( ! explicit )); then
             continue
         fi
@@ -229,8 +229,8 @@ __print_versions() {
         ids+=("$canonical_id")
         counts["$state"]=$(( counts["$state"] + 1 ))
 
-        installed="${__INSTALLED[$canonical_id]:-[unknown]}"
-        latest="${__LATEST[$canonical_id]:-[unknown]}"
+        installed="${__VERSION_INSTALLED[$canonical_id]:-[unknown]}"
+        latest="${__VERSION_LATEST[$canonical_id]:-[unknown]}"
 
         if (( ${#canonical_id} > module_width )); then
             module_width=${#canonical_id}
@@ -259,7 +259,7 @@ __print_versions() {
         color=""
         color_reset="$COLOR_RESET"
 
-        case "${__STATES[$canonical_id]}" in
+        case "${__VERSION_STATES[$canonical_id]}" in
             outdated)
                 color="$COLOR_BLUE"
                 ;;
@@ -276,9 +276,9 @@ __print_versions() {
 
         printf '%s%-*s  %-*s  %-*s  %s%s\n' "$color" \
             "$module_width" "$canonical_id" \
-            "$installed_width" "${__INSTALLED[$canonical_id]:-[unknown]}" \
-            "$latest_width" "${__LATEST[$canonical_id]:-[unknown]}" \
-            "${__NOTES[$canonical_id]}" "$color_reset"
+            "$installed_width" "${__VERSION_INSTALLED[$canonical_id]:-[unknown]}" \
+            "$latest_width" "${__VERSION_LATEST[$canonical_id]:-[unknown]}" \
+            "${__VERSION_NOTES[$canonical_id]}" "$color_reset"
     done
 
     printf '\n%d update available, %d up to date, %d unknown' \

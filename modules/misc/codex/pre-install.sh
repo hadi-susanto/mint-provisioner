@@ -33,7 +33,7 @@ main() {
     local canonical_id="$1"
     local raw_install_path="$2"
     local target
-    local archive_url
+    local -A asset=()
     local checksum_url
     local expected_checksum
 
@@ -41,10 +41,8 @@ main() {
 
     target="$(__resolve_codex_target "$canonical_id")" || return $?
 
-    archive_url="$(
-        github_find_release "$canonical_id" "$CODEX_GITHUB_OWNER" "$CODEX_GITHUB_REPO" \
-            "codex-package-${target}\.tar\.gz$"
-    )" || return $?
+    github_find_release_asset "$canonical_id" "$CODEX_GITHUB_OWNER" "$CODEX_GITHUB_REPO" \
+        "codex-package-${target}\.tar\.gz$" asset || return $?
     checksum_url="$(
         github_find_release "$canonical_id" "$CODEX_GITHUB_OWNER" "$CODEX_GITHUB_REPO" \
             "codex-package_SHA256SUMS$"
@@ -55,8 +53,8 @@ main() {
     )" || return $?
 
     tlog_info "pre-install:$canonical_id" "Downloading Codex CLI (%s)" "$target"
-    stateful_download "$canonical_id" "ARCHIVE_FILE" "$archive_url" ".tar.gz" 1 \
-        "$expected_checksum"
+    stateful_download "$canonical_id" "ARCHIVE_FILE" "${asset[URL]}" ".tar.gz" 1 \
+        "$expected_checksum" "${asset[VERSION]}"
 }
 
 main "$CANONICAL_ID" "${CODEX_INSTALL_DIR:-$INSTALL_DIR/codex}"
