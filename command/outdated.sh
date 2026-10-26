@@ -596,6 +596,10 @@ main() {
         __offer_apt_refresh
     fi
 
+    if (( ! explicit && ! options[ASYNC] )); then
+        log_info "Tip: run 'mp outdated --async' to check all modules faster with background workers"
+    fi
+
     if (( options[ASYNC] )); then
         __inspect_modules_async "$(( 10#${options[WORKERS]} ))" "${canonical_ids[@]}" || return $?
     else
