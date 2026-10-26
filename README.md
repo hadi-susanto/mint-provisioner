@@ -158,6 +158,7 @@ Piped or redirected runs only print the plan.
 
 ```bash
 mp outdated [module...]          # alias: mp update
+mp outdated --async [N]          # N background workers (default 6, max 9); alias: --batch
 ```
 
 Lists installed modules (or only the selected ones) with their installed version, latest version, and notes. Rows with
@@ -169,7 +170,9 @@ release; installs that predate version recording are reported as having an updat
 API calls are limited to 60 per hour, so set `GITHUB_TOKEN` when checking many modules. Modules with
 `UPDATE_MODE="external"` compare the recorded version with the vendor's latest version printed by the module's
 `latest.sh`. Modules with `UPDATE_MODE="git"` compare the cloned commit with the latest commit of the same branch,
-and `UPDATE_MODE="none"` marks modules whose version is not tracked. Exits `1` when detection or a
+and `UPDATE_MODE="none"` marks modules whose version is not tracked. `--async` (or `--batch`) inspects modules
+with a pool of background workers that share one queue, which shortens runs dominated by network lookups; each worker
+shows its current module on its own line, and module logs are printed after inspection. Exits `1` when detection or a
 version query fails.
 
 ### Remove Modules
@@ -226,6 +229,7 @@ mint-provisioner/
 │   ├── install.sh                      # Module installation command
 │   ├── plan.sh                         # Read-only installation preview
 │   ├── outdated.sh                     # Installed vs latest versions (outdated, update)
+│   ├── OUTDATED.md                     # How 'mp outdated --async' worker pool works
 │   └── remove.sh                       # Module removal command (remove, uninstall, purge)
 ├── lib/                                # Reusable framework libraries
 │   ├── common/
