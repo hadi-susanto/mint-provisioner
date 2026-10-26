@@ -19,16 +19,16 @@ of log messages differ.
 ## Overview
 
 ```
-                     ┌──────────────────────────── work dir (mktemp -d) ─────────────────────────────┐
-                     │  next         queue counter (index of the next module)                        │
- main process        │  queue.lock   flock: one worker at a time reads and bumps "next"              │
- ─────────────       │  draw.lock    flock: one worker at a time draws on the terminal               │
- 1. create work dir  │  result.<i>   one result line per module (status, versions, state, note)      │
- 2. start N workers ─┼─► worker-1 ┐                                                                  │
+                     ┌──────────────────────────── work dir (mktemp -d) ──────────────────────────────┐
+                     │  next         queue counter (index of the next module)                         │
+ main process        │  queue.lock   flock: one worker at a time reads and bumps "next"               │
+ ─────────────       │  draw.lock    flock: one worker at a time draws on the terminal                │
+ 1. create work dir  │  result.<i>   one result line per module (status, versions, state, note)       │
+ 2. start N workers ─┼─► worker-1 ┐                                                                   │
  3. wait             │   worker-2 ├─ loop: dequeue i → draw line → inspect → write result.<i>, log.<i>│
- 4. clear status     │   worker-N ┘                                                                  │
- 5. read results in  │  log.<i>      stderr of that module's inspection                              │
-    queue order      └───────────────────────────────────────────────────────────────────────────────┘
+ 4. clear status     │   worker-N ┘                                                                   │
+ 5. read results in  │  log.<i>      stderr of that module's inspection                               │
+    queue order      └────────────────────────────────────────────────────────────────────────────────┘
  6. print table
 ```
 
@@ -144,13 +144,13 @@ empty field would shift every later field. Non-whitespace separators keep empty 
 
 ## Failure Behavior
 
-| Situation                            | Result                                                                |
-|--------------------------------------|-----------------------------------------------------------------------|
-| A version lookup fails               | Row shows `[unknown]`, its error is printed after the progress, exit 1 |
+| Situation                            | Result                                                                            |
+|--------------------------------------|-----------------------------------------------------------------------------------|
+| A version lookup fails               | Row shows `[unknown]`, its error is printed after the progress, exit 1            |
 | A worker is killed                   | Other workers finish the queue; the lost module shows `inspection failed`, exit 1 |
-| Module metadata cannot be parsed     | Exit 1 before the table, as in sequential mode                        |
-| Ctrl-C / TERM                        | Workers are killed, work dir removed, exit 130 / 143                  |
-| Work dir cannot be created           | Error logged, exit 1                                                  |
+| Module metadata cannot be parsed     | Exit 1 before the table, as in sequential mode                                    |
+| Ctrl-C / TERM                        | Workers are killed, work dir removed, exit 130 / 143                              |
+| Work dir cannot be created           | Error logged, exit 1                                                              |
 
 ## Notes
 
