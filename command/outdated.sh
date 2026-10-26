@@ -8,6 +8,8 @@ source "$LIB_INSTALLER/detection.sh"
 source "$LIB_UPDATER/versioning.sh"
 
 readonly __APT_CACHE_MAX_AGE_DAYS=7
+readonly __DEFAULT_WORKERS=6
+readonly __MAX_WORKERS=9
 
 # Inspection results, filled by __inspect_modules and read by __print_versions.
 declare -a __SHOWN_IDS=()
@@ -16,6 +18,10 @@ declare -A __VERSION_LATEST=()
 declare -A __VERSION_STATES=()
 declare -A __VERSION_NOTES=()
 __FAILED=0
+
+# Async work directory and worker PIDs, used by the EXIT, INT, and TERM traps.
+__WORK_DIR=""
+declare -a __WORKER_PIDS=()
 
 __parse_args() {
     local options_name="$1"
@@ -27,6 +33,8 @@ __parse_args() {
 
     options_ref=(
         [HELP]=0
+        [ASYNC]=0
+        [WORKERS]="$__DEFAULT_WORKERS"
     )
     args_ref=()
 
@@ -34,6 +42,19 @@ __parse_args() {
         case "$1" in
             -h | --help)
                 options_ref[HELP]=1
+                shift
+                ;;
+            --async | --batch)
+                options_ref[ASYNC]=1
+                shift
+                if [[ "${1:-}" =~ ^[0-9]+$ ]]; then
+                    options_ref[WORKERS]="$1"
+                    shift
+                fi
+                ;;
+            --async=* | --batch=*)
+                options_ref[ASYNC]=1
+                options_ref[WORKERS]="${1#*=}"
                 shift
                 ;;
             --)
@@ -52,6 +73,13 @@ __parse_args() {
                 ;;
         esac
     done
+
+    if (( options_ref[ASYNC] )) && { [[ ! "${options_ref[WORKERS]}" =~ ^[0-9]+$ ]] ||
+        (( 10#${options_ref[WORKERS]} < 1 || 10#${options_ref[WORKERS]} > __MAX_WORKERS )); }; then
+        log_error "Worker count must be between 1 and %d: %s" "$__MAX_WORKERS" "${options_ref[WORKERS]}"
+
+        return 2
+    fi
 
     return 0
 }
@@ -74,17 +102,64 @@ __clear_status() {
 }
 
 ##
-# __inspect_modules <canonical_id...>
+# __inspect_module <canonical_id> <versions_name>
 #
-# Detects the installed state and versions of each module and stores the
-# results in the __SHOWN_IDS and __VERSION_* globals. Sets __FAILED when
-# detection or a version query fails.
+# Detects the installed state and versions of one module and fills the
+# associative array <versions_name> with [INSTALLED], [LATEST], [STATE], and
+# [NOTE].
 #
 # Return:
-#   Non-zero when module metadata cannot be parsed.
+#   1 - Detection or a version query failed; the row is still filled.
+#   2 - Module metadata cannot be parsed; the row is not filled.
+#
+__inspect_module() {
+    local canonical_id="$1"
+    local versions_name="$2"
+    local -n inspect_ref="$versions_name"
+    local -A module_metadata=()
+    local status=0
+
+    parse_module_metadata "$MP_MODULES/$canonical_id" module_metadata || return 2
+
+    module_installed "$canonical_id" module_metadata >/dev/null || status=$?
+
+    case "$status" in
+        0)
+            resolve_module_versions "$canonical_id" module_metadata "$versions_name" || return 1
+            ;;
+        1)
+            inspect_ref=([INSTALLED]="-" [LATEST]="-" [STATE]="missing" [NOTE]="not installed")
+            ;;
+        *)
+            inspect_ref=([INSTALLED]="-" [LATEST]="-" [STATE]="error" [NOTE]="detection failed")
+
+            return 1
+            ;;
+    esac
+
+    return 0
+}
+
+__store_versions() {
+    local canonical_id="$1"
+
+    __SHOWN_IDS+=("$canonical_id")
+    __VERSION_INSTALLED["$canonical_id"]="$2"
+    __VERSION_LATEST["$canonical_id"]="$3"
+    __VERSION_STATES["$canonical_id"]="$4"
+    __VERSION_NOTES["$canonical_id"]="$5"
+}
+
+##
+# __inspect_modules <canonical_id...>
+#
+# Inspects modules one at a time and stores the results in the __SHOWN_IDS and
+# __VERSION_* globals. Sets __FAILED when detection or a version query fails.
+#
+# Return:
+#   1 when module metadata cannot be parsed.
 #
 __inspect_modules() {
-    local -A metadata=()
     local -A versions=()
     local canonical_id
     local status
@@ -94,43 +169,220 @@ __inspect_modules() {
         ((index += 1))
         __show_status "$canonical_id" "$index" "$#"
 
-        if parse_module_metadata "$MP_MODULES/$canonical_id" metadata; then
-            :
-        else
-            status=$?
+        versions=()
+        status=0
+        __inspect_module "$canonical_id" versions || status=$?
+
+        if (( status > 1 )); then
             __clear_status
 
-            return "$status"
+            return 1
         fi
 
-        __SHOWN_IDS+=("$canonical_id")
-
-        if module_installed "$canonical_id" metadata >/dev/null; then
-            status=0
-        else
-            status=$?
+        if (( status == 1 )); then
+            __FAILED=1
         fi
 
-        case "$status" in
-            0)
-                resolve_module_versions "$canonical_id" metadata versions || __FAILED=1
-                ;;
-            1)
-                versions=([INSTALLED]="-" [LATEST]="-" [STATE]="missing" [NOTE]="not installed")
-                ;;
-            *)
-                versions=([INSTALLED]="-" [LATEST]="-" [STATE]="error" [NOTE]="detection failed")
-                __FAILED=1
-                ;;
-        esac
-
-        __VERSION_INSTALLED["$canonical_id"]="${versions[INSTALLED]}"
-        __VERSION_LATEST["$canonical_id"]="${versions[LATEST]}"
-        __VERSION_STATES["$canonical_id"]="${versions[STATE]}"
-        __VERSION_NOTES["$canonical_id"]="${versions[NOTE]}"
+        __store_versions "$canonical_id" \
+            "${versions[INSTALLED]:-}" "${versions[LATEST]:-}" "${versions[STATE]:-unknown}" "${versions[NOTE]:-}"
     done
 
     __clear_status
+
+    return 0
+}
+
+##
+# __dequeue <work_dir> <total>
+#
+# Takes the next queue index under the queue lock.
+#
+# Output:
+#   Prints the zero-based index of the next module.
+#
+# Return:
+#   1 when the queue is empty or the lock cannot be taken.
+#
+__dequeue() {
+    local work_dir="$1"
+    local total="$2"
+    local index
+
+    {
+        flock 9 || return 1
+        index="$(<"$work_dir/next")" || return 1
+        if (( index >= total )); then
+            return 1
+        fi
+
+        printf '%d\n' "$(( index + 1 ))" >"$work_dir/next"
+    } 9>"$work_dir/queue.lock"
+
+    printf '%d\n' "$index"
+}
+
+##
+# __draw_worker_line <work_dir> <workers> <worker> [text]
+#
+# Redraws the status line owned by <worker> inside the block of <workers>
+# lines above the cursor, then returns the cursor below the block. An empty
+# text clears the line.
+#
+__draw_worker_line() {
+    local work_dir="$1"
+    local workers="$2"
+    local worker="$3"
+    local text="${4:-}"
+    local up=$(( workers - worker + 1 ))
+
+    {
+        flock 9 || return 0
+        printf '\033[%dA\r\033[2K%s\033[%dB\r' "$up" "$text" "$up" >&2
+    } 9>"$work_dir/draw.lock"
+}
+
+##
+# __run_worker <worker> <workers> <work_dir> <draw> <canonical_id...>
+#
+# Takes modules from the shared queue until it is empty. Each result is written
+# to result.<index> as status, INSTALLED, LATEST, STATE, and NOTE separated by
+# \x1f; module logs are written to log.<index>.
+#
+__run_worker() {
+    local worker="$1"
+    local workers="$2"
+    local work_dir="$3"
+    local draw="$4"
+    shift 4
+
+    local -a queue=("$@")
+    local -A versions=()
+    local canonical_id
+    local index
+    local status
+    local text
+
+    while index="$(__dequeue "$work_dir" "${#queue[@]}")"; do
+        canonical_id="${queue[index]}"
+
+        if (( draw )); then
+            printf -v text '%b[INFO]%b [worker-%d] [%d/%d] inspecting module %s' \
+                "$COLOR_BLUE" "$COLOR_RESET" "$worker" "$(( index + 1 ))" "${#queue[@]}" "$canonical_id"
+            __draw_worker_line "$work_dir" "$workers" "$worker" "$text"
+        fi
+
+        versions=()
+        status=0
+        __inspect_module "$canonical_id" versions 2>"$work_dir/log.$index" || status=$?
+
+        printf '%s\x1f%s\x1f%s\x1f%s\x1f%s\n' "$status" \
+            "${versions[INSTALLED]:-}" "${versions[LATEST]:-}" "${versions[STATE]:-unknown}" "${versions[NOTE]:-}" \
+            >"$work_dir/result.$index.tmp" &&
+            mv "$work_dir/result.$index.tmp" "$work_dir/result.$index"
+    done
+
+    if (( draw )); then
+        __draw_worker_line "$work_dir" "$workers" "$worker"
+    fi
+}
+
+# Background jobs start with SIGINT ignored, so the main process stops them.
+__stop_workers() {
+    if (( ${#__WORKER_PIDS[@]} > 0 )); then
+        kill -- "${__WORKER_PIDS[@]}" 2>/dev/null || true
+    fi
+}
+
+##
+# __inspect_modules_async <workers> <canonical_id...>
+#
+# Inspects modules with a pool of background workers sharing one queue, then
+# loads the results into the __SHOWN_IDS and __VERSION_* globals in queue
+# order. Worker logs are replayed after the pool finishes. Sets __FAILED when
+# detection, a version query, or a worker fails.
+#
+# Return:
+#   1 when the work directory cannot be created or module metadata cannot be
+#   parsed.
+#
+__inspect_modules_async() {
+    local workers="$1"
+    shift
+
+    local draw=0
+    local worker
+    local pid
+    local index
+    local status
+    local installed
+    local latest
+    local state
+    local note
+
+    if (( $# == 0 )); then
+        return 0
+    fi
+
+    if (( workers > $# )); then
+        workers=$#
+    fi
+
+    if ! __WORK_DIR="$(mktemp -d)"; then
+        log_error "Failed to create a work directory for async inspection"
+
+        return 1
+    fi
+
+    trap '[[ -z "$__WORK_DIR" ]] || rm -rf -- "$__WORK_DIR"' EXIT
+    trap '__stop_workers; exit 130' INT
+    trap '__stop_workers; exit 143' TERM
+    printf '0\n' >"$__WORK_DIR/next"
+
+    if [[ -t 2 ]]; then
+        draw=1
+        printf '%*s' "$workers" "" | tr ' ' '\n' >&2
+    fi
+
+    for (( worker = 1; worker <= workers; worker += 1 )); do
+        (
+            trap - EXIT INT TERM
+            __run_worker "$worker" "$workers" "$__WORK_DIR" "$draw" "$@"
+        ) &
+        __WORKER_PIDS+=("$!")
+    done
+
+    for pid in "${__WORKER_PIDS[@]}"; do
+        wait "$pid" || __FAILED=1
+    done
+
+    if (( draw )); then
+        printf '\033[%dA\r\033[J' "$workers" >&2
+    fi
+
+    for (( index = 0; index < $#; index += 1 )); do
+        if [[ -s "$__WORK_DIR/log.$index" ]]; then
+            cat "$__WORK_DIR/log.$index" >&2
+        fi
+
+        if [[ ! -f "$__WORK_DIR/result.$index" ]]; then
+            __store_versions "${*:index + 1:1}" "-" "-" "error" "inspection failed"
+            __FAILED=1
+
+            continue
+        fi
+
+        IFS=$'\x1f' read -r status installed latest state note <"$__WORK_DIR/result.$index"
+
+        if (( status > 1 )); then
+            return 1
+        fi
+
+        if (( status == 1 )); then
+            __FAILED=1
+        fi
+
+        __store_versions "${*:index + 1:1}" "$installed" "$latest" "$state" "$note"
+    done
 
     return 0
 }
@@ -344,7 +596,11 @@ main() {
         __offer_apt_refresh
     fi
 
-    __inspect_modules "${canonical_ids[@]}" || return $?
+    if (( options[ASYNC] )); then
+        __inspect_modules_async "$(( 10#${options[WORKERS]} ))" "${canonical_ids[@]}" || return $?
+    else
+        __inspect_modules "${canonical_ids[@]}" || return $?
+    fi
     __print_versions "$explicit"
 
     return "$__FAILED"

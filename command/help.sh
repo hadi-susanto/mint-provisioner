@@ -145,7 +145,11 @@ Usage:
   mp update [OPTIONS] [MODULE...]
 
 Options:
-  -h, --help  Show this help.
+  --async, --batch [N]  Inspect modules with N background workers sharing one
+                        queue (default 6, maximum 9). Also --async=N. Each
+                        worker shows its current module on its own line;
+                        module logs are printed after inspection.
+  -h, --help            Show this help.
 
 Arguments:
   MODULE  A canonical ID, unique module ID, or registered alias. When omitted,
