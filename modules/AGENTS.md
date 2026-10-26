@@ -44,7 +44,9 @@ When creating or updating `metadata.conf`, follow these rules:
   - `github`: The module downloads an artifact from GitHub or installs from a GitHub repository.
   - `sourceforge`: The module downloads an artifact from SourceForge.
   - `external`: The module downloads an artifact directly from a third-party vendor source.
-- `UPDATE_MODE` is optional and opts the module into `mp outdated`. Supported values:
+- `UPDATE_MODE` is optional and opts the module into `mp outdated` and `mp upgrade`. `mp upgrade` supports only `apt`
+  so far (it runs `apt_upgrade` on the installed `UPDATE_PACKAGE` candidate; no phase script runs); other modes are
+  reserved for future pre-upgrade/upgrade phases. Supported values:
   - `apt`: Versions come from dpkg and the APT cache. Requires `UPDATE_PACKAGE`, the main Debian package passed to
     `apt_install` (for example `UPDATE_PACKAGE="keepassxc"`). When the package depends on an installation choice, list
     every candidate separated by commas without spaces (for example `UPDATE_PACKAGE="code,code-insiders"`); the first

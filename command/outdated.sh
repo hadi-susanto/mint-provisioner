@@ -7,7 +7,6 @@ source "$LIB_COMMON/resolver.sh"
 source "$LIB_INSTALLER/detection.sh"
 source "$LIB_UPDATER/versioning.sh"
 
-readonly __APT_CACHE_MAX_AGE_DAYS=7
 readonly __DEFAULT_WORKERS=6
 readonly __MAX_WORKERS=9
 
@@ -34,6 +33,7 @@ __parse_args() {
     options_ref=(
         [HELP]=0
         [ASYNC]=0
+        [PORCELAIN]=0
         [WORKERS]="$__DEFAULT_WORKERS"
     )
     args_ref=()
@@ -42,6 +42,10 @@ __parse_args() {
         case "$1" in
             -h | --help)
                 options_ref[HELP]=1
+                shift
+                ;;
+            --porcelain)
+                options_ref[PORCELAIN]=1
                 shift
                 ;;
             --async | --batch)
@@ -102,30 +106,27 @@ __clear_status() {
 }
 
 ##
-# __inspect_module <canonical_id> <versions_name>
+# __inspect_module <canonical_id> <metadata_name> <versions_name>
 #
-# Detects the installed state and versions of one module and fills the
-# associative array <versions_name> with [INSTALLED], [LATEST], [STATE], and
-# [NOTE].
+# Detects the installed state of one module and, when installed, resolves its
+# versions into <versions_name> ([INSTALLED], [LATEST], [STATE], [NOTE]).
+# Not-installed modules get STATE missing; failed detection gets STATE error.
 #
 # Return:
 #   1 - Detection or a version query failed; the row is still filled.
-#   2 - Module metadata cannot be parsed; the row is not filled.
 #
 __inspect_module() {
     local canonical_id="$1"
-    local versions_name="$2"
+    local metadata_name="$2"
+    local versions_name="$3"
     local -n inspect_ref="$versions_name"
-    local -A module_metadata=()
     local status=0
 
-    parse_module_metadata "$MP_MODULES/$canonical_id" module_metadata || return 2
-
-    module_installed "$canonical_id" module_metadata >/dev/null || status=$?
+    module_installed "$canonical_id" "$metadata_name" >/dev/null || status=$?
 
     case "$status" in
         0)
-            resolve_module_versions "$canonical_id" module_metadata "$versions_name" || return 1
+            resolve_module_versions "$canonical_id" "$metadata_name" "$versions_name" || return 1
             ;;
         1)
             inspect_ref=([INSTALLED]="-" [LATEST]="-" [STATE]="missing" [NOTE]="not installed")
@@ -160,6 +161,7 @@ __store_versions() {
 #   1 when module metadata cannot be parsed.
 #
 __inspect_modules() {
+    local -A module_metadata=()
     local -A versions=()
     local canonical_id
     local status
@@ -169,15 +171,16 @@ __inspect_modules() {
         ((index += 1))
         __show_status "$canonical_id" "$index" "$#"
 
-        versions=()
-        status=0
-        __inspect_module "$canonical_id" versions || status=$?
-
-        if (( status > 1 )); then
+        module_metadata=()
+        if ! parse_module_metadata "$MP_MODULES/$canonical_id" module_metadata; then
             __clear_status
 
             return 1
         fi
+
+        versions=()
+        status=0
+        __inspect_module "$canonical_id" module_metadata versions || status=$?
 
         if (( status == 1 )); then
             __FAILED=1
@@ -246,7 +249,8 @@ __draw_worker_line() {
 #
 # Takes modules from the shared queue until it is empty. Each result is written
 # to result.<index> as status, INSTALLED, LATEST, STATE, and NOTE separated by
-# \x1f; module logs are written to log.<index>.
+# \x1f; module logs are written to log.<index>. Status is 0 on success, 1 when
+# detection or a version query failed, and 2 when metadata cannot be parsed.
 #
 __run_worker() {
     local worker="$1"
@@ -256,6 +260,7 @@ __run_worker() {
     shift 4
 
     local -a queue=("$@")
+    local -A module_metadata=()
     local -A versions=()
     local canonical_id
     local index
@@ -271,9 +276,14 @@ __run_worker() {
             __draw_worker_line "$work_dir" "$workers" "$worker" "$text"
         fi
 
+        module_metadata=()
         versions=()
         status=0
-        __inspect_module "$canonical_id" versions 2>"$work_dir/log.$index" || status=$?
+        if parse_module_metadata "$MP_MODULES/$canonical_id" module_metadata 2>"$work_dir/log.$index"; then
+            __inspect_module "$canonical_id" module_metadata versions 2>>"$work_dir/log.$index" || status=$?
+        else
+            status=2
+        fi
 
         printf '%s\x1f%s\x1f%s\x1f%s\x1f%s\n' "$status" \
             "${versions[INSTALLED]:-}" "${versions[LATEST]:-}" "${versions[STATE]:-unknown}" "${versions[NOTE]:-}" \
@@ -387,64 +397,6 @@ __inspect_modules_async() {
     return 0
 }
 
-__uses_apt_versions() {
-    local -A metadata=()
-    local canonical_id
-
-    for canonical_id in "$@"; do
-        parse_module_metadata "$MP_MODULES/$canonical_id" metadata || return $?
-        if [[ "${metadata[UPDATE_MODE]:-}" == "apt" ]]; then
-            return 0
-        fi
-    done
-
-    return 1
-}
-
-##
-# __offer_apt_refresh
-#
-# Offers to run apt-get update when the APT cache is older than
-# __APT_CACHE_MAX_AGE_DAYS. Without a terminal, only warns. Failures leave the
-# existing cache in use.
-#
-__offer_apt_refresh() {
-    local DISABLE_WHIPTAIL=true
-    local age
-    local status=0
-
-    if ! age="$(apt_cache_age_days)"; then
-        log_warn "Unable to determine the APT cache age; versions may be outdated"
-
-        return 0
-    fi
-
-    if (( age <= __APT_CACHE_MAX_AGE_DAYS )); then
-        return 0
-    fi
-
-    if [[ ! -t 0 || ! -t 1 ]]; then
-        log_warn "APT cache is %d days old; run 'sudo apt-get update' for current versions" "$age"
-
-        return 0
-    fi
-
-    if ! source "$LIB_INSTALLER/prompt.sh"; then
-        log_warn "Continuing with the existing APT cache"
-
-        return 0
-    fi
-
-    ask_confirm "APT cache is $age days old. Run 'sudo apt-get update' now?" || status=$?
-    if (( status == 0 )); then
-        refresh_apt_cache || log_warn "Continuing with the existing APT cache"
-    elif (( status != 1 )); then
-        log_warn "Continuing with the existing APT cache"
-    fi
-
-    return 0
-}
-
 ##
 # __print_versions <explicit>
 #
@@ -553,6 +505,23 @@ __print_versions() {
     printf '\n'
 }
 
+##
+# __print_porcelain
+#
+# Prints one row per module with an available update, in inspection order:
+# canonical ID, installed version, and latest version separated by tabs.
+#
+__print_porcelain() {
+    local canonical_id
+
+    for canonical_id in "${__SHOWN_IDS[@]}"; do
+        if [[ "${__VERSION_STATES[$canonical_id]}" == "outdated" ]]; then
+            printf '%s\t%s\t%s\n' "$canonical_id" \
+                "${__VERSION_INSTALLED[$canonical_id]}" "${__VERSION_LATEST[$canonical_id]}"
+        fi
+    done
+}
+
 main() {
     local -A options=()
     local -a args=()
@@ -592,12 +561,15 @@ main() {
         list_modules canonical_ids || return $?
     fi
 
-    if __uses_apt_versions "${canonical_ids[@]}"; then
-        __offer_apt_refresh
-    fi
+    # Porcelain output is for callers such as mp upgrade, which own the prompts.
+    if (( ! options[PORCELAIN] )); then
+        if uses_update_mode apt "${canonical_ids[@]}"; then
+            offer_apt_cache_refresh 0
+        fi
 
-    if (( ! explicit && ! options[ASYNC] )); then
-        log_info "Tip: run 'mp outdated --async' to check all modules faster with background workers"
+        if (( ! explicit && ! options[ASYNC] )); then
+            log_info "Tip: run 'mp outdated --async' to check all modules faster with background workers"
+        fi
     fi
 
     if (( options[ASYNC] )); then
@@ -605,7 +577,13 @@ main() {
     else
         __inspect_modules "${canonical_ids[@]}" || return $?
     fi
-    __print_versions "$explicit"
+
+    if (( options[PORCELAIN] )); then
+        __print_versions "$explicit" >&2
+        __print_porcelain
+    else
+        __print_versions "$explicit"
+    fi
 
     return "$__FAILED"
 }

@@ -7,6 +7,7 @@ fi
 readonly __MINT_PROVISIONER_VERSIONING_LOADED=1
 
 source "$LIB_COMMON/common.sh"
+source "$LIB_COMMON/metadata.sh"
 source "$LIB_UPDATER/apt-versioning.sh"
 source "$LIB_INSTALLER/github.sh"
 source "$LIB_UPDATER/git-versioning.sh"
@@ -22,39 +23,25 @@ source "$LIB_WORKFLOW/latest-version.sh"
 __resolve_apt_versions() {
     local packages="$1"
     local -n versions_ref="$2"
-    local -a candidates=()
-    local package=""
-    local candidate
+    local package
     local installed
     local latest
-    local status
+    local status=0
 
-    IFS=',' read -r -a candidates <<< "$packages"
-
-    for candidate in "${candidates[@]}"; do
-        __trim candidate
-
-        if installed="$(apt_installed_version "$candidate")"; then
-            package="$candidate"
-            versions_ref[INSTALLED]="$installed"
-
-            break
-        else
-            status=$?
-        fi
-
-        if (( status != 1 )); then
-            versions_ref[NOTE]="version query failed"
-
-            return 1
-        fi
-    done
-
-    if [[ -z "$package" ]]; then
+    package="$(apt_installed_package "$packages")" || status=$?
+    if (( status == 1 )); then
         versions_ref[NOTE]="package ${packages//,/ or } not installed via apt"
 
         return 0
     fi
+
+    if (( status != 0 )) || ! installed="$(apt_installed_version "$package")"; then
+        versions_ref[NOTE]="version query failed"
+
+        return 1
+    fi
+
+    versions_ref[INSTALLED]="$installed"
 
     if latest="$(apt_candidate_version "$package")"; then
         versions_ref[LATEST]="$latest"
@@ -243,4 +230,36 @@ resolve_module_versions() {
             return 1
             ;;
     esac
+}
+
+##
+# uses_update_mode
+#
+# Checks whether any of the given modules declares an UPDATE_MODE.
+#
+# Parameters:
+#   update_mode - UPDATE_MODE value to look for, such as apt.
+#   canonical_id - One or more canonical module IDs.
+#
+# Return:
+#   0 - At least one module uses update_mode.
+#   1 - No module uses update_mode.
+#   Other - Module metadata could not be parsed.
+#
+uses_update_mode() {
+    local update_mode="$1"
+    shift
+
+    local -A module_metadata=()
+    local canonical_id
+
+    for canonical_id in "$@"; do
+        module_metadata=()
+        parse_module_metadata "$MP_MODULES/$canonical_id" module_metadata || return $?
+        if [[ "${module_metadata[UPDATE_MODE]:-}" == "$update_mode" ]]; then
+            return 0
+        fi
+    done
+
+    return 1
 }

@@ -159,6 +159,7 @@ Piped or redirected runs only print the plan.
 ```bash
 mp outdated [module...]          # alias: mp update
 mp outdated --async [N]          # N background workers (default 6, max 9); alias: --batch
+mp outdated --porcelain          # stdout: MODULE<TAB>INSTALLED<TAB>LATEST per update; table on stderr
 ```
 
 Lists installed modules (or only the selected ones) with their installed version, latest version, and notes. Rows with
@@ -172,8 +173,24 @@ API calls are limited to 60 per hour, so set `GITHUB_TOKEN` when checking many m
 `latest.sh`. Modules with `UPDATE_MODE="git"` compare the cloned commit with the latest commit of the same branch,
 and `UPDATE_MODE="none"` marks modules whose version is not tracked. `--async` (or `--batch`) inspects modules
 with a pool of background workers that share one queue, which shortens runs dominated by network lookups; each worker
-shows its current module on its own line, and module logs are printed after inspection. Exits `1` when detection or a
-version query fails.
+shows its current module on its own line, and module logs are printed after inspection. `--porcelain` prints only
+modules with an available update to stdout (tab-separated module, installed and latest version), sends the table and
+every other message to stderr, and never prompts. Exits `1` when detection or a version query fails.
+
+### Upgrade Modules
+
+```bash
+mp upgrade [module...]           # all installed modules with an update, or only the selected ones
+mp upgrade -y [module...]        # skip the confirmation (sudo must be cached or passwordless)
+```
+
+Runs `mp outdated --porcelain --async` to find modules with an available update, lists them, asks
+`Upgrade N module(s)? [y/N]`, then upgrades them one at a time and prints a result summary. Module install scripts are
+not run again. Upgrades are dispatched on `UPDATE_MODE`; only `apt` is supported so far: the installed `UPDATE_PACKAGE`
+candidate is upgraded with `apt-get install --only-upgrade` (`apt-fast` when available). Outdated modules with other
+update modes are reported as not upgradable yet. A stale APT cache (older than 7 days) is offered for refresh first;
+`-y` refreshes it without asking.
+Without a terminal, `-y` is required. Exits `1` when an upgrade, detection, or version query fails.
 
 ### Remove Modules
 
@@ -230,6 +247,7 @@ mint-provisioner/
 │   ├── plan.sh                         # Read-only installation preview
 │   ├── outdated.sh                     # Installed vs latest versions (outdated, update)
 │   ├── OUTDATED.md                     # How 'mp outdated --async' worker pool works
+│   ├── upgrade.sh                      # Upgrade outdated modules (UPDATE_MODE=apt)
 │   └── remove.sh                       # Module removal command (remove, uninstall, purge)
 ├── lib/                                # Reusable framework libraries
 │   ├── common/
@@ -259,9 +277,10 @@ mint-provisioner/
 │   │   ├── registry.sh                 # Installed-module registry
 │   │   ├── state.sh                    # Persistent module state
 │   │   └── ...                         # Download, path, prompt, and system helpers
-│   ├── updater/                        # Version lookups for mp outdated
+│   ├── updater/                        # Version lookups and upgrades for mp outdated and mp upgrade
 │   │   ├── versioning.sh               # Dispatch on UPDATE_MODE (apt, github, external, git, none)
-│   │   ├── apt-versioning.sh           # dpkg installed version, APT candidate, cache age
+│   │   ├── upgrader.sh                 # Upgrade dispatch on UPDATE_MODE (apt only so far)
+│   │   ├── apt-versioning.sh           # dpkg installed version, APT candidate, cache age and refresh
 │   │   ├── recorded-versioning.sh      # Registry VERSION recorded at install time
 │   │   └── git-versioning.sh           # Cloned commit vs remote branch commit
 │   └── workflow/                       # Reusable module installation workflows

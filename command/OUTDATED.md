@@ -10,6 +10,9 @@ mp outdated --async 3          # 3 workers
 mp outdated --batch=9 cli/bat  # 9 is the maximum
 ```
 
+`mp upgrade` uses the pool through `mp outdated --porcelain --async`: the worker lines and table go to stderr, and
+stdout carries only `MODULE<TAB>INSTALLED<TAB>LATEST` rows for modules with an update.
+
 The worker count must be 1–9. It is capped at the number of modules, so selecting 3 modules starts at most 3 workers.
 A non-numeric word after the flag is treated as a module (`--async consul` uses 6 workers to inspect `consul`).
 
@@ -97,7 +100,7 @@ queue position is the only shared, changing state.
 ```
 while index = __dequeue:
     draw "[INFO] [worker-K] [index+1/total] inspecting module <id>"
-    __inspect_module <id> 2> log.<index>
+    parse_module_metadata + __inspect_module <id> 2> log.<index>
     write result.<index>.tmp, then mv to result.<index>
 clear own status line
 ```
@@ -118,7 +121,7 @@ clear own status line
 
   The file is written as `.tmp` and renamed, so `result.<index>` either exists complete or not at all.
 
-`<status>` is the return code of `__inspect_module`: `0` success, `1` detection or version query failed (the row
+`<status>` is `0` success, `1` detection or version query failed (the row
 is still filled), `2` module metadata could not be parsed.
 
 ### 5. Waiting and clearing
