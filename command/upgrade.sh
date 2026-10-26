@@ -66,7 +66,7 @@ __parse_args() {
 ##
 # __find_outdated <explicit> <rows_name> <canonical_id...>
 #
-# Runs mp outdated --porcelain --async and stores its rows (canonical ID,
+# Runs mp outdated --porcelain and stores its rows (canonical ID,
 # installed version, latest version separated by tabs) in <rows_name>. The
 # version table and logs go to stderr. Selected modules are passed on; without
 # a selection, outdated checks every installed module. Sets __FAILED when
@@ -80,7 +80,7 @@ __find_outdated() {
     local -n rows_ref="$2"
     shift 2
 
-    local -a outdated_args=(--porcelain --async)
+    local -a outdated_args=(--porcelain)
     local status=0
 
     if (( explicit )); then

@@ -146,10 +146,11 @@ Usage:
   mp update [OPTIONS] [MODULE...]
 
 Options:
-  --async, --batch [N]  Inspect modules with N background workers sharing one
-                        queue (default 6, maximum 9). Also --async=N. Each
-                        worker shows its current module on its own line;
-                        module logs are printed after inspection.
+  --async, --batch [N]  Number of background workers that inspect modules
+                        from one shared queue (default 6, maximum 9). Also
+                        --async=N. Each worker shows its current module on
+                        its own line; module logs are printed after
+                        inspection.
   --porcelain           Print only modules with an available update to stdout,
                         one per line as MODULE<TAB>INSTALLED<TAB>LATEST. The
                         table and all other output go to stderr, and no
@@ -206,7 +207,7 @@ Arguments:
           every installed module with an available update is upgraded.
 
 Description:
-  Runs mp outdated --porcelain --async to find modules with an available
+  Runs mp outdated --porcelain to find modules with an available
   update, lists them, asks for confirmation, then upgrades them one at a time
   and prints a result summary. Module install scripts are not run again.
 

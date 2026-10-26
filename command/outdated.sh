@@ -10,7 +10,7 @@ source "$LIB_UPDATER/versioning.sh"
 readonly __DEFAULT_WORKERS=6
 readonly __MAX_WORKERS=9
 
-# Inspection results, filled by __inspect_modules and read by __print_versions.
+# Inspection results, filled by __inspect_modules_async and read by __print_versions.
 declare -a __SHOWN_IDS=()
 declare -A __VERSION_NAMES=()
 declare -A __VERSION_INSTALLED=()
@@ -33,7 +33,6 @@ __parse_args() {
 
     options_ref=(
         [HELP]=0
-        [ASYNC]=0
         [PORCELAIN]=0
         [WORKERS]="$__DEFAULT_WORKERS"
     )
@@ -50,7 +49,6 @@ __parse_args() {
                 shift
                 ;;
             --async | --batch)
-                options_ref[ASYNC]=1
                 shift
                 if [[ "${1:-}" =~ ^[0-9]+$ ]]; then
                     options_ref[WORKERS]="$1"
@@ -58,7 +56,6 @@ __parse_args() {
                 fi
                 ;;
             --async=* | --batch=*)
-                options_ref[ASYNC]=1
                 options_ref[WORKERS]="${1#*=}"
                 shift
                 ;;
@@ -79,31 +76,14 @@ __parse_args() {
         esac
     done
 
-    if (( options_ref[ASYNC] )) && { [[ ! "${options_ref[WORKERS]}" =~ ^[0-9]+$ ]] ||
-        (( 10#${options_ref[WORKERS]} < 1 || 10#${options_ref[WORKERS]} > __MAX_WORKERS )); }; then
+    if [[ ! "${options_ref[WORKERS]}" =~ ^[0-9]+$ ]] ||
+        (( 10#${options_ref[WORKERS]} < 1 || 10#${options_ref[WORKERS]} > __MAX_WORKERS )); then
         log_error "Worker count must be between 1 and %d: %s" "$__MAX_WORKERS" "${options_ref[WORKERS]}"
 
         return 2
     fi
 
     return 0
-}
-
-__show_status() {
-    local canonical_id="$1"
-    local index="$2"
-    local total="$3"
-
-    if [[ -t 2 ]]; then
-        printf '\033[2K\r%b[INFO]%b Inspecting %s (%d/%d)' \
-            "$COLOR_BLUE" "$COLOR_RESET" "$canonical_id" "$index" "$total" >&2
-    fi
-}
-
-__clear_status() {
-    if [[ -t 2 ]]; then
-        printf '\033[2K\r' >&2
-    fi
 }
 
 ##
@@ -152,50 +132,6 @@ __store_versions() {
     __VERSION_LATEST["$canonical_id"]="$4"
     __VERSION_STATES["$canonical_id"]="$5"
     __VERSION_NOTES["$canonical_id"]="$6"
-}
-
-##
-# __inspect_modules <canonical_id...>
-#
-# Inspects modules one at a time and stores the results in the __SHOWN_IDS and
-# __VERSION_* globals. Sets __FAILED when detection or a version query fails.
-#
-# Return:
-#   1 when module metadata cannot be parsed.
-#
-__inspect_modules() {
-    local -A module_metadata=()
-    local -A versions=()
-    local canonical_id
-    local status
-    local index=0
-
-    for canonical_id in "$@"; do
-        ((index += 1))
-        __show_status "$canonical_id" "$index" "$#"
-
-        module_metadata=()
-        if ! parse_module_metadata "$MP_MODULES/$canonical_id" module_metadata; then
-            __clear_status
-
-            return 1
-        fi
-
-        versions=()
-        status=0
-        __inspect_module "$canonical_id" module_metadata versions || status=$?
-
-        if (( status == 1 )); then
-            __FAILED=1
-        fi
-
-        __store_versions "$canonical_id" "${module_metadata[NAME]:-}" \
-            "${versions[INSTALLED]:-}" "${versions[LATEST]:-}" "${versions[STATE]:-unknown}" "${versions[NOTE]:-}"
-    done
-
-    __clear_status
-
-    return 0
 }
 
 ##
@@ -567,17 +503,9 @@ main() {
         if uses_update_mode apt "${canonical_ids[@]}"; then
             offer_apt_cache_refresh 0
         fi
-
-        if (( ! explicit && ! options[ASYNC] )); then
-            log_info "Tip: run 'mp outdated --async' to check all modules faster with background workers"
-        fi
     fi
 
-    if (( options[ASYNC] )); then
-        __inspect_modules_async "$(( 10#${options[WORKERS]} ))" "${canonical_ids[@]}" || return $?
-    else
-        __inspect_modules "${canonical_ids[@]}" || return $?
-    fi
+    __inspect_modules_async "$(( 10#${options[WORKERS]} ))" "${canonical_ids[@]}" || return $?
 
     if (( options[PORCELAIN] )); then
         __print_versions "$explicit" >&2

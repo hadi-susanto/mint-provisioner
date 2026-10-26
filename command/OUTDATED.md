@@ -1,23 +1,21 @@
-# `mp outdated --async`: Worker Pool
+# `mp outdated`: Worker Pool
 
-`mp outdated` normally inspects modules one at a time. Most of the time goes to network lookups (GitHub releases,
-vendor `latest.sh` scripts, `git ls-remote`), so a long module list spends most of its run waiting. With
-`--async` (alias `--batch`), a pool of background workers shares one queue of modules, and the lookups overlap.
+Inspecting modules one at a time would spend most of the run waiting on network lookups (GitHub releases, vendor
+`latest.sh` scripts, `git ls-remote`). `mp outdated` therefore always inspects modules with a pool of background
+workers that shares one queue, so the lookups overlap. `--async N` (alias `--batch`) only sets the worker count.
 
 ```bash
-mp outdated --async            # 6 workers (default)
-mp outdated --async 3          # 3 workers
+mp outdated                    # all modules, 6 workers (default)
+mp outdated --async 3          # all modules, 3 workers
+mp outdated cli/git            # one module, one worker
 mp outdated --batch=9 cli/bat  # 9 is the maximum
 ```
 
-`mp upgrade` uses the pool through `mp outdated --porcelain --async`: the worker lines and table go to stderr, and
+`mp upgrade` uses the pool through `mp outdated --porcelain`: the worker lines and table go to stderr, and
 stdout carries only `MODULE<TAB>INSTALLED<TAB>LATEST` rows for modules with an update.
 
 The worker count must be 1–9. It is capped at the number of modules, so selecting 3 modules starts at most 3 workers.
 A non-numeric word after the flag is treated as a module (`--async consul` uses 6 workers to inspect `consul`).
-
-The table, summary, and exit code are the same as in sequential mode. Only the progress display and the order
-of log messages differ.
 
 ## Overview
 
@@ -36,8 +34,8 @@ of log messages differ.
 ```
 
 Workers are subshells (`( … ) &`), so variables they set never reach the main process. Files in the work dir
-carry the results back; the main process loads them into the same `__SHOWN_IDS` / `__VERSION_*` globals that
-sequential mode fills, and `__print_versions` does not know which mode produced them.
+carry the results back; the main process loads them into the `__SHOWN_IDS` / `__VERSION_*` globals that
+`__print_versions` reads.
 
 ## Functions
 
@@ -47,8 +45,8 @@ sequential mode fills, and `__print_versions` does not know which mode produced 
 | `__run_worker`             | worker  | Takes modules from the queue until it is empty                          |
 | `__dequeue`                | worker  | Takes the next queue index under `queue.lock`                           |
 | `__draw_worker_line`       | worker  | Redraws the worker's own status line under `draw.lock`                  |
-| `__inspect_module`         | worker  | Inspects one module; shared with sequential mode                        |
-| `__store_versions`         | main    | Stores one row in the globals; shared with sequential mode              |
+| `__inspect_module`         | worker  | Inspects one module                                                     |
+| `__store_versions`         | main    | Stores one row in the globals                                           |
 | `__stop_workers`           | main    | Kills the workers on Ctrl-C or TERM                                     |
 
 ## Step by Step
@@ -131,14 +129,14 @@ clears the status block (`\033[<N>A\r\033[J`: up N lines, column 0, clear to end
 
 ### 6. Collecting results
 
-For each index in queue order (the order of the module list, so the table matches sequential mode):
+For each index in queue order (the order of the module list, so the table follows it):
 
 1. Print `log.<index>` to stderr if it is not empty. Logs therefore appear grouped per module, after the progress
    display.
 2. If `result.<index>` is missing, the worker died on that module: store an `error` row with the note
    `inspection failed` and mark the run as failed.
 3. Otherwise read it with `IFS=$'\x1f' read -r status name installed latest state note`:
-   - status `2`: return 1 (same as sequential mode on a metadata error);
+   - status `2`: return 1 (module metadata could not be parsed);
    - status `1`: mark the run as failed and keep the row;
    - store the row with `__store_versions`.
 
@@ -151,7 +149,7 @@ empty field would shift every later field. Non-whitespace separators keep empty 
 |--------------------------------------|-----------------------------------------------------------------------------------|
 | A version lookup fails               | Row shows `[unknown]`, its error is printed after the progress, exit 1            |
 | A worker is killed                   | Other workers finish the queue; the lost module shows `inspection failed`, exit 1 |
-| Module metadata cannot be parsed     | Exit 1 before the table, as in sequential mode                                    |
+| Module metadata cannot be parsed     | Exit 1 before the table                                                           |
 | Ctrl-C / TERM                        | Workers are killed, work dir removed, exit 130 / 143                              |
 | Work dir cannot be created           | Error logged, exit 1                                                              |
 
