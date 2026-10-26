@@ -162,8 +162,8 @@ mp outdated --async [N]          # N background workers (default 6, max 9); alia
 mp outdated --porcelain          # stdout: MODULE<TAB>INSTALLED<TAB>LATEST per update; table on stderr
 ```
 
-Lists installed modules (or only the selected ones) with their installed version, latest version, and notes. Rows with
-an update available are blue; rows that cannot be checked, such as modules without `UPDATE_MODE` metadata, are yellow.
+Lists installed modules (or only the selected ones) as a `NAME CURRENT LATEST NOTE` table. The latest version is green
+when an update is available; versions that cannot be resolved show `[unknown]`.
 Nothing is upgraded. Modules with `UPDATE_MODE="apt"` read versions from dpkg and the APT cache; when apt-mode modules are
 checked, the cache is older than 7 days, and a terminal is attached, `mp outdated` offers to run `sudo apt-get update`
 first. Modules with `UPDATE_MODE="github"` compare the release recorded at install time with the latest GitHub

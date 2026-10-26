@@ -116,7 +116,7 @@ clear own status line
 - **Results.** One line, fields separated by `\x1f`:
 
   ```
-  <status>␟<INSTALLED>␟<LATEST>␟<STATE>␟<NOTE>
+  <status>␟<NAME>␟<INSTALLED>␟<LATEST>␟<STATE>␟<NOTE>
   ```
 
   The file is written as `.tmp` and renamed, so `result.<index>` either exists complete or not at all.
@@ -137,7 +137,7 @@ For each index in queue order (the order of the module list, so the table matche
    display.
 2. If `result.<index>` is missing, the worker died on that module: store an `error` row with the note
    `inspection failed` and mark the run as failed.
-3. Otherwise read it with `IFS=$'\x1f' read -r status installed latest state note`:
+3. Otherwise read it with `IFS=$'\x1f' read -r status name installed latest state note`:
    - status `2`: return 1 (same as sequential mode on a metadata error);
    - status `1`: mark the run as failed and keep the row;
    - store the row with `__store_versions`.

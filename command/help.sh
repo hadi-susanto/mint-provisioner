@@ -161,10 +161,10 @@ Arguments:
           every installed module is listed.
 
 Description:
-  Lists installed modules with their installed and latest versions. Rows with
-  an available update are blue; rows whose versions cannot be resolved, such
-  as modules without UPDATE_MODE metadata, are yellow. Selected modules that
-  are not installed are listed as not installed. Nothing is upgraded; use
+  Lists installed modules as NAME, CURRENT, LATEST, and NOTE.
+  LATEST is green when an update is available; versions that cannot be
+  resolved show [unknown]. Selected modules that are not installed are listed
+  as not installed. Nothing is upgraded; use
   mp upgrade for that.
 
   UPDATE_MODE=apt reads versions from dpkg and the APT cache. When apt-mode

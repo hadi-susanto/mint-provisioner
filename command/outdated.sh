@@ -12,6 +12,7 @@ readonly __MAX_WORKERS=9
 
 # Inspection results, filled by __inspect_modules and read by __print_versions.
 declare -a __SHOWN_IDS=()
+declare -A __VERSION_NAMES=()
 declare -A __VERSION_INSTALLED=()
 declare -A __VERSION_LATEST=()
 declare -A __VERSION_STATES=()
@@ -141,14 +142,16 @@ __inspect_module() {
     return 0
 }
 
+# __store_versions <canonical_id> <name> <installed> <latest> <state> <note>
 __store_versions() {
     local canonical_id="$1"
 
     __SHOWN_IDS+=("$canonical_id")
-    __VERSION_INSTALLED["$canonical_id"]="$2"
-    __VERSION_LATEST["$canonical_id"]="$3"
-    __VERSION_STATES["$canonical_id"]="$4"
-    __VERSION_NOTES["$canonical_id"]="$5"
+    __VERSION_NAMES["$canonical_id"]="${2:-$canonical_id}"
+    __VERSION_INSTALLED["$canonical_id"]="$3"
+    __VERSION_LATEST["$canonical_id"]="$4"
+    __VERSION_STATES["$canonical_id"]="$5"
+    __VERSION_NOTES["$canonical_id"]="$6"
 }
 
 ##
@@ -186,7 +189,7 @@ __inspect_modules() {
             __FAILED=1
         fi
 
-        __store_versions "$canonical_id" \
+        __store_versions "$canonical_id" "${module_metadata[NAME]:-}" \
             "${versions[INSTALLED]:-}" "${versions[LATEST]:-}" "${versions[STATE]:-unknown}" "${versions[NOTE]:-}"
     done
 
@@ -248,7 +251,7 @@ __draw_worker_line() {
 # __run_worker <worker> <workers> <work_dir> <draw> <canonical_id...>
 #
 # Takes modules from the shared queue until it is empty. Each result is written
-# to result.<index> as status, INSTALLED, LATEST, STATE, and NOTE separated by
+# to result.<index> as status, NAME, INSTALLED, LATEST, STATE, and NOTE separated by
 # \x1f; module logs are written to log.<index>. Status is 0 on success, 1 when
 # detection or a version query failed, and 2 when metadata cannot be parsed.
 #
@@ -285,7 +288,7 @@ __run_worker() {
             status=2
         fi
 
-        printf '%s\x1f%s\x1f%s\x1f%s\x1f%s\n' "$status" \
+        printf '%s\x1f%s\x1f%s\x1f%s\x1f%s\x1f%s\n' "$status" "${module_metadata[NAME]:-}" \
             "${versions[INSTALLED]:-}" "${versions[LATEST]:-}" "${versions[STATE]:-unknown}" "${versions[NOTE]:-}" \
             >"$work_dir/result.$index.tmp" &&
             mv "$work_dir/result.$index.tmp" "$work_dir/result.$index"
@@ -324,6 +327,7 @@ __inspect_modules_async() {
     local pid
     local index
     local status
+    local name
     local installed
     local latest
     local state
@@ -375,13 +379,13 @@ __inspect_modules_async() {
         fi
 
         if [[ ! -f "$__WORK_DIR/result.$index" ]]; then
-            __store_versions "${*:index + 1:1}" "-" "-" "error" "inspection failed"
+            __store_versions "${*:index + 1:1}" "" "-" "-" "error" "inspection failed"
             __FAILED=1
 
             continue
         fi
 
-        IFS=$'\x1f' read -r status installed latest state note <"$__WORK_DIR/result.$index"
+        IFS=$'\x1f' read -r status name installed latest state note <"$__WORK_DIR/result.$index"
 
         if (( status > 1 )); then
             return 1
@@ -391,7 +395,7 @@ __inspect_modules_async() {
             __FAILED=1
         fi
 
-        __store_versions "${*:index + 1:1}" "$installed" "$latest" "$state" "$note"
+        __store_versions "${*:index + 1:1}" "$name" "$installed" "$latest" "$state" "$note"
     done
 
     return 0
@@ -400,8 +404,10 @@ __inspect_modules_async() {
 ##
 # __print_versions <explicit>
 #
-# Prints the version table and summary from the inspection globals.
-# Not-installed modules are printed only when explicitly selected.
+# Prints the version table and summary from the inspection globals. NAME is
+# blue and LATEST is green when an update is available. Widths are computed
+# without color codes. Not-installed modules are printed only when explicitly
+# selected.
 #
 __print_versions() {
     local explicit="$1"
@@ -417,12 +423,13 @@ __print_versions() {
     local -a ids=()
     local canonical_id
     local state
+    local label
     local installed
     local latest
-    local color
-    local color_reset
-    local module_width=6
-    local installed_width=9
+    local latest_color
+    local latest_reset
+    local name_width=4
+    local installed_width=7
     local latest_width=6
 
     for canonical_id in "${__SHOWN_IDS[@]}"; do
@@ -434,11 +441,12 @@ __print_versions() {
         ids+=("$canonical_id")
         counts["$state"]=$(( counts["$state"] + 1 ))
 
+        label="${__VERSION_NAMES[$canonical_id]}"
         installed="${__VERSION_INSTALLED[$canonical_id]:-[unknown]}"
         latest="${__VERSION_LATEST[$canonical_id]:-[unknown]}"
 
-        if (( ${#canonical_id} > module_width )); then
-            module_width=${#canonical_id}
+        if (( ${#label} > name_width )); then
+            name_width=${#label}
         fi
 
         if (( ${#installed} > installed_width )); then
@@ -457,33 +465,26 @@ __print_versions() {
     fi
 
     printf '%-*s  %-*s  %-*s  %s\n' \
-        "$module_width" "MODULE" "$installed_width" "INSTALLED" \
-        "$latest_width" "LATEST" "NOTES"
+        "$name_width" "NAME" "$installed_width" "CURRENT" \
+        "$latest_width" "LATEST" "NOTE"
 
     for canonical_id in "${ids[@]}"; do
-        color=""
-        color_reset="$COLOR_RESET"
+        label="${__VERSION_NAMES[$canonical_id]}"
+        latest="${__VERSION_LATEST[$canonical_id]:-[unknown]}"
+        latest_color=""
+        latest_reset=""
+        if [[ "${__VERSION_STATES[$canonical_id]}" == "outdated" ]]; then
+            latest_color="$COLOR_GREEN"
+            latest_reset="$COLOR_RESET"
+        fi
 
-        case "${__VERSION_STATES[$canonical_id]}" in
-            outdated)
-                color="$COLOR_BLUE"
-                ;;
-            unknown | unsupported | error)
-                color="$COLOR_YELLOW"
-                ;;
-            missing)
-                color="$COLOR_GRAY"
-                ;;
-            *)
-                color_reset=""
-                ;;
-        esac
-
-        printf '%s%-*s  %-*s  %-*s  %s%s\n' "$color" \
-            "$module_width" "$canonical_id" \
+        printf '%b%s%b%*s  %-*s  %b%s%b%*s  %s\n' \
+            "$COLOR_BLUE" "$label" "$COLOR_RESET" \
+            "$(( name_width - ${#label} ))" "" \
             "$installed_width" "${__VERSION_INSTALLED[$canonical_id]:-[unknown]}" \
-            "$latest_width" "${__VERSION_LATEST[$canonical_id]:-[unknown]}" \
-            "${__VERSION_NOTES[$canonical_id]}" "$color_reset"
+            "$latest_color" "$latest" "$latest_reset" \
+            "$(( latest_width - ${#latest} ))" "" \
+            "${__VERSION_NOTES[$canonical_id]}"
     done
 
     printf '\n%d update available, %d up to date, %d unknown' \

@@ -156,8 +156,8 @@ __collect_upgrades() {
 ##
 # __print_queue
 #
-# Prints the queued modules as a NAME, CURRENT, LATEST table. NAME is
-# "<name> (<canonical_id>)"; widths are computed without color codes.
+# Prints the queued modules as a NAME, CURRENT, LATEST table. Widths are
+# computed without color codes.
 #
 __print_queue() {
     local canonical_id
@@ -166,7 +166,7 @@ __print_queue() {
     local current_width=7
 
     for canonical_id in "${__UPGRADE_QUEUE[@]}"; do
-        label="${__UPGRADE_NAMES[$canonical_id]} ($canonical_id)"
+        label="${__UPGRADE_NAMES[$canonical_id]}"
         if (( ${#label} > name_width )); then
             name_width=${#label}
         fi
@@ -179,10 +179,9 @@ __print_queue() {
     printf '\n%-*s  %-*s  %s\n' "$name_width" "NAME" "$current_width" "CURRENT" "LATEST"
 
     for canonical_id in "${__UPGRADE_QUEUE[@]}"; do
-        label="${__UPGRADE_NAMES[$canonical_id]} ($canonical_id)"
-        printf '%b%s%b (%b%s%b)%*s  %-*s  %b%s%b\n' \
-            "$COLOR_BLUE" "${__UPGRADE_NAMES[$canonical_id]}" "$COLOR_RESET" \
-            "$COLOR_YELLOW" "$canonical_id" "$COLOR_RESET" \
+        label="${__UPGRADE_NAMES[$canonical_id]}"
+        printf '%b%s%b%*s  %-*s  %b%s%b\n' \
+            "$COLOR_BLUE" "$label" "$COLOR_RESET" \
             "$(( name_width - ${#label} ))" "" \
             "$current_width" "${__UPGRADE_INSTALLED[$canonical_id]}" \
             "$COLOR_GREEN" "${__UPGRADE_LATEST[$canonical_id]}" "$COLOR_RESET"
