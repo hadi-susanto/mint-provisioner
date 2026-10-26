@@ -67,6 +67,9 @@ category directory when several modules need them.
     - `pre-install.sh` for prerequisites, repositories, keys, downloads, and temporary setup.
     - `post-install.sh` for installation-adjacent adjustments after successful installation.
     - `cleanup.sh` for temporary state, downloads, and intermediate files.
+    - `pre-upgrade.sh` and `upgrade.sh` so `mp upgrade` can upgrade an `UPDATE_MODE="github"` module: download the
+      new release, then replace the installed files with `stateful_deb_upgrade`, `stateful_extract_upgrade`, or
+      `stateful_binary_upgrade` (see "Upgrade Phases" in `modules/AGENTS.md`).
     - `remove.sh` to support `mp remove`, `mp uninstall`, and `mp purge`. Undo exactly what the install phases created
       with the helpers in `lib/remover/`; user configuration and data are removed only through the helpers that honor
       `PURGE`. Every module in the catalog ships one, so new modules should too.

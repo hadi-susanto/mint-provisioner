@@ -105,7 +105,7 @@ __find_outdated() {
 # __collect_upgrades <rows>
 #
 # Queues each outdated module from mp outdated --porcelain rows in
-# __UPGRADE_QUEUE when mp upgrade supports its UPDATE_MODE, and reports the
+# __UPGRADE_QUEUE when module_upgradable accepts it, and reports the
 # others as not upgradable yet.
 #
 # Return:
@@ -118,7 +118,6 @@ __collect_upgrades() {
     local canonical_id
     local installed
     local latest
-    local update_mode
 
     # Split on tabs by hand: read collapses consecutive tabs because tab is IFS
     # whitespace, which would shift LATEST into an empty INSTALLED column.
@@ -137,9 +136,9 @@ __collect_upgrades() {
             return 1
         fi
 
-        update_mode="${module_metadata[UPDATE_MODE]:-}"
-        if ! upgrade_supported "$update_mode"; then
-            log_warn "%s: not upgradable yet (UPDATE_MODE=%s)" "$canonical_id" "$update_mode"
+        if ! module_upgradable "$canonical_id" module_metadata; then
+            log_warn "%s: not upgradable yet (UPDATE_MODE=%s)" \
+                "$canonical_id" "${module_metadata[UPDATE_MODE]:-}"
 
             continue
         fi

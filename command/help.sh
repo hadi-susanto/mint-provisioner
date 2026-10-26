@@ -211,10 +211,12 @@ Description:
   update, lists them, asks for confirmation, then upgrades them one at a time
   and prints a result summary. Module install scripts are not run again.
 
-  Only UPDATE_MODE=apt is supported yet: the installed package from
-  UPDATE_PACKAGE is upgraded with apt-get install --only-upgrade (apt-fast
-  when available). Outdated modules with other update modes are reported as
-  not upgradable yet. When apt-mode modules are selected and the APT cache is
+  UPDATE_MODE=apt upgrades the installed package from UPDATE_PACKAGE with
+  apt-get install --only-upgrade (apt-fast when available). UPDATE_MODE=github
+  runs the module's pre-upgrade.sh and upgrade.sh, which download the new
+  release and replace the installed files in place. Outdated modules with
+  other update modes, or without upgrade.sh, are reported as not upgradable
+  yet. When apt-mode modules are selected and the APT cache is
   older than 7 days, mp upgrade offers to run sudo apt-get update first.
 
   Exits 0 when every upgrade succeeded or nothing needed upgrading, 1 when an

@@ -14,7 +14,9 @@
   ├── pre-install.sh     # Optional: Configure prerequisites, repositories, or keys
   ├── install.sh         # Mandatory: Perform the core installation
   ├── post-install.sh    # Optional: Apply post-install system adjustments
-  ├── cleanup.sh         # Optional: Remove installation-only state or artifacts
+  ├── cleanup.sh         # Optional: Remove installation-only state or artifacts (also runs after upgrade)
+  ├── pre-upgrade.sh     # Optional: Download the new release for `mp upgrade`
+  ├── upgrade.sh         # Optional: Replace the installed files for `mp upgrade`; required for UPDATE_MODE="github" upgrades
   └── remove.sh          # Uninstall the software (required for `mp remove|uninstall|purge`; every catalog module has one)
   ```
 
@@ -44,9 +46,10 @@ When creating or updating `metadata.conf`, follow these rules:
   - `github`: The module downloads an artifact from GitHub or installs from a GitHub repository.
   - `sourceforge`: The module downloads an artifact from SourceForge.
   - `external`: The module downloads an artifact directly from a third-party vendor source.
-- `UPDATE_MODE` is optional and opts the module into `mp outdated` and `mp upgrade`. `mp upgrade` supports only `apt`
-  so far (it runs `apt_upgrade` on the installed `UPDATE_PACKAGE` candidate; no phase script runs); other modes are
-  reserved for future pre-upgrade/upgrade phases. Supported values:
+- `UPDATE_MODE` is optional and opts the module into `mp outdated` and `mp upgrade`. `mp upgrade` supports `apt` (it
+  runs `apt_upgrade` on the installed `UPDATE_PACKAGE` candidate; no phase script runs) and `github` (it runs the
+  module's `pre-upgrade.sh` → `upgrade.sh` → `cleanup.sh`; see "Upgrade Phases"). Other modes are reported as not
+  upgradable yet. Supported values:
   - `apt`: Versions come from dpkg and the APT cache. Requires `UPDATE_PACKAGE`, the main Debian package passed to
     `apt_install` (for example `UPDATE_PACKAGE="keepassxc"`). When the package depends on an installation choice, list
     every candidate separated by commas without spaces (for example `UPDATE_PACKAGE="code,code-insiders"`); the first
@@ -474,6 +477,28 @@ For archives containing multiple binaries or a required directory structure:
 - Remove the downloaded temporary file when it exists.
 - Delete the module state after cleanup.
 - Missing state should produce a warning and exit successfully.
+
+## Upgrade Phases (`pre-upgrade.sh`, `upgrade.sh`)
+
+`mp upgrade` runs these for `UPDATE_MODE="github"` modules that ship `upgrade.sh` (modules without it are reported as
+not upgradable yet), followed by the module's `cleanup.sh`, which runs even when an upgrade phase fails.
+
+- `pre-upgrade.sh` downloads the new release into the same state keys `install.sh` uses (`DEB_FILE`, `ARCHIVE_FILE`,
+  `BINARY_FILE`) and passes the release version to `stateful_download`. It is `pre-install.sh` without
+  `valid_install_target` and without install-only downloads such as icons. Share long download logic between both
+  scripts through `lib/workflow/<category>/<module>/` (for example `flameshot_download_deb`, `lapce_download_assets`).
+- `upgrade.sh` only replaces the installed files and records the registry `VERSION`. Do not recreate desktop entries,
+  icons, symlinks, or PATH entries, and do not add install messages. Use the upgrade workflows:
+  - `stateful_deb_upgrade <canonical_id> <state_name>` (`$LIB_WORKFLOW/stateful-deb-upgrade.sh`): upgrades from the
+    `.deb` with `apt_upgrade` (`--only-upgrade`).
+  - `stateful_extract_upgrade <canonical_id> <state_name> <archive_type> <binary>... [-- <extractor args>]`
+    (`$LIB_WORKFLOW/stateful-extract-upgrade.sh`): extracts next to the registry `INSTALL_PATH`, marks the binaries
+    executable, then swaps the directory in; a failure leaves the installation untouched. Pass the same binaries
+    and extractor arguments as `stateful_extract_install`, without link names.
+  - `stateful_binary_upgrade <canonical_id> <state_name> <binary_name>` (`$LIB_WORKFLOW/stateful-binary-upgrade.sh`):
+    replaces one binary inside the registry `INSTALL_PATH`.
+- Read install locations from the registry (`INSTALL_PATH`), not from `INSTALL_DIR` or module environment variables,
+  which may have changed since installation.
 
 ## Removal (`remove.sh`)
 

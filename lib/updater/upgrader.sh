@@ -9,29 +9,37 @@ readonly __MINT_PROVISIONER_UPGRADER_LOADED=1
 source "$LIB_COMMON/common.sh"
 source "$LIB_INSTALLER/apt.sh"
 source "$LIB_UPDATER/apt-versioning.sh"
+source "$LIB_UPDATER/execution.sh"
 
 ##
-# upgrade_supported
+# module_upgradable
 #
-# Checks whether mp upgrade can upgrade modules with the given UPDATE_MODE.
+# Checks whether mp upgrade can upgrade a module. apt-mode modules are always
+# upgradable; github-mode modules need an upgrade.sh phase.
 #
 # Parameters:
-#   update_mode - Module metadata UPDATE_MODE value.
+#   canonical_id - Canonical module ID.
+#   metadata_name - Name of the associative array containing module metadata.
 #
 # Return:
-#   0 - The update mode can be upgraded.
-#   1 - The update mode is not supported yet.
+#   0 - The module can be upgraded.
+#   1 - The module cannot be upgraded yet.
 #
-upgrade_supported() {
-    local update_mode="$1"
+module_upgradable() {
+    local canonical_id="$1"
+    local -n metadata_ref="$2"
 
-    case "$update_mode" in
+    case "${metadata_ref[UPDATE_MODE]:-}" in
         apt)
             return 0
             ;;
+        github)
+            module_has_upgrade_phase "$canonical_id" || return 1
+            ;;
+        *)
+            return 1
+            ;;
     esac
-
-    return 1
 }
 
 ##
@@ -46,6 +54,7 @@ upgrade_supported() {
 # Return:
 #   1 - The upgrade failed.
 #   2 - The UPDATE_MODE is not supported or no installed package was found.
+#       For github, exec_upgrade's status is preserved.
 #   Other - The upgrade backend's non-zero status is preserved.
 #
 upgrade_module() {
@@ -65,8 +74,11 @@ upgrade_module() {
 
             apt_upgrade "$canonical_id" "$package" || return $?
             ;;
+        github)
+            exec_upgrade "$canonical_id" || return $?
+            ;;
         *)
-            # github, external, and git need module pre-upgrade/upgrade phases first.
+            # external and git need module pre-upgrade/upgrade phases first.
             tlog_error "$tag" "Upgrade is not supported for UPDATE_MODE=%s yet" \
                 "${metadata_ref[UPDATE_MODE]:-}"
 

@@ -318,8 +318,11 @@ All new executable-style shell scripts should follow a consistent entry-point st
 * Store the selected command in the `CMD` key.
 * A command must not be replaced once `CMD` has been set. If parsing attempts to select another command, log an error and return `1`.
 * Keep command dispatch explicit using a `case` statement in `main()`. Do not dynamically derive executable script paths from arbitrary command input.
-* Scripts that do not accept command-line options or perform command routing may omit `__parse_args()`, but should still use the `main()` entry-point pattern.
-* Exception: a script whose work is a single command after setup (sourcing, exporting, or validating the environment) may omit `main()` and `main "$@"`. Examples: `mp`, which ends in `exec bash "$MP_COMMAND/main.sh" "$@"`, and a module `cleanup.sh` that calls one helper.
+* Scripts that do not accept command-line options or perform command routing may omit `__parse_args()`, but should still use the `main()` entry-point pattern when they define helper functions.
+* Exception: a script that defines no helper functions may omit `main()` and `main "$@"` and run top to bottom, even
+  across several statements; use `exit` instead of `return` there. Examples: `mp`, which ends in
+  `exec bash "$MP_COMMAND/main.sh" "$@"`, a module `cleanup.sh` that calls one helper, and a module `upgrade.sh` that
+  runs a few workflow calls. Once a script defines a helper function, put the top-level flow in `main()`.
 
 Example structure:
 
