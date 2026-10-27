@@ -61,18 +61,19 @@ upgrade_module() {
     local canonical_id="$1"
     local -n metadata_ref="$2"
     local tag="upgrade:$canonical_id"
-    local package
+    local -a installed_packages=()
 
     case "${metadata_ref[UPDATE_MODE]:-}" in
         apt)
-            if ! package="$(apt_installed_package "${metadata_ref[UPDATE_PACKAGE]}")"; then
+            if ! apt_installed_packages "${metadata_ref[UPDATE_PACKAGE]}" installed_packages; then
                 tlog_error "$tag" "No installed package found for UPDATE_PACKAGE=%s" \
                     "${metadata_ref[UPDATE_PACKAGE]}"
 
                 return 2
             fi
 
-            apt_upgrade "$canonical_id" "$package" || return $?
+            # --only-upgrade leaves packages that are already current untouched.
+            apt_upgrade "$canonical_id" "${installed_packages[@]}" || return $?
             ;;
         github | external | git)
             exec_upgrade "$canonical_id" || return $?

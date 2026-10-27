@@ -65,27 +65,28 @@ apt_installed_version() {
 }
 
 ##
-# apt_installed_package
+# apt_installed_packages <packages> <installed_name>
 #
-# Finds the first installed package of a comma-separated candidate list, such
-# as "code,code-insiders".
+# Finds every installed package of a comma-separated candidate list, such as
+# "code,code-insiders", keeping the list order.
 #
 # Parameters:
 #   packages - Comma-separated Debian package names.
-#
-# Output:
-#   Prints the installed package name.
+#   installed_name - Name of the indexed array that receives the installed
+#       package names.
 #
 # Return:
 #   1 - None of the packages is installed.
 #   2 - A package query failed unexpectedly.
 #
-apt_installed_package() {
+apt_installed_packages() {
     local packages="$1"
+    local -n installed_ref="$2"
     local -a candidates=()
     local candidate
     local status
 
+    installed_ref=()
     IFS=',' read -r -a candidates <<< "$packages"
 
     for candidate in "${candidates[@]}"; do
@@ -94,17 +95,13 @@ apt_installed_package() {
         status=0
         apt_installed_version "$candidate" >/dev/null || status=$?
         if (( status == 0 )); then
-            printf '%s\n' "$candidate"
-
-            return 0
-        fi
-
-        if (( status != 1 )); then
+            installed_ref+=("$candidate")
+        elif (( status != 1 )); then
             return 2
         fi
     done
 
-    return 1
+    (( ${#installed_ref[@]} > 0 ))
 }
 
 ##

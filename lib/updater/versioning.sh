@@ -17,53 +17,91 @@ source "$LIB_WORKFLOW/latest-version.sh"
 ##
 # __resolve_apt_versions <packages> <versions_name>
 #
-# Resolves versions for the first installed package of a comma-separated
-# candidate list, such as "code,code-insiders".
+# Resolves versions for every installed package of a comma-separated candidate
+# list, such as "code,code-insiders". The module is outdated when any installed
+# package is; INSTALLED and LATEST come from the first outdated package, or the
+# first installed one when all are current. With several installed packages,
+# the note counts them.
 #
 __resolve_apt_versions() {
     local packages="$1"
     local -n versions_ref="$2"
+    local -a installed_packages=()
     local package
     local installed
     local latest
+    local compared=0
+    local outdated=0
     local status=0
 
-    package="$(apt_installed_package "$packages")" || status=$?
+    apt_installed_packages "$packages" installed_packages || status=$?
     if (( status == 1 )); then
         versions_ref[NOTE]="package ${packages//,/ or } not installed via apt"
 
         return 0
     fi
 
-    if (( status != 0 )) || ! installed="$(apt_installed_version "$package")"; then
+    if (( status != 0 )); then
         versions_ref[NOTE]="version query failed"
 
         return 1
     fi
 
-    versions_ref[INSTALLED]="$installed"
+    for package in "${installed_packages[@]}"; do
+        if ! installed="$(apt_installed_version "$package")"; then
+            versions_ref[NOTE]="version query failed"
 
-    if latest="$(apt_candidate_version "$package")"; then
-        versions_ref[LATEST]="$latest"
-    else
-        status=$?
-        if (( status == 1 )); then
-            versions_ref[NOTE]="no candidate in apt cache"
-
-            return 0
+            return 1
         fi
 
-        versions_ref[NOTE]="version query failed"
+        status=0
+        latest="$(apt_candidate_version "$package")" || status=$?
+        if (( status == 1 )); then
+            continue
+        fi
 
-        return 1
+        if (( status != 0 )); then
+            versions_ref[NOTE]="version query failed"
+
+            return 1
+        fi
+
+        compared=$((compared + 1))
+
+        if apt_version_newer "$latest" "$installed"; then
+            outdated=$((outdated + 1))
+
+            if (( outdated == 1 )); then
+                versions_ref[INSTALLED]="$installed"
+                versions_ref[LATEST]="$latest"
+            fi
+        elif (( compared == 1 && outdated == 0 )); then
+            versions_ref[INSTALLED]="$installed"
+            versions_ref[LATEST]="$latest"
+        fi
+    done
+
+    if (( compared == 0 )); then
+        versions_ref[INSTALLED]="$installed"
+        versions_ref[NOTE]="no candidate in apt cache"
+
+        return 0
     fi
 
-    if apt_version_newer "$latest" "$installed"; then
+    if (( outdated > 0 )); then
         versions_ref[STATE]="outdated"
         versions_ref[NOTE]="update available"
     else
         versions_ref[STATE]="current"
         versions_ref[NOTE]="up to date"
+    fi
+
+    if (( ${#installed_packages[@]} > 1 )); then
+        if (( outdated > 0 )); then
+            versions_ref[NOTE]+=" ($outdated of ${#installed_packages[@]} packages)"
+        else
+            versions_ref[NOTE]+=" (${#installed_packages[@]} packages)"
+        fi
     fi
 }
 

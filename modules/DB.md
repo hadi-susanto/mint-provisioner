@@ -151,15 +151,17 @@ installs **one** connector per run, chosen interactively (connectors already ins
 | `odbc`   | `mysql-connector-odbc`       |
 | `cpp`    | `libmysqlcppconn-dev`        |
 
-Run `mp install mysql-tools` again to add another connector.
+Run `mp install -f mysql-tools` to add another connector.
+`mp outdated` and `mp upgrade` check and upgrade every installed connector.
 
 Components enabled by `mysql` are kept. Removing this module drops only the `mysql-tools` component on `mp purge`.
 
 ### Installation Detection
 
-The module counts as installed only when all four connector packages are installed, so a single distribution package
-(for example Ubuntu's `libmysqlcppconn-dev`) does not skip the installation. Until all four are present, the module
-stays "not installed" and can be run again to add more connectors without `--force`.
+The module counts as installed when any connector package is installed, so `mp outdated` and `mp upgrade` track
+every connector you chose. Because of that, adding another connector needs `mp install -f mysql-tools`. Ubuntu also
+ships `libmysqlcppconn-dev`; when only that distribution package is installed, the module is reported as installed
+too.
 
 ### Supported ENV
 

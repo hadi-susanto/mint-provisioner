@@ -94,7 +94,7 @@ artifacts.
 Choose the `UPDATE_MODE` that matches how the module installs:
 
 - `apt`: packages from APT. Set `UPDATE_PACKAGE` to the main package, or to comma-separated candidates without spaces
-  when the package depends on an installation choice (the first installed one is checked).
+  when the package depends on an installation choice (every installed one is checked and upgraded).
 - `github`: release assets found with `github_find_release_asset`. Set `UPDATE_REPOSITORY="owner/repo"` and pass
   `"${asset[VERSION]}"` as the last argument of `stateful_download` for the main download.
 - `external`: vendor downloads. Add a read-only `latest.sh` that prints the latest version, resolve the version in

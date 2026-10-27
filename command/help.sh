@@ -211,7 +211,7 @@ Description:
   update, lists them, asks for confirmation, then upgrades them one at a time
   and prints a result summary. Module install scripts are not run again.
 
-  UPDATE_MODE=apt upgrades the installed package from UPDATE_PACKAGE with
+  UPDATE_MODE=apt upgrades every installed package from UPDATE_PACKAGE with
   apt-get install --only-upgrade (apt-fast when available). UPDATE_MODE=github
   and UPDATE_MODE=external run the module's pre-upgrade.sh and upgrade.sh,
   which download the new release and replace the installed files in place,

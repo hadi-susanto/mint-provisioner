@@ -187,7 +187,7 @@ mp upgrade -y [module...]        # skip the confirmation (sudo must be cached or
 
 Runs `mp outdated --porcelain` to find modules with an available update, lists them, asks
 `Upgrade N module(s)? [y/N]`, then upgrades them one at a time and prints a result summary. Module install scripts are
-not run again. Upgrades are dispatched on `UPDATE_MODE`: for `apt`, the installed `UPDATE_PACKAGE` candidate is
+not run again. Upgrades are dispatched on `UPDATE_MODE`: for `apt`, every installed `UPDATE_PACKAGE` candidate is
 upgraded with `apt-get install --only-upgrade` (`apt-fast` when available); for `github` and `external`, the module's
 `pre-upgrade.sh` downloads the new release and `upgrade.sh` replaces the installed files in place (desktop entries,
 symlinks, and user configuration are kept) and records the new version. An application still running from its install

@@ -47,13 +47,15 @@ When creating or updating `metadata.conf`, follow these rules:
   - `sourceforge`: The module downloads an artifact from SourceForge.
   - `external`: The module downloads an artifact directly from a third-party vendor source.
 - `UPDATE_MODE` is optional and opts the module into `mp outdated` and `mp upgrade`. `mp upgrade` supports `apt` (it
-  runs `apt_upgrade` on the installed `UPDATE_PACKAGE` candidate; no phase script runs), `github`, and `external` (both
+  runs `apt_upgrade` on every installed `UPDATE_PACKAGE` candidate; no phase script runs), `github`, and `external` (both
   run the module's `pre-upgrade.sh` → `upgrade.sh` → `cleanup.sh`; see "Upgrade Phases"), and `git` (`upgrade.sh`
   only). Supported values:
   - `apt`: Versions come from dpkg and the APT cache. Requires `UPDATE_PACKAGE`, the main Debian package passed to
     `apt_install` (for example `UPDATE_PACKAGE="keepassxc"`). When the package depends on an installation choice, list
-    every candidate separated by commas without spaces (for example `UPDATE_PACKAGE="code,code-insiders"`); the first
-    installed candidate is checked.
+    every candidate separated by commas without spaces (for example `UPDATE_PACKAGE="code,code-insiders"`). Every
+    installed candidate is checked and upgraded; the module is outdated when any of them is, the table shows the
+    versions of the first outdated one, and with several installed the note counts them (`update available (2 of 3
+    packages)`).
   - `github`: Compares the installed release recorded in the module registry `VERSION` with the latest GitHub
     release tag. Requires `UPDATE_REPOSITORY`, the `owner/repo` of the main release (for example
     `UPDATE_REPOSITORY="sharkdp/bat"`). To record the version, `pre-install.sh` passes `"${asset[VERSION]}"` from
