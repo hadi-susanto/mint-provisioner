@@ -4,7 +4,7 @@ set -euo pipefail
 source "$LIB_INSTALLER/desktop-integration.sh"
 source "$LIB_WORKFLOW/stateful-extract-install.sh"
 
-install_path="$(expand_path "${DEADBEEF_INSTALL_DIR:-$INSTALL_DIR/deadbeef}")" || return $?
+install_path="$(expand_path "${DEADBEEF_INSTALL_DIR:-$INSTALL_DIR/deadbeef}")" || exit $?
 stateful_extract_install \
     "$CANONICAL_ID" \
     "ARCHIVE_FILE" \

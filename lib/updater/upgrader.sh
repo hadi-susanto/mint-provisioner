@@ -15,7 +15,7 @@ source "$LIB_UPDATER/execution.sh"
 # module_upgradable
 #
 # Checks whether mp upgrade can upgrade a module. apt-mode modules are always
-# upgradable; github-mode modules need an upgrade.sh phase.
+# upgradable; github- and external-mode modules need an upgrade.sh phase.
 #
 # Parameters:
 #   canonical_id - Canonical module ID.
@@ -33,7 +33,7 @@ module_upgradable() {
         apt)
             return 0
             ;;
-        github)
+        github | external)
             module_has_upgrade_phase "$canonical_id" || return 1
             ;;
         *)
@@ -54,7 +54,7 @@ module_upgradable() {
 # Return:
 #   1 - The upgrade failed.
 #   2 - The UPDATE_MODE is not supported or no installed package was found.
-#       For github, exec_upgrade's status is preserved.
+#       For github and external, exec_upgrade's status is preserved.
 #   Other - The upgrade backend's non-zero status is preserved.
 #
 upgrade_module() {
@@ -74,11 +74,11 @@ upgrade_module() {
 
             apt_upgrade "$canonical_id" "$package" || return $?
             ;;
-        github)
+        github | external)
             exec_upgrade "$canonical_id" || return $?
             ;;
         *)
-            # external and git need module pre-upgrade/upgrade phases first.
+            # git needs module pre-upgrade/upgrade phases first.
             tlog_error "$tag" "Upgrade is not supported for UPDATE_MODE=%s yet" \
                 "${metadata_ref[UPDATE_MODE]:-}"
 

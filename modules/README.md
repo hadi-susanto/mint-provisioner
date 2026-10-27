@@ -95,7 +95,7 @@ phases, then runs `cleanup.sh` when present. The framework records the result, c
 prints a summary, and exits non-zero if any module failed.
 
 `mp upgrade` upgrades `UPDATE_MODE="apt"` modules with `apt-get install --only-upgrade` and, for
-`UPDATE_MODE="github"` modules that ship `upgrade.sh`, runs `pre-upgrade.sh → upgrade.sh → cleanup.sh` (see "Upgrade
+`UPDATE_MODE="github"` and `UPDATE_MODE="external"` modules that ship `upgrade.sh`, runs `pre-upgrade.sh → upgrade.sh → cleanup.sh` (see "Upgrade
 Phases" in `modules/AGENTS.md`). Install, interactive, and post-install phases do not run again.
 
 `mp remove` (alias `mp uninstall`) and `mp purge` run only the module's `remove.sh`, with `PURGE=true` for purge (after the
@@ -139,7 +139,7 @@ registry data, files, package variants, or multiple application artifacts.
 | `post-install.sh`    |    No    | Apply an installation-adjacent adjustment after a successful installation.                                   |
 | `cleanup.sh`         |    No    | Remove temporary state, downloads, and intermediate files; also runs after `mp upgrade` phases.              |
 | `pre-upgrade.sh`     |    No    | Download the new release for `mp upgrade` into the states `upgrade.sh` reads.                                |
-| `upgrade.sh`         |    No    | Replace installed files and record `VERSION` for `mp upgrade`; required to upgrade `UPDATE_MODE="github"`.   |
+| `upgrade.sh`         |    No    | Replace installed files and record `VERSION` for `mp upgrade`; required for `github`/`external` upgrades.    |
 | `remove.sh`          |    No    | Undo the installation for `mp remove`, `mp uninstall`, and `mp purge`; modules without it cannot be removed. |
 | `latest.sh`          |    No    | Print the latest available version for `mp outdated` and `pre-install.sh` (`UPDATE_MODE="external"`).        |
 

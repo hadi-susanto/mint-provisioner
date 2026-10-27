@@ -188,10 +188,11 @@ mp upgrade -y [module...]        # skip the confirmation (sudo must be cached or
 Runs `mp outdated --porcelain` to find modules with an available update, lists them, asks
 `Upgrade N module(s)? [y/N]`, then upgrades them one at a time and prints a result summary. Module install scripts are
 not run again. Upgrades are dispatched on `UPDATE_MODE`: for `apt`, the installed `UPDATE_PACKAGE` candidate is
-upgraded with `apt-get install --only-upgrade` (`apt-fast` when available); for `github`, the module's `pre-upgrade.sh`
-downloads the new release and `upgrade.sh` replaces the installed files in place (desktop entries and symlinks are kept)
-and records the new version. Outdated modules with other update modes, or github modules without `upgrade.sh`, are
-reported as not upgradable yet. A stale APT cache (older than 7 days) is offered for refresh first;
+upgraded with `apt-get install --only-upgrade` (`apt-fast` when available); for `github` and `external`, the module's
+`pre-upgrade.sh` downloads the new release and `upgrade.sh` replaces the installed files in place (desktop entries,
+symlinks, and user configuration are kept) and records the new version. An application still running from its install
+directory (for example a JetBrains IDE) is not replaced; close it and run `mp upgrade` again. Outdated `git` modules,
+or modules without `upgrade.sh`, are reported as not upgradable yet. A stale APT cache (older than 7 days) is offered for refresh first;
 `-y` refreshes it without asking.
 Without a terminal, `-y` is required. Exits `1` when an upgrade, detection, or version query fails.
 
@@ -282,7 +283,7 @@ mint-provisioner/
 │   │   └── ...                         # Download, path, prompt, and system helpers
 │   ├── updater/                        # Version lookups and upgrades for mp outdated and mp upgrade
 │   │   ├── versioning.sh               # Dispatch on UPDATE_MODE (apt, github, external, git, none)
-│   │   ├── upgrader.sh                 # Upgrade dispatch on UPDATE_MODE (apt, github)
+│   │   ├── upgrader.sh                 # Upgrade dispatch on UPDATE_MODE (apt, github, external)
 │   │   ├── execution.sh                # Upgrade lifecycle: pre-upgrade, upgrade, cleanup
 │   │   ├── apt-versioning.sh           # dpkg installed version, APT candidate, cache age and refresh
 │   │   ├── recorded-versioning.sh      # Registry VERSION recorded at install time
@@ -294,7 +295,8 @@ mint-provisioner/
 │       ├── stateful-*-upgrade.sh       # In-place Debian-package, archive, and binary upgrade steps
 │       ├── latest-version.sh           # Run a module's latest.sh (pre-install and mp outdated)
 │       ├── version-registry.sh         # Record the installed VERSION in the registry
-│       ├── jetbrains-*.sh              # Shared JetBrains IDE workflow phases and release lookup
+│       ├── jetbrains-*.sh              # Shared JetBrains IDE workflow phases, release lookup, and download
+│       ├── hashicorp-download.sh       # Download and verify a HashiCorp release binary (Consul, Vault)
 │       ├── state-cleaner.sh            # Clean temporary module state
 │       └── <category>/<module>/        # Product-specific resolvers and installers
 ├── modules/                            # Module catalog and lifecycle scripts
