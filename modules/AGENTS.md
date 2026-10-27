@@ -48,8 +48,8 @@ When creating or updating `metadata.conf`, follow these rules:
   - `external`: The module downloads an artifact directly from a third-party vendor source.
 - `UPDATE_MODE` is optional and opts the module into `mp outdated` and `mp upgrade`. `mp upgrade` supports `apt` (it
   runs `apt_upgrade` on the installed `UPDATE_PACKAGE` candidate; no phase script runs), `github`, and `external` (both
-  run the module's `pre-upgrade.sh` → `upgrade.sh` → `cleanup.sh`; see "Upgrade Phases"). `git` is reported as not
-  upgradable yet. Supported values:
+  run the module's `pre-upgrade.sh` → `upgrade.sh` → `cleanup.sh`; see "Upgrade Phases"), and `git` (`upgrade.sh`
+  only). Supported values:
   - `apt`: Versions come from dpkg and the APT cache. Requires `UPDATE_PACKAGE`, the main Debian package passed to
     `apt_install` (for example `UPDATE_PACKAGE="keepassxc"`). When the package depends on an installation choice, list
     every candidate separated by commas without spaces (for example `UPDATE_PACKAGE="code,code-insiders"`); the first
@@ -70,7 +70,7 @@ When creating or updating `metadata.conf`, follow these rules:
   - `git`: For modules installed as a git clone. Compares the commit checked out in the registry `INSTALL_PATH` with
     the latest commit of the same branch on its `origin` remote (`git ls-remote`; nothing is fetched). The install
     phase must save the clone directory as registry `INSTALL_PATH` (`git_clone_install` does this). No version is
-    recorded at install time.
+    recorded at install time or by upgrades.
   - `none`: Explicit opt-out for modules without a single meaningful version, such as `sys/nerd-font`. Always
     reported as `-` with no update.
   Modules without `UPDATE_MODE` are listed by `mp outdated` with unknown versions.
@@ -480,7 +480,7 @@ For archives containing multiple binaries or a required directory structure:
 
 ## Upgrade Phases (`pre-upgrade.sh`, `upgrade.sh`)
 
-`mp upgrade` runs these for `UPDATE_MODE="github"` and `UPDATE_MODE="external"` modules that ship `upgrade.sh`
+`mp upgrade` runs these for `UPDATE_MODE="github"`, `"external"`, and `"git"` modules that ship `upgrade.sh`
 (modules without it are reported as not upgradable yet), followed by the module's `cleanup.sh`, which runs even when an
 upgrade phase fails.
 
@@ -515,6 +515,15 @@ upgrade phase fails.
 - Tools that update themselves may skip `pre-upgrade.sh`: `dev/sdkman` runs `sdk selfupdate force` in a child shell and
   records `var/version` as `VERSION`. `cli/openconnect-saml` reinstalls the pinned version with pipx into the
   registry `INSTALL_PATH`.
+- `git` modules have no `pre-upgrade.sh`. `upgrade.sh` calls `git_pull_upgrade <canonical_id> [previous_name]`
+  (`$LIB_WORKFLOW/git-pull-upgrade.sh`), which fast-forwards the clone at registry `INSTALL_PATH` to the tip of its
+  branch on `origin` with `git pull --ff-only` (shallow clones grow by the new commits), then runs `git gc`. Local
+  commits or a rewritten upstream branch fail the upgrade without touching the clone. It refuses when tracked files
+  have local edits (file mode changes are ignored, untracked files
+  such as `.venv` or compiled data are kept). When a rebuild step follows (Meld `meld_compile_runtime_data`,
+  OneDriveGUI `onedrive_gui_install_requirements`), pass `previous_name` and call `git_restore_commit <canonical_id>
+  <commit>` when the step fails, then rebuild the restored sources. Nothing is recorded: `mp outdated` reads the
+  clone's `HEAD`.
 
 ## Removal (`remove.sh`)
 

@@ -7,6 +7,7 @@ source "$LIB_INSTALLER/git-clone.sh"
 source "$LIB_INSTALLER/path.sh"
 source "$LIB_INSTALLER/registry.sh"
 source "$LIB_INSTALLER/symlink.sh"
+source "$LIB_WORKFLOW/gui/meld/installer.sh"
 
 declare -r REPOSITORY="https://gitlab.gnome.org/GNOME/meld.git"
 # Last stable GTK 3 branch; main targets GTK 4 and libadwaita 1.6, which Linux Mint 22 does not provide.
@@ -36,52 +37,6 @@ gi.require_foreign("cairo")
     fi
 }
 
-##
-# __compile_runtime_data <canonical_id> <install_path>
-#
-# Compiles the GResource bundle, GSettings schema, and translations that Meld otherwise builds
-# on first launch when it runs from its source directory.
-#
-# Return:
-#   1 when the GResource bundle or GSettings schema cannot be compiled.
-#
-__compile_runtime_data() {
-    local canonical_id="$1"
-    local install_path="$2"
-    local tag="install:$canonical_id"
-    local po_file
-    local language
-    local mo_dir
-
-    tlog_info "$tag" "Compiling Meld resources and settings schema"
-    if ! glib-compile-resources \
-        --target="$install_path/data/org.gnome.Meld.gresource" \
-        --sourcedir="$install_path/meld/resources" \
-        --sourcedir="$install_path/data/icons/hicolor" \
-        "$install_path/meld/resources/meld.gresource.xml"; then
-        tlog_error "$tag" "Failed to compile Meld resources"
-
-        return 1
-    fi
-
-    if ! glib-compile-schemas "$install_path/data"; then
-        tlog_error "$tag" "Failed to compile Meld settings schema"
-
-        return 1
-    fi
-
-    tlog_info "$tag" "Compiling Meld translations"
-    for po_file in "$install_path"/po/*.po; do
-        [[ -f "$po_file" ]] || continue
-
-        language="$(basename -- "$po_file" .po)"
-        mo_dir="$install_path/build/mo/$language/LC_MESSAGES"
-        if ! mkdir -p "$mo_dir" || ! msgfmt -o "$mo_dir/meld.mo" "$po_file"; then
-            tlog_warn "$tag" "Failed to compile translation: %s" "$language"
-        fi
-    done
-}
-
 main() {
     local canonical_id="$1"
     local install_path
@@ -92,7 +47,7 @@ main() {
     symlink_binary "$canonical_id" "$install_path/bin/meld" "meld" || return $?
     set_registry "INSTALL_PATH" "$install_path" || return $?
     save_registry "$canonical_id" || return $?
-    __compile_runtime_data "$canonical_id" "$install_path" || return $?
+    meld_compile_runtime_data "$canonical_id" "$install_path" || return $?
     install_desktop_entry "$canonical_id" "meld" "Meld" "meld" \
         --exec-args "%F" \
         --try-exec "meld" \

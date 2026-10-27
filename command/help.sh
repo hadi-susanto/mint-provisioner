@@ -216,8 +216,10 @@ Description:
   and UPDATE_MODE=external run the module's pre-upgrade.sh and upgrade.sh,
   which download the new release and replace the installed files in place,
   keeping user configuration. An application still running from its install
-  directory is not replaced. Outdated git modules, or modules without
-  upgrade.sh, are reported as not upgradable yet. When apt-mode modules are selected and the APT cache is
+  directory is not replaced. UPDATE_MODE=git runs upgrade.sh, which moves the
+  clone to the latest commit of its branch; a clone with local edits to
+  tracked files is not touched. Modules without upgrade.sh are reported as not
+  upgradable yet. When apt-mode modules are selected and the APT cache is
   older than 7 days, mp upgrade offers to run sudo apt-get update first.
 
   Exits 0 when every upgrade succeeded or nothing needed upgrading, 1 when an

@@ -191,9 +191,10 @@ not run again. Upgrades are dispatched on `UPDATE_MODE`: for `apt`, the installe
 upgraded with `apt-get install --only-upgrade` (`apt-fast` when available); for `github` and `external`, the module's
 `pre-upgrade.sh` downloads the new release and `upgrade.sh` replaces the installed files in place (desktop entries,
 symlinks, and user configuration are kept) and records the new version. An application still running from its install
-directory (for example a JetBrains IDE) is not replaced; close it and run `mp upgrade` again. Outdated `git` modules,
-or modules without `upgrade.sh`, are reported as not upgradable yet. A stale APT cache (older than 7 days) is offered for refresh first;
-`-y` refreshes it without asking.
+directory (for example a JetBrains IDE) is not replaced; close it and run `mp upgrade` again. For `git`, `upgrade.sh`
+moves the clone to the latest commit of its branch; a clone with local edits to tracked files is left untouched.
+Modules without `upgrade.sh` are reported as not upgradable yet. A stale APT cache (older than 7 days) is offered for
+refresh first; `-y` refreshes it without asking.
 Without a terminal, `-y` is required. Exits `1` when an upgrade, detection, or version query fails.
 
 ### Remove Modules
@@ -283,7 +284,7 @@ mint-provisioner/
 │   │   └── ...                         # Download, path, prompt, and system helpers
 │   ├── updater/                        # Version lookups and upgrades for mp outdated and mp upgrade
 │   │   ├── versioning.sh               # Dispatch on UPDATE_MODE (apt, github, external, git, none)
-│   │   ├── upgrader.sh                 # Upgrade dispatch on UPDATE_MODE (apt, github, external)
+│   │   ├── upgrader.sh                 # Upgrade dispatch on UPDATE_MODE (apt, github, external, git)
 │   │   ├── execution.sh                # Upgrade lifecycle: pre-upgrade, upgrade, cleanup
 │   │   ├── apt-versioning.sh           # dpkg installed version, APT candidate, cache age and refresh
 │   │   ├── recorded-versioning.sh      # Registry VERSION recorded at install time
@@ -297,6 +298,7 @@ mint-provisioner/
 │       ├── version-registry.sh         # Record the installed VERSION in the registry
 │       ├── jetbrains-*.sh              # Shared JetBrains IDE workflow phases, release lookup, and download
 │       ├── hashicorp-download.sh       # Download and verify a HashiCorp release binary (Consul, Vault)
+│       ├── git-pull-upgrade.sh         # Fast-forward a git clone to its branch tip, or back on failure
 │       ├── state-cleaner.sh            # Clean temporary module state
 │       └── <category>/<module>/        # Product-specific resolvers and installers
 ├── modules/                            # Module catalog and lifecycle scripts
