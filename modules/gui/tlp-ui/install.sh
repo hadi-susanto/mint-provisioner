@@ -19,8 +19,8 @@ __ensure_python_dependencies() {
     if ! python3 -c 'import gi, yaml, toml' >/dev/null 2>&1; then
         tlog_error "$tag" "Failed to load the required Python modules: gi, yaml and toml"
 
-        exit 1
-    fi    
+        return 1
+    fi
 }
 
 __clone_tlpui_repository() {

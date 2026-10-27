@@ -194,35 +194,67 @@ __restore_apt_int_trap() {
     trap - INT
 }
 
+__apt_command() {
+    if command -v apt-fast >/dev/null 2>&1; then
+        printf 'apt-fast\n'
+    else
+        printf 'apt-get\n'
+    fi
+}
+
 ##
-# apt_install
+# __apt_get_with_retry <tag> <action> <apt-argument...>
 #
-# Installs packages with apt-fast when available, otherwise apt-get, using up
-# to three attempts.
-#
-# Parameters:
-#   canonical_id - Canonical module ID used for logging.
-#   package - One or more package names to install.
+# Runs apt-fast when available, otherwise apt-get, with sudo and up to three
+# attempts. <action> names the operation in log messages, such as
+# "installation".
 #
 # Return:
-#   0 - All requested packages were installed.
-#   1 - Validation failed or all installation attempts failed.
-#   130 - Package installation was interrupted.
+#   1 - All attempts failed.
+#   130 - The operation was interrupted.
 #
-apt_install() {
-    local canonical_id="${1:-}"
-    local tag="apt"
+__apt_get_with_retry() {
+    local tag="$1"
+    local action="$2"
+    shift 2
 
-    if [[ -n "$canonical_id" ]]; then
-        tag+=":$canonical_id"
-    fi
+    local apt_command
+    local attempt
+    local interrupted=0
+    local max_attempts=3
+    local previous_int_trap
 
-    if (( $# < 2 )) || [[ -z "$canonical_id" ]]; then
-        tlog_error "$tag" "A canonical ID and at least one package are required"
+    apt_command="$(__apt_command)"
+    previous_int_trap="$(trap -p INT)"
+    trap 'interrupted=1' INT
 
-        return 1
-    fi
+    for (( attempt = 1; attempt <= max_attempts; attempt += 1 )); do
+        if sudo "$apt_command" "$@"; then
+            __restore_apt_int_trap "$previous_int_trap"
+            tlog_info "$tag" "Package %s completed" "$action"
 
+            return 0
+        fi
+
+        if (( interrupted )); then
+            __restore_apt_int_trap "$previous_int_trap"
+            tlog_warn "$tag" "Package %s interrupted" "$action"
+
+            return 130
+        fi
+
+        tlog_error "$tag" "%s attempt %d/%d failed" \
+            "${action^}" "$attempt" "$max_attempts"
+    done
+
+    __restore_apt_int_trap "$previous_int_trap"
+    tlog_error "$tag" "Package %s failed after %d attempts" "$action" "$max_attempts"
+
+    return 1
+}
+
+__validate_apt_packages() {
+    local tag="$1"
     shift
 
     local package
@@ -235,42 +267,58 @@ apt_install() {
         fi
     done
 
-    local apt_command="apt-get"
-    local attempt
-    local interrupted=0
-    local max_attempts=3
-    local previous_int_trap
+    return 0
+}
 
-    if command -v apt-fast >/dev/null 2>&1; then
-        apt_command="apt-fast"
-    fi
+##
+# apt_install
+#
+# Installs packages with apt-fast when available, otherwise apt-get, using up
+# to three attempts.
+#
+# Parameters:
+#   canonical_id - Canonical module ID used for logging.
+#   package - One or more package names to install.
+#
+# Return:
+#   0 - All requested packages were installed.
+#   1 - A package name is empty or all installation attempts failed.
+#   130 - Package installation was interrupted.
+#
+apt_install() {
+    local canonical_id="$1"
+    local tag="apt:$canonical_id"
+    shift
 
-    tlog_info "$tag" "Installing packages with %s: %s" "$apt_command" "$*"
+    __validate_apt_packages "$tag" "$@" || return $?
 
-    previous_int_trap="$(trap -p INT)"
-    trap 'interrupted=1' INT
+    tlog_info "$tag" "Installing packages with %s: %s" "$(__apt_command)" "$*"
+    __apt_get_with_retry "$tag" "installation" install -y "$@"
+}
 
-    for (( attempt = 1; attempt <= max_attempts; attempt += 1 )); do
-        if sudo "$apt_command" install -y "$@"; then
-            __restore_apt_int_trap "$previous_int_trap"
-            tlog_info "$tag" "Package installation completed"
+##
+# apt_upgrade
+#
+# Upgrades already installed packages with apt-fast when available, otherwise
+# apt-get, using up to three attempts. A package that is not installed stays
+# uninstalled (--only-upgrade).
+#
+# Parameters:
+#   canonical_id - Canonical module ID used for logging.
+#   package - One or more installed package names to upgrade.
+#
+# Return:
+#   0 - All requested packages were upgraded or already current.
+#   1 - A package name is empty or all upgrade attempts failed.
+#   130 - Package upgrade was interrupted.
+#
+apt_upgrade() {
+    local canonical_id="$1"
+    local tag="apt:$canonical_id"
+    shift
 
-            return 0
-        fi
+    __validate_apt_packages "$tag" "$@" || return $?
 
-        if (( interrupted )); then
-            __restore_apt_int_trap "$previous_int_trap"
-            tlog_warn "$tag" "Package installation interrupted"
-
-            return 130
-        fi
-
-        tlog_error "$tag" "Installation attempt %d/%d failed" \
-            "$attempt" "$max_attempts"
-    done
-
-    __restore_apt_int_trap "$previous_int_trap"
-    tlog_error "$tag" "Package installation failed after %d attempts" "$max_attempts"
-
-    return 1
+    tlog_info "$tag" "Upgrading packages with %s: %s" "$(__apt_command)" "$*"
+    __apt_get_with_retry "$tag" "upgrade" install --only-upgrade -y "$@"
 }

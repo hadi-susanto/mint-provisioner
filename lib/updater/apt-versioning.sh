@@ -8,6 +8,9 @@ readonly __MINT_PROVISIONER_APT_VERSIONING_LOADED=1
 
 source "$LIB_COMMON/common.sh"
 
+# Cache age in days above which offer_apt_cache_refresh offers apt-get update.
+readonly APT_CACHE_MAX_AGE_DAYS=7
+
 # apt-get update rewrites the partial directory on every run, unlike list files
 # whose mtime follows the server and pkgcache.bin which dpkg changes also touch.
 readonly -a __APT_UPDATE_STAMPS=(
@@ -59,6 +62,46 @@ apt_installed_version() {
     fi
 
     printf '%s\n' "${query#*$'\t'}"
+}
+
+##
+# apt_installed_packages <packages> <installed_name>
+#
+# Finds every installed package of a comma-separated candidate list, such as
+# "code,code-insiders", keeping the list order.
+#
+# Parameters:
+#   packages - Comma-separated Debian package names.
+#   installed_name - Name of the indexed array that receives the installed
+#       package names.
+#
+# Return:
+#   1 - None of the packages is installed.
+#   2 - A package query failed unexpectedly.
+#
+apt_installed_packages() {
+    local packages="$1"
+    local -n installed_ref="$2"
+    local -a candidates=()
+    local candidate
+    local status
+
+    installed_ref=()
+    IFS=',' read -r -a candidates <<< "$packages"
+
+    for candidate in "${candidates[@]}"; do
+        __trim candidate
+
+        status=0
+        apt_installed_version "$candidate" >/dev/null || status=$?
+        if (( status == 0 )); then
+            installed_ref+=("$candidate")
+        elif (( status != 1 )); then
+            return 2
+        fi
+    done
+
+    (( ${#installed_ref[@]} > 0 ))
 }
 
 ##
@@ -170,4 +213,59 @@ refresh_apt_cache() {
 
         return 1
     fi
+}
+
+##
+# offer_apt_cache_refresh
+#
+# Offers to run apt-get update when the APT cache is older than
+# APT_CACHE_MAX_AGE_DAYS. Without a terminal, only warns unless assume_yes is 1.
+# Failures leave the existing cache in use.
+#
+# Parameters:
+#   assume_yes - 1 to refresh without asking, 0 to ask first.
+#
+offer_apt_cache_refresh() {
+    local assume_yes="$1"
+    local DISABLE_WHIPTAIL=true
+    local age
+    local status=0
+
+    if ! age="$(apt_cache_age_days)"; then
+        log_warn "Unable to determine the APT cache age; versions may be outdated"
+
+        return 0
+    fi
+
+    if (( age <= APT_CACHE_MAX_AGE_DAYS )); then
+        return 0
+    fi
+
+    if (( assume_yes )); then
+        log_info "APT cache is %d days old" "$age"
+        refresh_apt_cache || log_warn "Continuing with the existing APT cache"
+
+        return 0
+    fi
+
+    if [[ ! -t 0 || ! -t 1 ]]; then
+        log_warn "APT cache is %d days old; run 'sudo apt-get update' for current versions" "$age"
+
+        return 0
+    fi
+
+    if ! source "$LIB_INSTALLER/prompt.sh"; then
+        log_warn "Continuing with the existing APT cache"
+
+        return 0
+    fi
+
+    ask_confirm "APT cache is $age days old. Run 'sudo apt-get update' now?" || status=$?
+    if (( status == 0 )); then
+        refresh_apt_cache || log_warn "Continuing with the existing APT cache"
+    elif (( status != 1 )); then
+        log_warn "Continuing with the existing APT cache"
+    fi
+
+    return 0
 }

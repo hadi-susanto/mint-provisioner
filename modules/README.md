@@ -94,6 +94,10 @@ Missing optional scripts are skipped. A failure in a normal installation phase s
 phases, then runs `cleanup.sh` when present. The framework records the result, continues with later selected modules,
 prints a summary, and exits non-zero if any module failed.
 
+`mp upgrade` upgrades `UPDATE_MODE="apt"` modules with `apt-get install --only-upgrade` and, for `github`,
+`external`, and `git` modules that ship `upgrade.sh`, runs `pre-upgrade.sh → upgrade.sh → cleanup.sh` (see "Upgrade
+Phases" in `modules/AGENTS.md`). Install, interactive, and post-install phases do not run again.
+
 `mp remove` (alias `mp uninstall`) and `mp purge` run only the module's `remove.sh`, with `PURGE=true` for purge (after the
 user types `PURGE` to confirm). The framework deletes the module's registry after `remove.sh`
 succeeds, except on a plain remove that kept a registry-recorded data directory (`DATA_RETAINED=1`), so a later
@@ -133,7 +137,9 @@ registry data, files, package variants, or multiple application artifacts.
 | `pre-install.sh`     |    No    | Prepare repositories, dependencies, downloads, keys, or temporary files.                                     |
 | `install.sh`         |   Yes    | Perform the software installation and save durable installation facts when needed.                           |
 | `post-install.sh`    |    No    | Apply an installation-adjacent adjustment after a successful installation.                                   |
-| `cleanup.sh`         |    No    | Remove temporary state, downloads, and intermediate files.                                                   |
+| `cleanup.sh`         |    No    | Remove temporary state, downloads, and intermediate files; also runs after `mp upgrade` phases.              |
+| `pre-upgrade.sh`     |    No    | Download the new release for `mp upgrade` into the states `upgrade.sh` reads.                                |
+| `upgrade.sh`         |    No    | Replace installed files and record `VERSION` for `mp upgrade`; required for `github`/`external`/`git`.       |
 | `remove.sh`          |    No    | Undo the installation for `mp remove`, `mp uninstall`, and `mp purge`; modules without it cannot be removed. |
 | `latest.sh`          |    No    | Print the latest available version for `mp outdated` and `pre-install.sh` (`UPDATE_MODE="external"`).        |
 
@@ -144,7 +150,7 @@ upgrades anything. Each module declares how its versions are found with `UPDATE_
 
 | `UPDATE_MODE` | Installed version                                    | Latest version                                       |
 |---------------|------------------------------------------------------|------------------------------------------------------|
-| `apt`         | dpkg version of the first installed `UPDATE_PACKAGE` | APT candidate (offers `apt-get update` after 7 days) |
+| `apt`         | dpkg version of each installed `UPDATE_PACKAGE`      | APT candidate (offers `apt-get update` after 7 days) |
 | `github`      | Registry `VERSION` recorded at install time          | Latest release tag of `UPDATE_REPOSITORY`            |
 | `external`    | Registry `VERSION` recorded at install time          | Output of the module's `latest.sh`                   |
 | `git`         | Commit of the clone at registry `INSTALL_PATH`       | Latest commit of the same branch on `origin`         |
@@ -224,7 +230,7 @@ UPDATE_REPOSITORY="example/example-app"
 | `SOURCE`            |   Yes    | Installation source: `native`, `ppa`, `apt`, `github`, `external`, or `sourceforge`.                          |
 | `CLI`               |    No    | Comma-separated executable names used for default installed-state detection. Every command must be non-empty. |
 | `UPDATE_MODE`       |    No    | `mp outdated` version tracking: `apt`, `github`, `external`, `git`, or `none`; every catalog module sets it.  |
-| `UPDATE_PACKAGE`    |   apt    | Debian package(s) to check; comma-separated candidates without spaces, first installed wins.                  |
+| `UPDATE_PACKAGE`    |   apt    | Debian package(s) to check; comma-separated candidates without spaces, every installed one counts.            |
 | `UPDATE_REPOSITORY` |  github  | `owner/repo` whose latest release tag is the latest version.                                                  |
 
 Omit `CLI` when the module ID basename is the executable name. Add it when the executable differs from that basename or

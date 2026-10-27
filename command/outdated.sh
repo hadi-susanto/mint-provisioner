@@ -7,12 +7,12 @@ source "$LIB_COMMON/resolver.sh"
 source "$LIB_INSTALLER/detection.sh"
 source "$LIB_UPDATER/versioning.sh"
 
-readonly __APT_CACHE_MAX_AGE_DAYS=7
 readonly __DEFAULT_WORKERS=6
 readonly __MAX_WORKERS=9
 
-# Inspection results, filled by __inspect_modules and read by __print_versions.
+# Inspection results, filled by __inspect_modules_async and read by __print_versions.
 declare -a __SHOWN_IDS=()
+declare -A __VERSION_NAMES=()
 declare -A __VERSION_INSTALLED=()
 declare -A __VERSION_LATEST=()
 declare -A __VERSION_STATES=()
@@ -33,7 +33,7 @@ __parse_args() {
 
     options_ref=(
         [HELP]=0
-        [ASYNC]=0
+        [PORCELAIN]=0
         [WORKERS]="$__DEFAULT_WORKERS"
     )
     args_ref=()
@@ -44,8 +44,11 @@ __parse_args() {
                 options_ref[HELP]=1
                 shift
                 ;;
+            --porcelain)
+                options_ref[PORCELAIN]=1
+                shift
+                ;;
             --async | --batch)
-                options_ref[ASYNC]=1
                 shift
                 if [[ "${1:-}" =~ ^[0-9]+$ ]]; then
                     options_ref[WORKERS]="$1"
@@ -53,7 +56,6 @@ __parse_args() {
                 fi
                 ;;
             --async=* | --batch=*)
-                options_ref[ASYNC]=1
                 options_ref[WORKERS]="${1#*=}"
                 shift
                 ;;
@@ -74,8 +76,8 @@ __parse_args() {
         esac
     done
 
-    if (( options_ref[ASYNC] )) && { [[ ! "${options_ref[WORKERS]}" =~ ^[0-9]+$ ]] ||
-        (( 10#${options_ref[WORKERS]} < 1 || 10#${options_ref[WORKERS]} > __MAX_WORKERS )); }; then
+    if [[ ! "${options_ref[WORKERS]}" =~ ^[0-9]+$ ]] ||
+        (( 10#${options_ref[WORKERS]} < 1 || 10#${options_ref[WORKERS]} > __MAX_WORKERS )); then
         log_error "Worker count must be between 1 and %d: %s" "$__MAX_WORKERS" "${options_ref[WORKERS]}"
 
         return 2
@@ -84,48 +86,28 @@ __parse_args() {
     return 0
 }
 
-__show_status() {
-    local canonical_id="$1"
-    local index="$2"
-    local total="$3"
-
-    if [[ -t 2 ]]; then
-        printf '\033[2K\r%b[INFO]%b Inspecting %s (%d/%d)' \
-            "$COLOR_BLUE" "$COLOR_RESET" "$canonical_id" "$index" "$total" >&2
-    fi
-}
-
-__clear_status() {
-    if [[ -t 2 ]]; then
-        printf '\033[2K\r' >&2
-    fi
-}
-
 ##
-# __inspect_module <canonical_id> <versions_name>
+# __inspect_module <canonical_id> <metadata_name> <versions_name>
 #
-# Detects the installed state and versions of one module and fills the
-# associative array <versions_name> with [INSTALLED], [LATEST], [STATE], and
-# [NOTE].
+# Detects the installed state of one module and, when installed, resolves its
+# versions into <versions_name> ([INSTALLED], [LATEST], [STATE], [NOTE]).
+# Not-installed modules get STATE missing; failed detection gets STATE error.
 #
 # Return:
 #   1 - Detection or a version query failed; the row is still filled.
-#   2 - Module metadata cannot be parsed; the row is not filled.
 #
 __inspect_module() {
     local canonical_id="$1"
-    local versions_name="$2"
+    local metadata_name="$2"
+    local versions_name="$3"
     local -n inspect_ref="$versions_name"
-    local -A module_metadata=()
     local status=0
 
-    parse_module_metadata "$MP_MODULES/$canonical_id" module_metadata || return 2
-
-    module_installed "$canonical_id" module_metadata >/dev/null || status=$?
+    module_installed "$canonical_id" "$metadata_name" >/dev/null || status=$?
 
     case "$status" in
         0)
-            resolve_module_versions "$canonical_id" module_metadata "$versions_name" || return 1
+            resolve_module_versions "$canonical_id" "$metadata_name" "$versions_name" || return 1
             ;;
         1)
             inspect_ref=([INSTALLED]="-" [LATEST]="-" [STATE]="missing" [NOTE]="not installed")
@@ -140,56 +122,16 @@ __inspect_module() {
     return 0
 }
 
+# __store_versions <canonical_id> <name> <installed> <latest> <state> <note>
 __store_versions() {
     local canonical_id="$1"
 
     __SHOWN_IDS+=("$canonical_id")
-    __VERSION_INSTALLED["$canonical_id"]="$2"
-    __VERSION_LATEST["$canonical_id"]="$3"
-    __VERSION_STATES["$canonical_id"]="$4"
-    __VERSION_NOTES["$canonical_id"]="$5"
-}
-
-##
-# __inspect_modules <canonical_id...>
-#
-# Inspects modules one at a time and stores the results in the __SHOWN_IDS and
-# __VERSION_* globals. Sets __FAILED when detection or a version query fails.
-#
-# Return:
-#   1 when module metadata cannot be parsed.
-#
-__inspect_modules() {
-    local -A versions=()
-    local canonical_id
-    local status
-    local index=0
-
-    for canonical_id in "$@"; do
-        ((index += 1))
-        __show_status "$canonical_id" "$index" "$#"
-
-        versions=()
-        status=0
-        __inspect_module "$canonical_id" versions || status=$?
-
-        if (( status > 1 )); then
-            __clear_status
-
-            return 1
-        fi
-
-        if (( status == 1 )); then
-            __FAILED=1
-        fi
-
-        __store_versions "$canonical_id" \
-            "${versions[INSTALLED]:-}" "${versions[LATEST]:-}" "${versions[STATE]:-unknown}" "${versions[NOTE]:-}"
-    done
-
-    __clear_status
-
-    return 0
+    __VERSION_NAMES["$canonical_id"]="${2:-$canonical_id}"
+    __VERSION_INSTALLED["$canonical_id"]="$3"
+    __VERSION_LATEST["$canonical_id"]="$4"
+    __VERSION_STATES["$canonical_id"]="$5"
+    __VERSION_NOTES["$canonical_id"]="$6"
 }
 
 ##
@@ -245,8 +187,9 @@ __draw_worker_line() {
 # __run_worker <worker> <workers> <work_dir> <draw> <canonical_id...>
 #
 # Takes modules from the shared queue until it is empty. Each result is written
-# to result.<index> as status, INSTALLED, LATEST, STATE, and NOTE separated by
-# \x1f; module logs are written to log.<index>.
+# to result.<index> as status, NAME, INSTALLED, LATEST, STATE, and NOTE separated by
+# \x1f; module logs are written to log.<index>. Status is 0 on success, 1 when
+# detection or a version query failed, and 2 when metadata cannot be parsed.
 #
 __run_worker() {
     local worker="$1"
@@ -256,6 +199,7 @@ __run_worker() {
     shift 4
 
     local -a queue=("$@")
+    local -A module_metadata=()
     local -A versions=()
     local canonical_id
     local index
@@ -271,11 +215,16 @@ __run_worker() {
             __draw_worker_line "$work_dir" "$workers" "$worker" "$text"
         fi
 
+        module_metadata=()
         versions=()
         status=0
-        __inspect_module "$canonical_id" versions 2>"$work_dir/log.$index" || status=$?
+        if parse_module_metadata "$MP_MODULES/$canonical_id" module_metadata 2>"$work_dir/log.$index"; then
+            __inspect_module "$canonical_id" module_metadata versions 2>>"$work_dir/log.$index" || status=$?
+        else
+            status=2
+        fi
 
-        printf '%s\x1f%s\x1f%s\x1f%s\x1f%s\n' "$status" \
+        printf '%s\x1f%s\x1f%s\x1f%s\x1f%s\x1f%s\n' "$status" "${module_metadata[NAME]:-}" \
             "${versions[INSTALLED]:-}" "${versions[LATEST]:-}" "${versions[STATE]:-unknown}" "${versions[NOTE]:-}" \
             >"$work_dir/result.$index.tmp" &&
             mv "$work_dir/result.$index.tmp" "$work_dir/result.$index"
@@ -314,6 +263,7 @@ __inspect_modules_async() {
     local pid
     local index
     local status
+    local name
     local installed
     local latest
     local state
@@ -365,13 +315,13 @@ __inspect_modules_async() {
         fi
 
         if [[ ! -f "$__WORK_DIR/result.$index" ]]; then
-            __store_versions "${*:index + 1:1}" "-" "-" "error" "inspection failed"
+            __store_versions "${*:index + 1:1}" "" "-" "-" "error" "inspection failed"
             __FAILED=1
 
             continue
         fi
 
-        IFS=$'\x1f' read -r status installed latest state note <"$__WORK_DIR/result.$index"
+        IFS=$'\x1f' read -r status name installed latest state note <"$__WORK_DIR/result.$index"
 
         if (( status > 1 )); then
             return 1
@@ -381,66 +331,8 @@ __inspect_modules_async() {
             __FAILED=1
         fi
 
-        __store_versions "${*:index + 1:1}" "$installed" "$latest" "$state" "$note"
+        __store_versions "${*:index + 1:1}" "$name" "$installed" "$latest" "$state" "$note"
     done
-
-    return 0
-}
-
-__uses_apt_versions() {
-    local -A metadata=()
-    local canonical_id
-
-    for canonical_id in "$@"; do
-        parse_module_metadata "$MP_MODULES/$canonical_id" metadata || return $?
-        if [[ "${metadata[UPDATE_MODE]:-}" == "apt" ]]; then
-            return 0
-        fi
-    done
-
-    return 1
-}
-
-##
-# __offer_apt_refresh
-#
-# Offers to run apt-get update when the APT cache is older than
-# __APT_CACHE_MAX_AGE_DAYS. Without a terminal, only warns. Failures leave the
-# existing cache in use.
-#
-__offer_apt_refresh() {
-    local DISABLE_WHIPTAIL=true
-    local age
-    local status=0
-
-    if ! age="$(apt_cache_age_days)"; then
-        log_warn "Unable to determine the APT cache age; versions may be outdated"
-
-        return 0
-    fi
-
-    if (( age <= __APT_CACHE_MAX_AGE_DAYS )); then
-        return 0
-    fi
-
-    if [[ ! -t 0 || ! -t 1 ]]; then
-        log_warn "APT cache is %d days old; run 'sudo apt-get update' for current versions" "$age"
-
-        return 0
-    fi
-
-    if ! source "$LIB_INSTALLER/prompt.sh"; then
-        log_warn "Continuing with the existing APT cache"
-
-        return 0
-    fi
-
-    ask_confirm "APT cache is $age days old. Run 'sudo apt-get update' now?" || status=$?
-    if (( status == 0 )); then
-        refresh_apt_cache || log_warn "Continuing with the existing APT cache"
-    elif (( status != 1 )); then
-        log_warn "Continuing with the existing APT cache"
-    fi
 
     return 0
 }
@@ -448,8 +340,10 @@ __offer_apt_refresh() {
 ##
 # __print_versions <explicit>
 #
-# Prints the version table and summary from the inspection globals.
-# Not-installed modules are printed only when explicitly selected.
+# Prints the version table and summary from the inspection globals. NAME is
+# blue and LATEST is green when an update is available. Widths are computed
+# without color codes. Not-installed modules are printed only when explicitly
+# selected.
 #
 __print_versions() {
     local explicit="$1"
@@ -465,12 +359,13 @@ __print_versions() {
     local -a ids=()
     local canonical_id
     local state
+    local label
     local installed
     local latest
-    local color
-    local color_reset
-    local module_width=6
-    local installed_width=9
+    local latest_color
+    local latest_reset
+    local name_width=4
+    local installed_width=7
     local latest_width=6
 
     for canonical_id in "${__SHOWN_IDS[@]}"; do
@@ -482,11 +377,12 @@ __print_versions() {
         ids+=("$canonical_id")
         counts["$state"]=$(( counts["$state"] + 1 ))
 
+        label="${__VERSION_NAMES[$canonical_id]}"
         installed="${__VERSION_INSTALLED[$canonical_id]:-[unknown]}"
         latest="${__VERSION_LATEST[$canonical_id]:-[unknown]}"
 
-        if (( ${#canonical_id} > module_width )); then
-            module_width=${#canonical_id}
+        if (( ${#label} > name_width )); then
+            name_width=${#label}
         fi
 
         if (( ${#installed} > installed_width )); then
@@ -505,33 +401,26 @@ __print_versions() {
     fi
 
     printf '%-*s  %-*s  %-*s  %s\n' \
-        "$module_width" "MODULE" "$installed_width" "INSTALLED" \
-        "$latest_width" "LATEST" "NOTES"
+        "$name_width" "NAME" "$installed_width" "CURRENT" \
+        "$latest_width" "LATEST" "NOTE"
 
     for canonical_id in "${ids[@]}"; do
-        color=""
-        color_reset="$COLOR_RESET"
+        label="${__VERSION_NAMES[$canonical_id]}"
+        latest="${__VERSION_LATEST[$canonical_id]:-[unknown]}"
+        latest_color=""
+        latest_reset=""
+        if [[ "${__VERSION_STATES[$canonical_id]}" == "outdated" ]]; then
+            latest_color="$COLOR_GREEN"
+            latest_reset="$COLOR_RESET"
+        fi
 
-        case "${__VERSION_STATES[$canonical_id]}" in
-            outdated)
-                color="$COLOR_BLUE"
-                ;;
-            unknown | unsupported | error)
-                color="$COLOR_YELLOW"
-                ;;
-            missing)
-                color="$COLOR_GRAY"
-                ;;
-            *)
-                color_reset=""
-                ;;
-        esac
-
-        printf '%s%-*s  %-*s  %-*s  %s%s\n' "$color" \
-            "$module_width" "$canonical_id" \
+        printf '%b%s%b%*s  %-*s  %b%s%b%*s  %s\n' \
+            "$COLOR_BLUE" "$label" "$COLOR_RESET" \
+            "$(( name_width - ${#label} ))" "" \
             "$installed_width" "${__VERSION_INSTALLED[$canonical_id]:-[unknown]}" \
-            "$latest_width" "${__VERSION_LATEST[$canonical_id]:-[unknown]}" \
-            "${__VERSION_NOTES[$canonical_id]}" "$color_reset"
+            "$latest_color" "$latest" "$latest_reset" \
+            "$(( latest_width - ${#latest} ))" "" \
+            "${__VERSION_NOTES[$canonical_id]}"
     done
 
     printf '\n%d update available, %d up to date, %d unknown' \
@@ -551,6 +440,23 @@ __print_versions() {
     fi
 
     printf '\n'
+}
+
+##
+# __print_porcelain
+#
+# Prints one row per module with an available update, in inspection order:
+# canonical ID, installed version, and latest version separated by tabs.
+#
+__print_porcelain() {
+    local canonical_id
+
+    for canonical_id in "${__SHOWN_IDS[@]}"; do
+        if [[ "${__VERSION_STATES[$canonical_id]}" == "outdated" ]]; then
+            printf '%s\t%s\t%s\n' "$canonical_id" \
+                "${__VERSION_INSTALLED[$canonical_id]}" "${__VERSION_LATEST[$canonical_id]}"
+        fi
+    done
 }
 
 main() {
@@ -592,20 +498,21 @@ main() {
         list_modules canonical_ids || return $?
     fi
 
-    if __uses_apt_versions "${canonical_ids[@]}"; then
-        __offer_apt_refresh
+    # Porcelain output is for callers such as mp upgrade, which own the prompts.
+    if (( ! options[PORCELAIN] )); then
+        if uses_update_mode apt "${canonical_ids[@]}"; then
+            offer_apt_cache_refresh 0
+        fi
     fi
 
-    if (( ! explicit && ! options[ASYNC] )); then
-        log_info "Tip: run 'mp outdated --async' to check all modules faster with background workers"
-    fi
+    __inspect_modules_async "$(( 10#${options[WORKERS]} ))" "${canonical_ids[@]}" || return $?
 
-    if (( options[ASYNC] )); then
-        __inspect_modules_async "$(( 10#${options[WORKERS]} ))" "${canonical_ids[@]}" || return $?
+    if (( options[PORCELAIN] )); then
+        __print_versions "$explicit" >&2
+        __print_porcelain
     else
-        __inspect_modules "${canonical_ids[@]}" || return $?
+        __print_versions "$explicit"
     fi
-    __print_versions "$explicit"
 
     return "$__FAILED"
 }

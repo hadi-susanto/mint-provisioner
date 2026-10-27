@@ -88,6 +88,9 @@ main() {
         outdated | update)
             exec bash "$MP_COMMAND/outdated.sh" "${args[@]}"
             ;;
+        upgrade)
+            exec bash "$MP_COMMAND/upgrade.sh" "${args[@]}"
+            ;;
         __complete)
             # Hidden: candidates for completion/mp.bash and completion/_mp.
             exec bash "$MP_COMMAND/complete.sh" "${args[@]}"

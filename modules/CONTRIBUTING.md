@@ -67,6 +67,9 @@ category directory when several modules need them.
     - `pre-install.sh` for prerequisites, repositories, keys, downloads, and temporary setup.
     - `post-install.sh` for installation-adjacent adjustments after successful installation.
     - `cleanup.sh` for temporary state, downloads, and intermediate files.
+    - `pre-upgrade.sh` and `upgrade.sh` so `mp upgrade` can upgrade an `UPDATE_MODE="github"`, `"external"`, or `"git"` module: download the
+      new release, then replace the installed files with `stateful_deb_upgrade`, `stateful_extract_upgrade`, or
+      `stateful_binary_upgrade` (see "Upgrade Phases" in `modules/AGENTS.md`).
     - `remove.sh` to support `mp remove`, `mp uninstall`, and `mp purge`. Undo exactly what the install phases created
       with the helpers in `lib/remover/`; user configuration and data are removed only through the helpers that honor
       `PURGE`. Every module in the catalog ships one, so new modules should too.
@@ -91,13 +94,14 @@ artifacts.
 Choose the `UPDATE_MODE` that matches how the module installs:
 
 - `apt`: packages from APT. Set `UPDATE_PACKAGE` to the main package, or to comma-separated candidates without spaces
-  when the package depends on an installation choice (the first installed one is checked).
+  when the package depends on an installation choice (every installed one is checked and upgraded).
 - `github`: release assets found with `github_find_release_asset`. Set `UPDATE_REPOSITORY="owner/repo"` and pass
   `"${asset[VERSION]}"` as the last argument of `stateful_download` for the main download.
 - `external`: vendor downloads. Add a read-only `latest.sh` that prints the latest version, resolve the version in
   `pre-install.sh` with `module_latest_version` (`lib/workflow/latest-version.sh`), build the download URL from it,
   and pass it to `stateful_download`.
-- `git`: git clones. Save the clone directory as registry `INSTALL_PATH` (`git_clone_install` does this).
+- `git`: git clones. Save the clone directory as registry `INSTALL_PATH` (`git_clone_install` does this), and ship an
+  `upgrade.sh` that calls `git_pull_upgrade` (see "Upgrade Phases" in `modules/AGENTS.md`).
 - `none`: modules without one meaningful version.
 
 For `github` and `external`, `stateful_deb_install`, `stateful_extract_install`, and `stateful_binary_install` record

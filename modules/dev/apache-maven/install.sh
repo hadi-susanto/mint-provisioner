@@ -19,7 +19,7 @@ main() {
         "ARCHIVE_FILE" \
         "tar" \
         "$install_path" \
-        "--strip-components=1" || $return $?
+        "--strip-components=1" || return $?
 
     add_to_path "$canonical_id" "$install_path/bin" || return $?
     set_registry "INSTALL_PATH" "$install_path" || return $?

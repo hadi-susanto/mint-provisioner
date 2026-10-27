@@ -17,6 +17,7 @@ Commands:
   install         Install one or more modules.
   plan            Preview what install would do, without changing anything.
   outdated        List installed modules and their version status (alias: update).
+  upgrade         Upgrade installed modules that have an update available.
   remove          Remove one or more modules (alias: uninstall).
   purge           Remove modules and their well-known configuration.
 
@@ -145,10 +146,15 @@ Usage:
   mp update [OPTIONS] [MODULE...]
 
 Options:
-  --async, --batch [N]  Inspect modules with N background workers sharing one
-                        queue (default 6, maximum 9). Also --async=N. Each
-                        worker shows its current module on its own line;
-                        module logs are printed after inspection.
+  --async, --batch [N]  Number of background workers that inspect modules
+                        from one shared queue (default 6, maximum 9). Also
+                        --async=N. Each worker shows its current module on
+                        its own line; module logs are printed after
+                        inspection.
+  --porcelain           Print only modules with an available update to stdout,
+                        one per line as MODULE<TAB>INSTALLED<TAB>LATEST. The
+                        table and all other output go to stderr, and no
+                        prompt is shown. Used by mp upgrade.
   -h, --help            Show this help.
 
 Arguments:
@@ -156,10 +162,11 @@ Arguments:
           every installed module is listed.
 
 Description:
-  Lists installed modules with their installed and latest versions. Rows with
-  an available update are blue; rows whose versions cannot be resolved, such
-  as modules without UPDATE_MODE metadata, are yellow. Selected modules that
-  are not installed are listed as not installed. Nothing is upgraded.
+  Lists installed modules as NAME, CURRENT, LATEST, and NOTE.
+  LATEST is green when an update is available; versions that cannot be
+  resolved show [unknown]. Selected modules that are not installed are listed
+  as not installed. Nothing is upgraded; use
+  mp upgrade for that.
 
   UPDATE_MODE=apt reads versions from dpkg and the APT cache. When apt-mode
   modules are checked and the cache is older than 7 days, mp outdated offers
@@ -178,6 +185,46 @@ Description:
 
   Exits 0 when versions were checked, 1 when detection or a version query
   fails, and 2 for usage errors or unknown modules.
+EOF
+}
+
+__upgrade_help() {
+    cat <<'EOF'
+Mint Provisioner
+----------------
+
+Usage:
+  mp upgrade [OPTIONS] [MODULE...]
+
+Options:
+  -y, --yes   Upgrade without asking for confirmation. Sudo must already be
+              cached or passwordless, and a stale APT cache is refreshed
+              without asking.
+  -h, --help  Show this help.
+
+Arguments:
+  MODULE  A canonical ID, unique module ID, or registered alias. When omitted,
+          every installed module with an available update is upgraded.
+
+Description:
+  Runs mp outdated --porcelain to find modules with an available
+  update, lists them, asks for confirmation, then upgrades them one at a time
+  and prints a result summary. Module install scripts are not run again.
+
+  UPDATE_MODE=apt upgrades every installed package from UPDATE_PACKAGE with
+  apt-get install --only-upgrade (apt-fast when available). UPDATE_MODE=github
+  and UPDATE_MODE=external run the module's pre-upgrade.sh and upgrade.sh,
+  which download the new release and replace the installed files in place,
+  keeping user configuration. An application still running from its install
+  directory is not replaced. UPDATE_MODE=git runs upgrade.sh, which moves the
+  clone to the latest commit of its branch; a clone with local edits to
+  tracked files is not touched. Modules without upgrade.sh are reported as not
+  upgradable yet. When apt-mode modules are selected and the APT cache is
+  older than 7 days, mp upgrade offers to run sudo apt-get update first.
+
+  Exits 0 when every upgrade succeeded or nothing needed upgrading, 1 when an
+  upgrade, detection, or version query fails, and 2 for usage errors, unknown
+  modules, or a missing terminal without --yes.
 EOF
 }
 
@@ -260,6 +307,9 @@ main() {
             ;;
         outdated | update)
             __outdated_help
+            ;;
+        upgrade)
+            __upgrade_help
             ;;
         list)
             __list_help

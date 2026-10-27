@@ -7,6 +7,7 @@ source "${LIB_INSTALLER}/git-clone.sh"
 source "${LIB_INSTALLER}/path.sh"
 source "${LIB_INSTALLER}/registry.sh"
 source "${LIB_INSTALLER}/symlink.sh"
+source "${LIB_WORKFLOW}/gui/onedrive-gui/installer.sh"
 
 declare -r ONEDRIVE_GUI_URL="https://github.com/bpozdena/OneDriveGUI.git"
 
@@ -34,12 +35,7 @@ __create_venv() {
         return 1
     fi
 
-    tlog_info "$tag" "Installing OneDriveGUI Python requirements"
-    if ! "$venv_path/bin/python" -m pip install --upgrade -r "$install_path/requirements.txt"; then
-        tlog_error "$tag" "pip failed to install OneDriveGUI requirements"
-
-        return 1
-    fi
+    onedrive_gui_install_requirements "$canonical_id" "$install_path"
 }
 
 __install_wrapper() {

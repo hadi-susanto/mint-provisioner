@@ -158,11 +158,12 @@ Piped or redirected runs only print the plan.
 
 ```bash
 mp outdated [module...]          # alias: mp update
-mp outdated --async [N]          # N background workers (default 6, max 9); alias: --batch
+mp outdated --async N [module...]  # N background workers (default 6, max 9); alias: --batch
+mp outdated --porcelain          # stdout: MODULE<TAB>INSTALLED<TAB>LATEST per update; table on stderr
 ```
 
-Lists installed modules (or only the selected ones) with their installed version, latest version, and notes. Rows with
-an update available are blue; rows that cannot be checked, such as modules without `UPDATE_MODE` metadata, are yellow.
+Lists installed modules (or only the selected ones) as a `NAME CURRENT LATEST NOTE` table. The latest version is green
+when an update is available; versions that cannot be resolved show `[unknown]`.
 Nothing is upgraded. Modules with `UPDATE_MODE="apt"` read versions from dpkg and the APT cache; when apt-mode modules are
 checked, the cache is older than 7 days, and a terminal is attached, `mp outdated` offers to run `sudo apt-get update`
 first. Modules with `UPDATE_MODE="github"` compare the release recorded at install time with the latest GitHub
@@ -170,10 +171,31 @@ release; installs that predate version recording are reported as having an updat
 API calls are limited to 60 per hour, so set `GITHUB_TOKEN` when checking many modules. Modules with
 `UPDATE_MODE="external"` compare the recorded version with the vendor's latest version printed by the module's
 `latest.sh`. Modules with `UPDATE_MODE="git"` compare the cloned commit with the latest commit of the same branch,
-and `UPDATE_MODE="none"` marks modules whose version is not tracked. `--async` (or `--batch`) inspects modules
-with a pool of background workers that share one queue, which shortens runs dominated by network lookups; each worker
-shows its current module on its own line, and module logs are printed after inspection. Exits `1` when detection or a
-version query fails.
+and `UPDATE_MODE="none"` marks modules whose version is not tracked. Modules are inspected by a pool of background
+workers that share one queue (6 by default; `--async N` or `--batch N` sets 1-9), which shortens runs dominated by
+network lookups; each worker shows its current module on its own line, and module logs are printed after inspection.
+`--porcelain` prints only
+modules with an available update to stdout (tab-separated module, installed and latest version), sends the table and
+every other message to stderr, and never prompts. Exits `1` when detection or a version query fails.
+
+### Upgrade Modules
+
+```bash
+mp upgrade [module...]           # all installed modules with an update, or only the selected ones
+mp upgrade -y [module...]        # skip the confirmation (sudo must be cached or passwordless)
+```
+
+Runs `mp outdated --porcelain` to find modules with an available update, lists them, asks
+`Upgrade N module(s)? [y/N]`, then upgrades them one at a time and prints a result summary. Module install scripts are
+not run again. Upgrades are dispatched on `UPDATE_MODE`: for `apt`, every installed `UPDATE_PACKAGE` candidate is
+upgraded with `apt-get install --only-upgrade` (`apt-fast` when available); for `github` and `external`, the module's
+`pre-upgrade.sh` downloads the new release and `upgrade.sh` replaces the installed files in place (desktop entries,
+symlinks, and user configuration are kept) and records the new version. An application still running from its install
+directory (for example a JetBrains IDE) is not replaced; close it and run `mp upgrade` again. For `git`, `upgrade.sh`
+moves the clone to the latest commit of its branch; a clone with local edits to tracked files is left untouched.
+Modules without `upgrade.sh` are reported as not upgradable yet. A stale APT cache (older than 7 days) is offered for
+refresh first; `-y` refreshes it without asking.
+Without a terminal, `-y` is required. Exits `1` when an upgrade, detection, or version query fails.
 
 ### Remove Modules
 
@@ -229,7 +251,8 @@ mint-provisioner/
 │   ├── install.sh                      # Module installation command
 │   ├── plan.sh                         # Read-only installation preview
 │   ├── outdated.sh                     # Installed vs latest versions (outdated, update)
-│   ├── OUTDATED.md                     # How 'mp outdated --async' worker pool works
+│   ├── OUTDATED.md                     # How the 'mp outdated' worker pool works
+│   ├── upgrade.sh                      # Upgrade outdated modules (UPDATE_MODE=apt, github)
 │   └── remove.sh                       # Module removal command (remove, uninstall, purge)
 ├── lib/                                # Reusable framework libraries
 │   ├── common/
@@ -259,18 +282,23 @@ mint-provisioner/
 │   │   ├── registry.sh                 # Installed-module registry
 │   │   ├── state.sh                    # Persistent module state
 │   │   └── ...                         # Download, path, prompt, and system helpers
-│   ├── updater/                        # Version lookups for mp outdated
+│   ├── updater/                        # Version lookups and upgrades for mp outdated and mp upgrade
 │   │   ├── versioning.sh               # Dispatch on UPDATE_MODE (apt, github, external, git, none)
-│   │   ├── apt-versioning.sh           # dpkg installed version, APT candidate, cache age
+│   │   ├── upgrader.sh                 # Upgrade dispatch on UPDATE_MODE (apt, github, external, git)
+│   │   ├── execution.sh                # Upgrade lifecycle: pre-upgrade, upgrade, cleanup
+│   │   ├── apt-versioning.sh           # dpkg installed version, APT candidate, cache age and refresh
 │   │   ├── recorded-versioning.sh      # Registry VERSION recorded at install time
 │   │   └── git-versioning.sh           # Cloned commit vs remote branch commit
 │   └── workflow/                       # Reusable module installation workflows
 │       ├── install-target.sh           # Resolve and validate installation destinations
 │       ├── stateful-downloader.sh      # Download and persist temporary artifacts
 │       ├── stateful-*-install.sh       # Shared APT, Debian-package, and archive installation steps
+│       ├── stateful-*-upgrade.sh       # In-place Debian-package, archive, and binary upgrade steps
 │       ├── latest-version.sh           # Run a module's latest.sh (pre-install and mp outdated)
 │       ├── version-registry.sh         # Record the installed VERSION in the registry
-│       ├── jetbrains-*.sh              # Shared JetBrains IDE workflow phases and release lookup
+│       ├── jetbrains-*.sh              # Shared JetBrains IDE workflow phases, release lookup, and download
+│       ├── hashicorp-download.sh       # Download and verify a HashiCorp release binary (Consul, Vault)
+│       ├── git-pull-upgrade.sh         # Fast-forward a git clone to its branch tip, or back on failure
 │       ├── state-cleaner.sh            # Clean temporary module state
 │       └── <category>/<module>/        # Product-specific resolvers and installers
 ├── modules/                            # Module catalog and lifecycle scripts

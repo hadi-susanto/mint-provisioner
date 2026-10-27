@@ -14,7 +14,9 @@
   ├── pre-install.sh     # Optional: Configure prerequisites, repositories, or keys
   ├── install.sh         # Mandatory: Perform the core installation
   ├── post-install.sh    # Optional: Apply post-install system adjustments
-  ├── cleanup.sh         # Optional: Remove installation-only state or artifacts
+  ├── cleanup.sh         # Optional: Remove installation-only state or artifacts (also runs after upgrade)
+  ├── pre-upgrade.sh     # Optional: Download the new release for `mp upgrade`
+  ├── upgrade.sh         # Optional: Replace the installed files for `mp upgrade`; required for UPDATE_MODE="github" upgrades
   └── remove.sh          # Uninstall the software (required for `mp remove|uninstall|purge`; every catalog module has one)
   ```
 
@@ -44,11 +46,16 @@ When creating or updating `metadata.conf`, follow these rules:
   - `github`: The module downloads an artifact from GitHub or installs from a GitHub repository.
   - `sourceforge`: The module downloads an artifact from SourceForge.
   - `external`: The module downloads an artifact directly from a third-party vendor source.
-- `UPDATE_MODE` is optional and opts the module into `mp outdated`. Supported values:
+- `UPDATE_MODE` is optional and opts the module into `mp outdated` and `mp upgrade`. `mp upgrade` supports `apt` (it
+  runs `apt_upgrade` on every installed `UPDATE_PACKAGE` candidate; no phase script runs), `github`, and `external` (both
+  run the module's `pre-upgrade.sh` → `upgrade.sh` → `cleanup.sh`; see "Upgrade Phases"), and `git` (`upgrade.sh`
+  only). Supported values:
   - `apt`: Versions come from dpkg and the APT cache. Requires `UPDATE_PACKAGE`, the main Debian package passed to
     `apt_install` (for example `UPDATE_PACKAGE="keepassxc"`). When the package depends on an installation choice, list
-    every candidate separated by commas without spaces (for example `UPDATE_PACKAGE="code,code-insiders"`); the first
-    installed candidate is checked.
+    every candidate separated by commas without spaces (for example `UPDATE_PACKAGE="code,code-insiders"`). Every
+    installed candidate is checked and upgraded; the module is outdated when any of them is, the table shows the
+    versions of the first outdated one, and with several installed the note counts them (`update available (2 of 3
+    packages)`).
   - `github`: Compares the installed release recorded in the module registry `VERSION` with the latest GitHub
     release tag. Requires `UPDATE_REPOSITORY`, the `owner/repo` of the main release (for example
     `UPDATE_REPOSITORY="sharkdp/bat"`). To record the version, `pre-install.sh` passes `"${asset[VERSION]}"` from
@@ -65,7 +72,7 @@ When creating or updating `metadata.conf`, follow these rules:
   - `git`: For modules installed as a git clone. Compares the commit checked out in the registry `INSTALL_PATH` with
     the latest commit of the same branch on its `origin` remote (`git ls-remote`; nothing is fetched). The install
     phase must save the clone directory as registry `INSTALL_PATH` (`git_clone_install` does this). No version is
-    recorded at install time.
+    recorded at install time or by upgrades.
   - `none`: Explicit opt-out for modules without a single meaningful version, such as `sys/nerd-font`. Always
     reported as `-` with no update.
   Modules without `UPDATE_MODE` are listed by `mp outdated` with unknown versions.
@@ -472,6 +479,53 @@ For archives containing multiple binaries or a required directory structure:
 - Remove the downloaded temporary file when it exists.
 - Delete the module state after cleanup.
 - Missing state should produce a warning and exit successfully.
+
+## Upgrade Phases (`pre-upgrade.sh`, `upgrade.sh`)
+
+`mp upgrade` runs these for `UPDATE_MODE="github"`, `"external"`, and `"git"` modules that ship `upgrade.sh`
+(modules without it are reported as not upgradable yet), followed by the module's `cleanup.sh`, which runs even when an
+upgrade phase fails.
+
+- `pre-upgrade.sh` downloads the new release into the same state keys `install.sh` uses (`DEB_FILE`, `ARCHIVE_FILE`,
+  `BINARY_FILE`) and passes the release version to `stateful_download`. It is `pre-install.sh` without
+  `valid_install_target` and without install-only downloads such as icons. Share long download logic between both
+  scripts through `lib/workflow/<category>/<module>/` (for example `flameshot_download_deb`, `lapce_download_assets`,
+  `claude_code_download`) or a shared workflow (`jetbrains_download_release` in `jetbrains-download.sh`,
+  `hashicorp_download_binary` in `hashicorp-download.sh`). `external` modules resolve the version the same way as
+  `pre-install.sh` (`module_latest_version` or the shared resolver).
+- `upgrade.sh` only replaces the installed files and records the registry `VERSION`. Do not recreate desktop entries,
+  icons, symlinks, or PATH entries, and do not add install messages. Use the upgrade workflows:
+  - `stateful_deb_upgrade <canonical_id> <state_name>` (`$LIB_WORKFLOW/stateful-deb-upgrade.sh`): upgrades from the
+    `.deb` with `apt_upgrade` (`--only-upgrade`).
+  - `stateful_extract_upgrade <canonical_id> <state_name> <archive_type> [--root <dir>] [--keep <path>]...
+    <binary>... [-- <extractor args>]` (`$LIB_WORKFLOW/stateful-extract-upgrade.sh`): extracts next to the registry
+    `INSTALL_PATH`, marks the binaries executable, then swaps the directory in; a failure leaves the installation
+    untouched. Pass the same binaries and extractor arguments as `stateful_extract_install`, without link names.
+    `--keep` (repeatable) copies a path relative to the install dir from the current installation over the new one,
+    for user-edited files such as Maven `conf/settings.xml`; missing paths are skipped. `--root` swaps in a
+    subdirectory of the extracted archive (for example adb `platform-tools`). The swap is refused while a process
+    runs from the install dir, so a running IDE or application is never replaced underneath itself.
+  - `stateful_binary_upgrade <canonical_id> <state_name> <binary_name>` (`$LIB_WORKFLOW/stateful-binary-upgrade.sh`):
+    replaces one binary inside the registry `INSTALL_PATH`.
+- Read install locations from the registry (`INSTALL_PATH`), not from `INSTALL_DIR` or module environment variables,
+  which may have changed since installation.
+- Do not swap a directory that holds user data or configuration (Consul/Vault `data/`, oh-my-posh custom themes,
+  claude-code versions). Replace only the binary with `stateful_binary_upgrade`, and extract extra files over the
+  existing ones when needed. Record `VERSION` last, after every step succeeded.
+- A module that needs a privileged step on the new binary (Vault `setcap`) writes a custom `upgrade.sh`: copy to a
+  staging file next to the target, apply the step, `mv -f` it into place, then call `record_version_registry`.
+- Tools that update themselves may skip `pre-upgrade.sh`: `dev/sdkman` runs `sdk selfupdate force` in a child shell and
+  records `var/version` as `VERSION`. `cli/openconnect-saml` reinstalls the pinned version with pipx into the
+  registry `INSTALL_PATH`.
+- `git` modules have no `pre-upgrade.sh`. `upgrade.sh` calls `git_pull_upgrade <canonical_id> [previous_name]`
+  (`$LIB_WORKFLOW/git-pull-upgrade.sh`), which fast-forwards the clone at registry `INSTALL_PATH` to the tip of its
+  branch on `origin` with `git pull --ff-only` (shallow clones grow by the new commits), then runs `git gc`. Local
+  commits or a rewritten upstream branch fail the upgrade without touching the clone. It refuses when tracked files
+  have local edits (file mode changes are ignored, untracked files
+  such as `.venv` or compiled data are kept). When a rebuild step follows (Meld `meld_compile_runtime_data`,
+  OneDriveGUI `onedrive_gui_install_requirements`), pass `previous_name` and call `git_restore_commit <canonical_id>
+  <commit>` when the step fails, then rebuild the restored sources. Nothing is recorded: `mp outdated` reads the
+  clone's `HEAD`.
 
 ## Removal (`remove.sh`)
 

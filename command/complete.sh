@@ -10,11 +10,12 @@ set -euo pipefail
 source "$LIB_COMMON/common.sh"
 source "$LIB_COMMON/resolver.sh"
 
-readonly -a __COMMANDS=(help list install plan outdated update remove uninstall purge)
+readonly -a __COMMANDS=(help list install plan outdated update upgrade remove uninstall purge)
 readonly -a __INSTALL_OPTIONS=(-f --force -ni --non-interactive --unattended)
 readonly -a __PLAN_OPTIONS=(-f --force -ni --non-interactive --unattended -h --help)
 readonly -a __REMOVE_OPTIONS=(-f --force -h --help)
-readonly -a __OUTDATED_OPTIONS=(-h --help --async --batch)
+readonly -a __OUTDATED_OPTIONS=(-h --help --async --batch --porcelain)
+readonly -a __UPGRADE_OPTIONS=(-y --yes -h --help)
 readonly -a __LIST_TARGETS=(category modules)
 readonly -a __LIST_OPTIONS=(-c --category -s --status)
 readonly -a __LIST_STATUSES=(all installed not-installed)
@@ -151,6 +152,9 @@ main() {
             ;;
         outdated | update)
             __complete_modules __OUTDATED_OPTIONS "$current" "${words[@]}"
+            ;;
+        upgrade)
+            __complete_modules __UPGRADE_OPTIONS "$current" "${words[@]}"
             ;;
         remove | uninstall | purge)
             __complete_modules __REMOVE_OPTIONS "$current" "${words[@]}"
