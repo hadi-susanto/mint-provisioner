@@ -252,8 +252,18 @@ The `kafdrop` executable supports:
 - Missing broker port defaults to `9092`.
 - `-p, --port` to configure the Kafdrop listener port.
 - The listener port defaults to `9000`.
+- `--gui` always prompts for the bootstrap server (several brokers
+  separated by spaces or commas, with examples shown first) and the port; `--broker`/`--port` values become the prompt defaults.
 
 When no broker is specified, `localhost:9092` is used.
+
+### Desktop Integration
+
+The module installs a `kafdrop` desktop entry (`Terminal=true`, `Exec=kafdrop --gui`).
+Launching it opens a terminal, prompts for the bootstrap server and port, and runs
+Kafdrop there; closing the terminal stops it, and Ctrl+C stops it and waits for Enter before closing.
+The launcher uses the official Kafdrop logo (`kafdrop-logo.svg` from the upstream repository, Apache-2.0),
+bundled in the module and installed to `/usr/share/icons/hicolor/scalable/apps/kafdrop.svg`.
 
 ### Official Website
 

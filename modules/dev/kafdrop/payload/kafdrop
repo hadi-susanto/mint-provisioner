@@ -30,6 +30,7 @@ ${COLOR_CYAN}Options:${COLOR_RESET}
   -h, --help             Display this help message
   -b, --broker BROKER    Configure a Kafka broker
   -p, --port PORT        Configure Kafdrop listener port
+      --gui              Always ask for the bootstrap server and port
 
 BROKER uses the [host]:[port] format. Missing host defaults to localhost,
 and missing port defaults to 9092.
@@ -38,8 +39,13 @@ If no broker is specified, localhost:9092 is used.
 
 If no port is specified, Kafdrop will listen on port 9000.
 
+With --gui, the bootstrap servers (separated by spaces or commas) and port are
+prompted for. Any --broker/--port values become the prompt defaults. The desktop
+launcher runs 'kafdrop --gui' in a terminal.
+
 ${COLOR_CYAN}Examples:${COLOR_RESET}
   kafdrop
+  kafdrop --gui
   kafdrop --broker localhost:9094
   kafdrop --broker :9094
   kafdrop --broker my-kafka
@@ -79,16 +85,93 @@ __parse_broker() {
     printf '%s:%s\n' "$host" "$port"
 }
 
+__pause() {
+    local _
+
+    read -r -p "Press Enter to close..." _ || true
+}
+
+__prompt_brokers() {
+    local default="$1"
+    local input
+    local entry
+    local parsed
+    local valid
+    local -a entries
+    local -a result
+
+    cat >&2 <<EOF
+${COLOR_CYAN}Enter one or more Kafka brokers separated by spaces (commas also work):${COLOR_RESET}
+  localhost:9092
+  kafka-1:9092 kafka-2:9092
+  my-kafka          (port defaults to 9092)
+  :9094             (host defaults to localhost)
+EOF
+
+    while true; do
+        if ! read -r -p "Kafka bootstrap server [$default]: " input; then
+            __log_error "No input available for --gui."
+
+            return 1
+        fi
+
+        input="${input:-$default}"
+        read -r -a entries <<<"${input//,/ }"
+        result=()
+        valid=1
+
+        for entry in "${entries[@]}"; do
+            if ! parsed="$(__parse_broker "$entry")"; then
+                valid=0
+                break
+            fi
+
+            result+=("$parsed")
+        done
+
+        if ((valid)); then
+            (IFS=,; printf '%s\n' "${result[*]}")
+
+            return 0
+        fi
+    done
+}
+
+__prompt_port() {
+    local default="$1"
+    local input
+
+    while true; do
+        if ! read -r -p "Kafdrop port [$default]: " input; then
+            __log_error "No input available for --gui."
+
+            return 1
+        fi
+
+        input="${input:-$default}"
+
+        if [[ "$input" =~ ^[0-9]+$ ]]; then
+            printf '%s\n' "$input"
+
+            return 0
+        fi
+
+        __log_error "Invalid Kafdrop listener port: '$input'"
+    done
+}
+
 __parse_args() {
-    local brokers_name="$1"
-    local -n brokers_ref="$brokers_name"
-    local port_name="$2"
-    local -n port_ref="$port_name"
+    local options_name="$1"
+    local -n options_ref="$options_name"
 
-    shift 2
+    shift
 
-    brokers_ref=()
-    port_ref="9000"
+    # BROKERS is a comma-separated broker list; an empty value means none was given.
+    options_ref=(
+        [BROKERS]=""
+        [PORT]="9000"
+        [GUI]=0
+    )
 
     while (($# > 0)); do
         case "$1" in
@@ -110,7 +193,7 @@ __parse_args() {
                     return 2
                 fi
 
-                brokers_ref+=("$broker")
+                options_ref[BROKERS]+="${options_ref[BROKERS]:+,}$broker"
                 shift 2
                 ;;
 
@@ -127,8 +210,13 @@ __parse_args() {
                     return 2
                 fi
 
-                port_ref="$2"
+                options_ref[PORT]="$2"
                 shift 2
+                ;;
+
+            --gui)
+                options_ref[GUI]=1
+                shift
                 ;;
 
             --)
@@ -157,8 +245,8 @@ __parse_args() {
         esac
     done
 
-    if ((${#brokers_ref[@]} == 0)); then
-        brokers_ref=("localhost:9092")
+    if [[ -z "${options_ref[BROKERS]}" ]] && ((!options_ref[GUI])); then
+        options_ref[BROKERS]="localhost:9092"
 
         printf '%s[INFO]%s Using default Kafka broker: localhost:9092\n' \
             "$COLOR_CYAN" \
@@ -171,26 +259,53 @@ __parse_args() {
 }
 
 main() {
-    local -a brokers=()
-    local kafdrop_port="9000"
+    local -A options=()
+    local status=0
 
-    __parse_args brokers kafdrop_port "$@"
+    __parse_args options "$@"
 
     if ! command -v java >/dev/null 2>&1; then
         __log_error "java is not installed or is not available in PATH."
 
+        if ((options[GUI])); then
+            __pause
+        fi
+
         return 1
     fi
 
-    local broker_connect
-    broker_connect="$(IFS=,; printf '%s' "${brokers[*]}")"
+    if ((options[GUI])); then
+        options[BROKERS]="$(__prompt_brokers "${options[BROKERS]:-localhost:9092}")" || return $?
+        options[PORT]="$(__prompt_port "${options[PORT]}")" || return $?
+    fi
+
+    # Ctrl+C reaches this wrapper and java alike. A trap handler (unlike the default action) keeps the wrapper
+    # alive, so it can pause afterwards; java still resets the handler and stops on SIGINT.
+    if ((options[GUI])); then
+        trap ':' INT
+    fi
 
     java \
         --add-opens=java.base/sun.nio.ch=ALL-UNNAMED \
         -jar "KAFDROP_BINARY_FILE" \
-        "--kafka.brokerConnect=$broker_connect" \
-        "--server.port=$kafdrop_port" \
-        "--management.server.port=$kafdrop_port"
+        "--kafka.brokerConnect=${options[BROKERS]}" \
+        "--server.port=${options[PORT]}" \
+        "--management.server.port=${options[PORT]}" || status=$?
+
+    trap - INT
+
+    # Keep the launcher's terminal open after Kafdrop stops; 130 is Ctrl+C.
+    if ((options[GUI] && status != 0)); then
+        if ((status == 130)); then
+            printf '%s[INFO]%s Kafdrop stopped.\n' "$COLOR_CYAN" "$COLOR_RESET"
+        else
+            __log_error "Kafdrop exited with status $status."
+        fi
+
+        __pause
+    fi
+
+    return "$status"
 }
 
 main "$@"
