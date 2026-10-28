@@ -9,7 +9,7 @@ servers, database clients, management utilities, and other tools for working wit
 - [DbGate Community](#dbgate-community-dbgate-community-alias-dbgate)
 - [Memcached](#memcached-memcached)
 - [MongoDB Compass](#mongodb-compass-mongodb-compass-alias-compass)
-- [MongoDB Community](#mongodb-server-mongodb-community-alias-mongodb)
+- [MongoDB Community](#mongodb-community-mongodb-community-alias-mongodb)
 - [MySQL Connectors](#mysql-connectors-mysql-tools)
 - [MySQL Server](#mysql-server-mysql)
 - [pgAdmin 4](#pgadmin-4-pg-admin-alias-pgadmin)
@@ -71,7 +71,7 @@ https://github.com/dbgate/dbgate
 
 ---
 
-## Memcached
+## Memcached (`memcached`)
 
 Memcached is a high-performance, distributed in-memory caching system designed to reduce database
 load and improve application responsiveness. It stores frequently accessed data in memory for
