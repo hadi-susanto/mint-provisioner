@@ -7,6 +7,7 @@ applications.
 ## Contents
 
 - [Android Debug Bridge](#android-debug-bridge-adb)
+- [Argo CD CLI](#argo-cd-cli-argocd)
 - [Bat](#bat-bat)
 - [Delta](#delta-delta)
 - [Eza](#eza-eza)
@@ -45,6 +46,31 @@ the matching `platform-tools_r<version>-linux.zip` archive from Google's officia
 ### Official Website
 
 https://developer.android.com/tools/releases/platform-tools
+
+---
+
+## Argo CD CLI (`argocd`)
+
+The Argo CD CLI is the command-line client for Argo CD, the declarative GitOps continuous delivery tool for Kubernetes.
+It manages applications, projects, clusters, repositories, and sync operations from the terminal.
+
+### Installation Method
+
+**GitHub latest release (precompiled binary)**
+
+The installer downloads the latest `argocd-linux-amd64` binary from the official GitHub releases page, verifies its
+SHA-256 digest, and creates a symbolic link for the executable.
+
+### Supported ENV
+
+- `ARGOCD_INSTALL_DIR`
+    - Installation directory.
+    - Default: `${INSTALL_DIR}/argocd`
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
+
+### Official Website
+
+https://argo-cd.readthedocs.io/en/stable/cli_installation/
 
 ---
 
