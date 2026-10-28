@@ -9,7 +9,6 @@ This section is reserved for utilities with unique purposes or tools that do not
 - [Claude Code](#claude-code-claude-code-alias-claude)
 - [Codex CLI](#codex-cli-codex)
 - [Junie](#junie-junie)
-- [mkcert](#mkcert-mkcert)
 - [VirtualBox](#virtualbox-virtual-box-alias-vbox)
 
 ---
@@ -117,34 +116,6 @@ https://junie.jetbrains.com/
 ### GitHub Repository
 
 https://github.com/JetBrains/junie
-
----
-
-## mkcert (`mkcert`)
-
-mkcert is a simple command-line tool for creating locally trusted development
-TLS certificates. It automatically creates a local CA and installs it into
-supported system and browser trust stores.
-
-### Installation Method
-
-**GitHub latest release (precompiled archive)**
-
-Downloads the latest precompiled mkcert binary directly from the project's
-GitHub releases.
-
-### Supported ENV
-
-* `MKCERT_INSTALL_DIR`
-
-  * Installation directory.
-  * Default: `${INSTALL_DIR}/mkcert`
-  * Must be writable by the current user; the resolved path is recorded in the
-    module registry after installation.
-
-### Official Website
-
-https://github.com/FiloSottile/mkcert
 
 ---
 
