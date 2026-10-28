@@ -7,10 +7,8 @@ This section is reserved for utilities with unique purposes or tools that do not
 
 - [AnyDesk](#anydesk-any-desk-alias-anydesk)
 - [Claude Code](#claude-code-claude-code-alias-claude)
-- [cloudflared](#cloudflared-cloudflared)
 - [Codex CLI](#codex-cli-codex)
 - [Junie](#junie-junie)
-- [mkcert](#mkcert-mkcert)
 - [VirtualBox](#virtualbox-virtual-box-alias-vbox)
 
 ---
@@ -57,36 +55,6 @@ service, verifying its checksum against the published release manifest before in
 ### Official Website
 
 https://code.claude.com/
-
----
-
-## cloudflared (`cloudflared`)
-
-cloudflared is the Cloudflare Tunnel connector. It creates outbound-only tunnels that expose local services and private
-networks through Cloudflare without opening inbound ports.
-
-### Installation Method
-
-**GitHub latest release (`.deb` package)**
-
-The installer downloads the latest Linux amd64 `.deb` (not the FIPS build) from the official GitHub releases page,
-verifies its SHA-256 digest, and installs it with APT.
-
-### Supported ENV
-
-None.
-
-### Post-install Guide
-
-The module does not log in, create tunnels, or install the service. After installation, authenticate with:
-
-```bash
-cloudflared tunnel login
-```
-
-### Official Website
-
-https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/
 
 ---
 
@@ -148,34 +116,6 @@ https://junie.jetbrains.com/
 ### GitHub Repository
 
 https://github.com/JetBrains/junie
-
----
-
-## mkcert (`mkcert`)
-
-mkcert is a simple command-line tool for creating locally trusted development
-TLS certificates. It automatically creates a local CA and installs it into
-supported system and browser trust stores.
-
-### Installation Method
-
-**GitHub latest release (precompiled archive)**
-
-Downloads the latest precompiled mkcert binary directly from the project's
-GitHub releases.
-
-### Supported ENV
-
-* `MKCERT_INSTALL_DIR`
-
-  * Installation directory.
-  * Default: `${INSTALL_DIR}/mkcert`
-  * Must be writable by the current user; the resolved path is recorded in the
-    module registry after installation.
-
-### Official Website
-
-https://github.com/FiloSottile/mkcert
 
 ---
 
