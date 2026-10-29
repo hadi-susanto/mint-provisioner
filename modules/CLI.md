@@ -9,6 +9,7 @@ applications.
 - [Android Debug Bridge](#android-debug-bridge-adb)
 - [Bat](#bat-bat)
 - [Delta](#delta-delta)
+- [Difftastic](#difftastic-difftastic-alias-difft)
 - [Eza](#eza-eza)
 - [Git](#git-git)
 - [GitHub CLI](#github-cli-github-cli-alias-gh)
@@ -97,6 +98,35 @@ This module has additional features that can be enabled by running SysKit. See t
 ### Official Website
 
 https://github.com/dandavison/delta
+
+---
+
+## Difftastic (`difftastic`) [alias: `difft`]
+
+Difftastic is a structural diff tool that understands syntax. It compares files by their syntax tree instead of line by
+line, so formatting changes and moved code produce cleaner diffs. The installed command is `difft`.
+
+### Installation Method
+
+**GitHub latest release (precompiled archive)**
+
+Downloads the latest Linux x86_64 MUSL release archive from the official GitHub repository.
+
+### Supported ENV
+
+- `DIFFTASTIC_INSTALL_DIR`
+    - Installation directory.
+    - Default: `${INSTALL_DIR}/difftastic`
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
+
+### System Toolkit Integration
+
+This module has additional features that can be enabled by running SysKit. See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
+
+### Official Website
+
+https://difftastic.wilfred.me.uk/
 
 ---
 

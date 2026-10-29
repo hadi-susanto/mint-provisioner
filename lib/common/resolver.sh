@@ -15,6 +15,7 @@ declare -Ar __MINT_PROVISIONER_MODULE_ALIASES=(
     [claude]="misc/claude-code"
     [compass]="db/mongodb-compass"
     [db-cmd]="gui/double-commander"
+    [difft]="cli/difftastic"
     [dbgate]="db/dbgate-community"
     [dbeaver]="db/dbeaver-community"
     [dnscrypt]="sys/dnscrypt-proxy"
