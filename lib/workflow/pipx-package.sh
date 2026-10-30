@@ -70,7 +70,7 @@ pipx_package_binary() {
 }
 
 ##
-# pipx_package_install <canonical_id> <install_path> <package> <binary> <version>
+# pipx_package_install <canonical_id> <install_path> <package> <binary> <version> [<extras>]
 #
 # Installs or replaces a package with pipx (pipx install --force) in the pipx
 # home install_path. Other venvs in the pipx home are not touched.
@@ -81,6 +81,7 @@ pipx_package_binary() {
 #   package - PyPI package name.
 #   binary - Executable name expected inside the venv.
 #   version - Package version to install.
+#   extras - Optional comma-separated extras, such as "gui"; the venv keeps the package name.
 #
 # Return:
 #   1 - The directory could not be created, pipx failed, or the executable is missing.
@@ -91,10 +92,16 @@ pipx_package_install() {
     local package="$3"
     local binary="$4"
     local version="$5"
+    local extras="${6:-}"
     local tag="pipx:$canonical_id"
     local executable
+    local requirement="$package"
 
     executable="$(pipx_package_binary "$install_path" "$package" "$binary")"
+
+    if [[ -n "$extras" ]]; then
+        requirement+="[$extras]"
+    fi
 
     if ! mkdir -p "$install_path"; then
         tlog_error "$tag" "Failed to create installation directory: %s" "$install_path"
@@ -103,7 +110,7 @@ pipx_package_install() {
     fi
 
     tlog_info "$tag" "Installing %s %s with pipx into %s" "$package" "$version" "$install_path"
-    if ! PIPX_HOME="$install_path" pipx install --force "$package==$version"; then
+    if ! PIPX_HOME="$install_path" pipx install --force "$requirement==$version"; then
         tlog_error "$tag" "pipx failed to install %s" "$package"
 
         return 1

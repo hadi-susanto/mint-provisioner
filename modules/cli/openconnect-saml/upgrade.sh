@@ -3,7 +3,7 @@ set -euo pipefail
 
 source "$LIB_INSTALLER/registry.sh"
 source "$LIB_INSTALLER/state.sh"
-source "$LIB_WORKFLOW/cli/openconnect-saml/installer.sh"
+source "$LIB_WORKFLOW/pipx-package.sh"
 source "$LIB_WORKFLOW/version-registry.sh"
 
 tag="upgrade:$CANONICAL_ID"
@@ -24,5 +24,5 @@ if ! load_registry "$CANONICAL_ID" || ! install_path="$(get_registry "INSTALL_PA
     exit 1
 fi
 
-openconnect_saml_install_pipx "$CANONICAL_ID" "$install_path" "$version" || exit $?
+pipx_package_install "$CANONICAL_ID" "$install_path" "openconnect-saml" "openconnect-saml" "$version" "gui" || exit $?
 record_version_registry "$CANONICAL_ID"
