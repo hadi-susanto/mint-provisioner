@@ -252,7 +252,7 @@ mint-provisioner/
 │   ├── plan.sh                         # Read-only installation preview
 │   ├── outdated.sh                     # Installed vs latest versions (outdated, update)
 │   ├── OUTDATED.md                     # How the 'mp outdated' worker pool works
-│   ├── upgrade.sh                      # Upgrade outdated modules (UPDATE_MODE=apt, github)
+│   ├── upgrade.sh                      # Upgrade outdated modules (UPDATE_MODE=apt, github, external, git)
 │   └── remove.sh                       # Module removal command (remove, uninstall, purge)
 ├── lib/                                # Reusable framework libraries
 │   ├── common/
@@ -299,7 +299,9 @@ mint-provisioner/
 │       ├── jetbrains-*.sh              # Shared JetBrains IDE workflow phases, release lookup, and download
 │       ├── hashicorp-download.sh       # Download and verify a HashiCorp release binary (Consul, Vault)
 │       ├── git-pull-upgrade.sh         # Fast-forward a git clone to its branch tip, or back on failure
+│       ├── pipx-package.sh             # PyPI version lookup and pipx install/uninstall
 │       ├── state-cleaner.sh            # Clean temporary module state
+│       ├── sudo-refresher.sh           # Keep cached sudo credentials alive during long downloads
 │       └── <category>/<module>/        # Product-specific resolvers and installers
 ├── modules/                            # Module catalog and lifecycle scripts
 │   ├── README.md                       # Catalog and module-authoring documentation

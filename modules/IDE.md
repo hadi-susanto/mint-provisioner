@@ -6,6 +6,7 @@ ranging from lightweight editors and full-featured IDEs.
 ## Contents
 
 - [JetBrains Modules Behavior](#shared-jetbrains-module-behavior)
+- [Android Studio](#android-studio-android-studio)
 - [CLion](#clion-clion)
 - [CudaText](#cudatext-cudatext)
 - [DataGrip](#datagrip-datagrip)
@@ -56,6 +57,36 @@ desktop entry (`/usr/share/applications/<launcher>.desktop`) and installs the bu
     - Supported values: `true` and `false`.
     - When unset in interactive mode and `aria2c` is missing, the module asks for permission.
     - When unset in non-interactive mode, defaults to `false` and uses the standard downloader.
+
+---
+
+## Android Studio (`android-studio`)
+
+Android Studio is Google's official IDE for Android app development, built on IntelliJ IDEA.
+
+### Installation Method
+
+**Official Android Studio Linux archive** (`.tar.gz`) from the latest stable release in Google's release feed. The
+archive is verified against the SHA-256 checksum published in the feed, extracted into the installation directory, and
+its launcher (`bin/studio`) is linked as `/usr/local/bin/android-studio`. A system-wide desktop entry and icon are also
+installed. The Android SDK is downloaded by Android Studio on first launch and is not managed by this module.
+
+Only the stable channel is used; Canary, Beta, and RC builds are ignored.
+
+### Supported ENV
+
+- `ANDROID_STUDIO_INSTALL_DIR`
+    - Installation directory.
+    - Default: `${INSTALL_DIR}/android-studio`
+
+### Notes
+
+Purging removes the per-version `AndroidStudio*` directories under `~/.config/Google`, `~/.cache/Google`, and
+`~/.local/share/Google`. The Android SDK and `~/.android` are kept.
+
+### Official Website
+
+https://developer.android.com/studio
 
 ---
 
