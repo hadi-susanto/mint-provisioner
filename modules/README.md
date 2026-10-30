@@ -9,7 +9,7 @@ modules, see the [module contributor guide](CONTRIBUTING.md).
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **103 modules** across **11 categories**. A category is part of a module's canonical
+Mint Provisioner currently provides **104 modules** across **11 categories**. A category is part of a module's canonical
 ID:
 
 ```text
@@ -39,7 +39,7 @@ official project links.
 | [Terminal](TERM.md)             | `term` | `alacritty`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `terminator`, `zsh`                                                                                                                |
 | [Terminal UI](TUI.md)           | `tui`  | `bottom`, `du-analyzer`, `du-rust`, `duf`, `git-ui`, `lazy-git`                                                                                                                                                  |
 | [Web](WEB.md)                   | `web`  | `brave-browser`, `brave-origin`, `firefox`, `firefox-pwa`, `google-chrome`, `librewolf`, `microsoft-edge`                                                                                                        |
-| [DevOps Tools](OPS.md)          | `ops`  | `argocd`, `cloudflared`, `consul`, `docker`, `gcloud`, `mkcert`, `vault`                                                                                                                                         |
+| [DevOps Tools](OPS.md)          | `ops`  | `argocd`, `cloudflared`, `consul`, `docker`, `gcloud`, `kubectl`, `mkcert`, `vault`                                                                                                                                         |
 | [Miscellaneous](MISC.md)        | `misc` | `any-desk`, `claude-code`, `codex`, `junie`, `virtual-box`                                                                                                                                                       |
 
 ## 📁 Directory Structure
