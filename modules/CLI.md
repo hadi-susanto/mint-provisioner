@@ -15,12 +15,16 @@ applications.
 - [GitHub CLI](#github-cli-github-cli-alias-gh)
 - [k6](#k6-k6)
 - [MKVToolNix](#mkvtoolnix-mkvtoolnix-alias-mkvmerge)
+- [mycli](#mycli-mycli)
 - [OneDrive Client](#onedrive-client-onedrive)
 - [OpenConnect SAML](#openconnect-saml-openconnect-saml)
 - [pay-respects](#pay-respects-pay-respects)
+- [pgcli](#pgcli-pgcli)
 - [Procs](#procs-procs)
 - [rclone](#rclone-rclone)
+- [ripgrep](#ripgrep-ripgrep)
 - [TLP](#tlp-tlp)
+- [yq](#yq-yq)
 
 ---
 
@@ -259,6 +263,43 @@ https://mkvtoolnix.download/
 
 ---
 
+## mycli (`mycli`)
+
+mycli is a terminal client for MySQL and MariaDB with auto-completion and syntax highlighting.
+
+### Installation Method
+
+**pipx (PyPI)**
+
+Installs the following APT packages:
+
+- `pipx`
+- `python3-venv`
+
+Then installs the latest `mycli` release from PyPI, pinned to the version resolved during pre-install, with pipx into a
+dedicated directory and creates a symbolic link to the executable in `/usr/local/bin`. No environment or shell rc files
+are modified.
+
+mycli requires Python 3.11 or newer; pre-install fails with a clear error on older systems (such as Linux Mint 21).
+
+### Supported ENV
+
+- `PIPX_INSTALL_DIR`
+    - Directory used as `PIPX_HOME`; pipx creates the package environment under `venvs/mycli`.
+    - Default: `${INSTALL_DIR}/pipx`
+    - Shared with other pipx modules. Removing `mycli` uninstalls only its own environment; the directory is kept.
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
+
+### Removal
+
+`mp purge` also deletes `~/.myclirc` and `~/.config/mycli`.
+
+### Official Website
+
+https://github.com/dbcli/mycli
+
+---
+
 ## OneDrive Client (`onedrive`)
 
 OneDrive Client is a free, open-source Microsoft OneDrive sync client for Linux by abraunegg. It supports personal,
@@ -368,6 +409,42 @@ https://github.com/iffse/pay-respects
 
 ---
 
+## pgcli (`pgcli`)
+
+pgcli is a terminal client for PostgreSQL with auto-completion and syntax highlighting.
+
+### Installation Method
+
+**pipx (PyPI)**
+
+Installs the following APT packages:
+
+- `pipx`
+- `python3-venv`
+- `libpq5`
+
+Then installs the latest `pgcli` release from PyPI, pinned to the version resolved during pre-install, with pipx into a
+dedicated directory and creates a symbolic link to the executable in `/usr/local/bin`. No environment or shell rc files
+are modified.
+
+### Supported ENV
+
+- `PIPX_INSTALL_DIR`
+    - Directory used as `PIPX_HOME`; pipx creates the package environment under `venvs/pgcli`.
+    - Default: `${INSTALL_DIR}/pipx`
+    - Shared with other pipx modules. Removing `pgcli` uninstalls only its own environment; the directory is kept.
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
+
+### Removal
+
+`mp purge` also deletes `~/.config/pgcli`.
+
+### Official Website
+
+https://github.com/dbcli/pgcli
+
+---
+
 ## Procs (`procs`)
 
 Procs is a modern replacement for the classic `ps` command. It provides colored output, process tree visualization,
@@ -424,6 +501,24 @@ https://rclone.org/
 
 ---
 
+## ripgrep (`ripgrep`)
+
+ripgrep (`rg`) is a fast recursive search tool that respects `.gitignore` rules and skips hidden and binary files by
+default.
+
+### Installation Method
+
+**GitHub latest release (`.deb`)**
+
+Downloads `ripgrep_<version>_amd64.deb` from the latest BurntSushi/ripgrep GitHub release, verifies its SHA-256 digest,
+and installs it with APT. The package provides `rg`, the man page, and shell completions. Only AMD64 is supported.
+
+### Official Website
+
+https://github.com/BurntSushi/ripgrep
+
+---
+
 ## TLP (`tlp`)
 
 TLP is an advanced power-management utility for Linux laptops. It applies optimized settings for battery life and
@@ -462,3 +557,29 @@ mp install gui/tlp-ui
 ### Official Website
 
 https://linrunner.de/tlp/
+
+---
+
+## yq (`yq`)
+
+yq is a portable command-line processor for YAML, JSON, XML, CSV, and properties files, with `jq`-like syntax.
+
+### Installation Method
+
+**GitHub latest release (precompiled binary)**
+
+Downloads the latest `yq_linux_amd64` binary from the mikefarah/yq GitHub releases, verifies its SHA-256 digest, and
+installs it for the current user. Only AMD64 is supported.
+
+### Supported ENV
+
+* `YQ_INSTALL_DIR`
+
+  * Installation directory.
+  * Default: `${INSTALL_DIR}/yq`
+  * Must be writable by the current user; the resolved path is recorded in the
+    module registry after installation.
+
+### Official Website
+
+https://github.com/mikefarah/yq

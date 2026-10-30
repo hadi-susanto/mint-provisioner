@@ -6,7 +6,7 @@ source "${LIB_INSTALLER}/path.sh"
 source "${LIB_INSTALLER}/registry.sh"
 source "${LIB_INSTALLER}/state.sh"
 source "${LIB_INSTALLER}/symlink.sh"
-source "${LIB_WORKFLOW}/cli/openconnect-saml/installer.sh"
+source "${LIB_WORKFLOW}/pipx-package.sh"
 source "${LIB_WORKFLOW}/version-registry.sh"
 
 __ensure_dependencies() {
@@ -40,8 +40,8 @@ main() {
     load_states "$CANONICAL_ID" || return $?
     version="$(get_state "VERSION")" || return $?
     __ensure_dependencies || return $?
-    openconnect_saml_install_pipx "$CANONICAL_ID" "$install_path" "$version" || return $?
-    symlink_binary "$CANONICAL_ID" "$(openconnect_saml_binary "$install_path")" || return $?
+    pipx_package_install "$CANONICAL_ID" "$install_path" "openconnect-saml" "openconnect-saml" "$version" "gui" || return $?
+    symlink_binary "$CANONICAL_ID" "$(pipx_package_binary "$install_path" "openconnect-saml" "openconnect-saml")" || return $?
     set_registry "INSTALL_PATH" "$install_path" || return $?
     save_registry "$CANONICAL_ID" || return $?
     record_version_registry "$CANONICAL_ID"

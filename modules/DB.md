@@ -15,6 +15,7 @@ servers, database clients, management utilities, and other tools for working wit
 - [pgAdmin 4](#pgadmin-4-pg-admin-alias-pgadmin)
 - [PostgreSQL Server](#postgresql-server-postgresql)
 - [Redis](#redis-redis)
+- [Redis Insight](#redis-insight-redis-insight)
 
 ---
 
@@ -345,3 +346,26 @@ Installs Redis from the configured APT package repository.
 ### Official Website
 
 https://redis.io/
+
+---
+
+## Redis Insight (`redis-insight`)
+
+Redis Insight is the official Redis GUI for browsing keys, running commands, and analyzing and debugging Redis data.
+
+### Installation Method
+
+**GitHub latest release (`.deb`)**
+
+Downloads `Redis-Insight-linux-amd64.deb` from the latest GitHub release, verifies its SHA-256 digest, and installs it
+with APT. Only AMD64 is supported.
+
+### Official Website
+
+https://redis.io/insight/
+
+### GitHub Repository
+
+https://github.com/redis/RedisInsight
+
+---
