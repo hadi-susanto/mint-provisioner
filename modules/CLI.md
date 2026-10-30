@@ -21,6 +21,7 @@ applications.
 - [Procs](#procs-procs)
 - [rclone](#rclone-rclone)
 - [TLP](#tlp-tlp)
+- [yq](#yq-yq)
 
 ---
 
@@ -462,3 +463,29 @@ mp install gui/tlp-ui
 ### Official Website
 
 https://linrunner.de/tlp/
+
+---
+
+## yq (`yq`)
+
+yq is a portable command-line processor for YAML, JSON, XML, CSV, and properties files, with `jq`-like syntax.
+
+### Installation Method
+
+**GitHub latest release (precompiled binary)**
+
+Downloads the latest `yq_linux_amd64` binary from the mikefarah/yq GitHub releases, verifies its SHA-256 digest, and
+installs it for the current user. Only AMD64 is supported.
+
+### Supported ENV
+
+* `YQ_INSTALL_DIR`
+
+  * Installation directory.
+  * Default: `${INSTALL_DIR}/yq`
+  * Must be writable by the current user; the resolved path is recorded in the
+    module registry after installation.
+
+### Official Website
+
+https://github.com/mikefarah/yq
