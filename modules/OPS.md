@@ -10,6 +10,7 @@ services from a development machine.
 - [Consul](#consul-consul)
 - [Docker](#docker-docker)
 - [Google Cloud CLI](#google-cloud-cli-gcloud)
+- [K9s](#k9s-k9s)
 - [kubectl](#kubectl-kubectl)
 - [mkcert](#mkcert-mkcert)
 - [Vault](#vault-vault)
@@ -196,6 +197,37 @@ Installs the Google Cloud CLI from Google's official APT package repository.
 ### Official Website
 
 https://cloud.google.com/sdk
+
+---
+
+## K9s (`k9s`)
+
+K9s is a terminal UI for navigating, observing, and managing Kubernetes clusters. It reads the same kubeconfig as
+`kubectl`.
+
+### Installation Method
+
+**GitHub latest release (precompiled archive)**
+
+Downloads `k9s_Linux_amd64.tar.gz` from the latest derailed/k9s GitHub release, verifies its SHA-256 digest, and
+installs the binary for the current user. Only AMD64 is supported.
+
+### Supported ENV
+
+* `K9S_INSTALL_DIR`
+
+  * Installation directory.
+  * Default: `${INSTALL_DIR}/k9s`
+  * Must be writable by the current user; the resolved path is recorded in the
+    module registry after installation.
+
+### Official Website
+
+https://k9scli.io/
+
+### GitHub Repository
+
+https://github.com/derailed/k9s
 
 ---
 
