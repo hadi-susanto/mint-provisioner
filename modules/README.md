@@ -9,7 +9,7 @@ modules, see the [module contributor guide](CONTRIBUTING.md).
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **104 modules** across **11 categories**. A category is part of a module's canonical
+Mint Provisioner currently provides **105 modules** across **11 categories**. A category is part of a module's canonical
 ID:
 
 ```text
@@ -31,7 +31,7 @@ official project links.
 | Category                        | ID     | Modules                                                                                                                                                                                                          |
 |---------------------------------|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [Command Line](CLI.md)          | `cli`  | `adb`, `bat`, `delta`, `difftastic`, `eza`, `git`, `github-cli`, `k6`, `mkvtoolnix`, `onedrive`, `openconnect-saml`, `pay-respects`, `procs`, `rclone`, `tlp`                                                                  |
-| [Database](DB.md)               | `db`   | `dbeaver-community`, `dbgate-community`, `memcached`, `mongodb-community`, `mongodb-compass`, `mysql`, `mysql-tools`, `pg-admin`, `postgresql`, `redis`                                                          |
+| [Database](DB.md)               | `db`   | `dbeaver-community`, `dbgate-community`, `memcached`, `mongodb-community`, `mongodb-compass`, `mysql`, `mysql-tools`, `pg-admin`, `postgresql`, `redis`, `redis-insight`                                                        |
 | [Development](DEV.md)           | `dev`  | `apache-maven`, `bruno`, `httptoolkit`, `kafdrop`, `mise`, `postman`, `sdkman`, `yaak`                                                                                                                           |
 | [Desktop Applications](GUI.md)  | `gui`  | `avda`, `cryptomator`, `deadbeef`, `desk-otp`, `double-commander`, `flameshot`, `fman`, `insync`, `keepass-xc`, `lapce`, `meld`, `mu-commander`, `onedrive-gui`, `onedriver`, `otpclient`, `sunflower`, `tlp-ui` |
 | [IDE](IDE.md)                   | `ide`  | `clion`, `cudatext`, `datagrip`, `geany`, `goland`, `gram`, `idea`, `phpstorm`, `pycharm`, `rider`, `rubymine`, `rustrover`, `vscode`, `vscodium`, `webstorm`                                                    |
