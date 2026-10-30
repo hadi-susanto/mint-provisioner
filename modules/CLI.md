@@ -22,6 +22,7 @@ applications.
 - [pgcli](#pgcli-pgcli)
 - [Procs](#procs-procs)
 - [rclone](#rclone-rclone)
+- [ripgrep](#ripgrep-ripgrep)
 - [TLP](#tlp-tlp)
 - [yq](#yq-yq)
 
@@ -497,6 +498,24 @@ rclone config
 ### Official Website
 
 https://rclone.org/
+
+---
+
+## ripgrep (`ripgrep`)
+
+ripgrep (`rg`) is a fast recursive search tool that respects `.gitignore` rules and skips hidden and binary files by
+default.
+
+### Installation Method
+
+**GitHub latest release (`.deb`)**
+
+Downloads `ripgrep_<version>_amd64.deb` from the latest BurntSushi/ripgrep GitHub release, verifies its SHA-256 digest,
+and installs it with APT. The package provides `rg`, the man page, and shell completions. Only AMD64 is supported.
+
+### Official Website
+
+https://github.com/BurntSushi/ripgrep
 
 ---
 
