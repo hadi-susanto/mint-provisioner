@@ -7,22 +7,16 @@ source "$LIB_WORKFLOW/install-target.sh"
 source "$LIB_WORKFLOW/misc/junie/resolver.sh"
 source "$LIB_WORKFLOW/stateful-downloader.sh"
 
-main() {
-    local canonical_id="$1"
-    local raw_install_path="$2"
-    local platform
-    local -A release=()
+tag="pre-install:$CANONICAL_ID"
+install_dir="${JUNIE_INSTALL_DIR:-$INSTALL_DIR/junie}"
+declare -A release=()
 
-    valid_install_target "$canonical_id" "$raw_install_path" "JUNIE_INSTALL_DIR" || return $?
+valid_install_target "$CANONICAL_ID" "$install_dir" "JUNIE_INSTALL_DIR" || exit $?
 
-    platform="$(resolve_junie_platform "$canonical_id")" || return $?
-    tlog_info "pre-install:$canonical_id" "Resolving latest Junie release for %s" "$platform"
-    resolve_junie_release "$canonical_id" "$platform" release || return $?
+platform="$(resolve_junie_platform "$CANONICAL_ID")" || exit $?
+tlog_info "$tag" "Resolving latest Junie release for %s" "$platform"
+resolve_junie_release "$CANONICAL_ID" "$platform" release || exit $?
 
-    tlog_info "pre-install:$canonical_id" "Downloading Junie %s (%s)" \
-        "${release[VERSION]}" "$platform"
-    stateful_download "$canonical_id" "ARCHIVE_FILE" "${release[URL]}" ".zip" 1 \
-        "${release[CHECKSUM]}" "${release[VERSION]}"
-}
-
-main "$CANONICAL_ID" "${JUNIE_INSTALL_DIR:-$INSTALL_DIR/junie}"
+tlog_info "$tag" "Downloading Junie %s (%s)" "${release[VERSION]}" "$platform"
+stateful_download "$CANONICAL_ID" "ARCHIVE_FILE" "${release[URL]}" ".zip" 1 \
+    "${release[CHECKSUM]}" "${release[VERSION]}"

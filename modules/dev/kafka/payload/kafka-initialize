@@ -1,0 +1,156 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly INSTALL_PATH="KAFKA_INSTALL_PATH"
+readonly CONFIG_FILE="$INSTALL_PATH/config/server.properties"
+readonly LOG_DIRS="$INSTALL_PATH/kraft-combined-logs"
+
+if [[ -z "${NO_COLOR:-}" ]] &&
+    { [[ -n "${FORCE_COLOR:-}" ]] || [[ -t 1 ]]; }; then
+    readonly COLOR_RED=$'\033[0;31m'
+    readonly COLOR_CYAN=$'\033[0;36m'
+    readonly COLOR_RESET=$'\033[0m'
+else
+    readonly COLOR_RED=""
+    readonly COLOR_CYAN=""
+    readonly COLOR_RESET=""
+fi
+
+__log_info() {
+    printf '%s[INFO]%s %s\n' \
+        "$COLOR_CYAN" \
+        "$COLOR_RESET" \
+        "$*"
+}
+
+__log_error() {
+    printf '%s[ERROR]%s %s\n' \
+        "$COLOR_RED" \
+        "$COLOR_RESET" \
+        "$*" >&2
+}
+
+__usage() {
+    cat <<EOF
+${COLOR_CYAN}Usage:${COLOR_RESET}
+  kafka-initialize [OPTIONS]
+
+Delete the Kafka data in $LOG_DIRS and format a fresh standalone
+KRaft storage with a new cluster ID. All topics and messages are lost.
+
+The Kafka server must be stopped first.
+
+${COLOR_CYAN}Options:${COLOR_RESET}
+  -h, --help    Display this help message
+  -y, --yes     Do not ask for confirmation
+
+${COLOR_CYAN}Examples:${COLOR_RESET}
+  kafka-initialize
+  kafka-initialize --yes
+EOF
+}
+
+__parse_args() {
+    local options_name="$1"
+    local -n options_ref="$options_name"
+
+    shift
+
+    options_ref=(
+        [YES]=0
+    )
+
+    while (($# > 0)); do
+        case "$1" in
+            -h | --help)
+                __usage
+
+                exit 0
+                ;;
+
+            -y | --yes)
+                options_ref[YES]=1
+                shift
+                ;;
+
+            -*)
+                __log_error "Unknown option: $1"
+                printf "Run 'kafka-initialize --help' for usage information.\n" >&2
+
+                return 2
+                ;;
+
+            *)
+                __log_error "Unexpected argument: '$1'"
+                printf "Run 'kafka-initialize --help' for usage information.\n" >&2
+
+                return 2
+                ;;
+        esac
+    done
+}
+
+__server_running() {
+    command -v pgrep >/dev/null 2>&1 || return 1
+    pgrep -f -- "$CONFIG_FILE" >/dev/null
+}
+
+__confirm() {
+    local answer
+
+    if [[ ! -t 0 ]]; then
+        __log_error "No terminal to confirm the deletion; use --yes to skip the confirmation."
+
+        return 1
+    fi
+
+    read -r -p "Delete $LOG_DIRS and re-initialize Kafka storage? [y/N] " answer || return 1
+    [[ "${answer,,}" == "y" || "${answer,,}" == "yes" ]]
+}
+
+main() {
+    local -A options=()
+    local cluster_id
+
+    __parse_args options "$@" || return $?
+
+    if ! command -v java >/dev/null 2>&1; then
+        __log_error "java is not installed or is not available in PATH; Kafka requires Java 17+."
+
+        return 1
+    fi
+
+    if __server_running; then
+        __log_error "Kafka server is running; stop it first with 'kafka-server --stop' or Ctrl+C."
+
+        return 1
+    fi
+
+    if ((!options[YES])) && ! __confirm; then
+        __log_info "Kafka storage was not changed."
+
+        return 1
+    fi
+
+    if ! rm -rf -- "$LOG_DIRS"; then
+        __log_error "Failed to delete $LOG_DIRS"
+
+        return 1
+    fi
+
+    if ! cluster_id="$("$INSTALL_PATH/bin/kafka-storage.sh" random-uuid)"; then
+        __log_error "Failed to generate a Kafka cluster ID."
+
+        return 1
+    fi
+
+    if ! "$INSTALL_PATH/bin/kafka-storage.sh" format --standalone -t "$cluster_id" -c "$CONFIG_FILE"; then
+        __log_error "Failed to format Kafka storage in $LOG_DIRS"
+
+        return 1
+    fi
+
+    __log_info "Kafka storage initialized in $LOG_DIRS (cluster ID: $cluster_id)"
+}
+
+main "$@"

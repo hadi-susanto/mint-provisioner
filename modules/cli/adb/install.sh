@@ -6,43 +6,34 @@ source "$LIB_INSTALLER/registry.sh"
 source "$LIB_WORKFLOW/stateful-extractor.sh"
 source "$LIB_WORKFLOW/version-registry.sh"
 
-main() {
-    local canonical_id="$1"
-    local raw_install_path="$2"
-    local archive_file
-    local install_path
-    local temporary_dir
-    local tag="install:$canonical_id"
+tag="install:$CANONICAL_ID"
+install_path="$(expand_path "${ADB_INSTALL_DIR:-$INSTALL_DIR/adb}")" || exit $?
 
-    install_path="$(expand_path "$raw_install_path")" || return $?
-    if ! mkdir -p -- "$install_path"; then
-        tlog_error "$tag" "Failed to create install directory: %s" "$install_path"
+if ! mkdir -p -- "$install_path"; then
+    tlog_error "$tag" "Failed to create install directory: %s" "$install_path"
 
-        return 1
-    fi
+    exit 1
+fi
 
-    if ! temporary_dir="$(mktemp -d)"; then
-        tlog_error "$tag" "Failed to create a temporary extraction directory"
+if ! temporary_dir="$(mktemp -d)"; then
+    tlog_error "$tag" "Failed to create a temporary extraction directory"
 
-        return 1
-    fi
+    exit 1
+fi
 
-    stateful_extract "$canonical_id" "ARCHIVE_FILE" "zip" "$temporary_dir" || return $?
-    if ! cp -r "${temporary_dir}/platform-tools/." "$install_path/"; then
-        tlog_error "$tag" "Failed to copy Android platform-tools into: %s" "$install_path"
-        rm -rf -- "$temporary_dir"
-
-        return 1
-    fi
-
+stateful_extract "$CANONICAL_ID" "ARCHIVE_FILE" "zip" "$temporary_dir" || exit $?
+if ! cp -r "${temporary_dir}/platform-tools/." "$install_path/"; then
+    tlog_error "$tag" "Failed to copy Android platform-tools into: %s" "$install_path"
     rm -rf -- "$temporary_dir"
 
-    add_to_path "$canonical_id" "$install_path" || return $?
-    set_registry "INSTALL_PATH" "$install_path" || return $?
-    save_registry "$canonical_id" || return $?
-    record_version_registry "$canonical_id"
+    exit 1
+fi
 
-    tlog_info "$tag" "Installation completed successfully"
-}
+rm -rf -- "$temporary_dir"
 
-main "$CANONICAL_ID" "${ADB_INSTALL_DIR:-$INSTALL_DIR/adb}"
+add_to_path "$CANONICAL_ID" "$install_path" || exit $?
+set_registry "INSTALL_PATH" "$install_path" || exit $?
+save_registry "$CANONICAL_ID" || exit $?
+record_version_registry "$CANONICAL_ID"
+
+tlog_info "$tag" "Installation completed successfully"
