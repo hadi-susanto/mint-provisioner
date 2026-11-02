@@ -6,33 +6,23 @@ source "$LIB_INSTALLER/registry.sh"
 source "$LIB_WORKFLOW/stateful-extractor.sh"
 source "$LIB_WORKFLOW/version-registry.sh"
 
-main() {
-    local canonical_id="$1"
-    local raw_install_path="$2"
-    local archive_file
-    local install_path
-    local tag="install:$canonical_id"
+tag="install:$CANONICAL_ID"
+install_path="$(expand_path "${APACHE_MAVEN_INSTALL_DIR:-$INSTALL_DIR/apache-maven}")" || exit $?
 
-    install_path="$(expand_path "$raw_install_path")" || return $?
-    stateful_extract \
-        "$canonical_id" \
-        "ARCHIVE_FILE" \
-        "tar" \
-        "$install_path" \
-        "--strip-components=1" || return $?
+stateful_extract \
+    "$CANONICAL_ID" \
+    "ARCHIVE_FILE" \
+    "tar" \
+    "$install_path" \
+    "--strip-components=1" || exit $?
 
-    add_to_path "$canonical_id" "$install_path/bin" || return $?
-    set_registry "INSTALL_PATH" "$install_path" || return $?
-    save_registry "$canonical_id" || return $?
-    record_version_registry "$canonical_id"
+add_to_path "$CANONICAL_ID" "$install_path/bin" || exit $?
+set_registry "INSTALL_PATH" "$install_path" || exit $?
+save_registry "$CANONICAL_ID" || exit $?
+record_version_registry "$CANONICAL_ID"
 
-    if command -v java >/dev/null 2>&1; then
-        return 0
-    fi
-
+if ! command -v java >/dev/null 2>&1; then
     message="Java not found. Apache Maven requires Java; please install it"
     tlog_warn "$tag" "%s" "$message"
-    add_message "$canonical_id" warn "$message"
-}
-
-main "$CANONICAL_ID" "${APACHE_MAVEN_INSTALL_DIR:-$INSTALL_DIR/apache-maven}"
+    add_message "$CANONICAL_ID" warn "$message"
+fi
