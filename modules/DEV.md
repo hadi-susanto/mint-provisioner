@@ -9,6 +9,7 @@ up and maintain a productive development environment.
 - [Bruno](#bruno-bruno)
 - [HTTP Toolkit](#http-toolkit-httptoolkit)
 - [Kafdrop](#kafdrop-kafdrop)
+- [Apache Kafka](#apache-kafka-kafka)
 - [Mise](#mise-mise)
 - [Postman](#postman-postman)
 - [SDKMAN!](#sdkman-sdkman)
@@ -136,6 +137,75 @@ bundled in the module and installed to `/usr/share/icons/hicolor/scalable/apps/k
 ### Official Website
 
 https://github.com/obsidiandynamics/kafdrop
+
+---
+
+## Apache Kafka (`kafka`)
+
+Apache Kafka is a distributed event streaming platform. This module sets up a local single-node broker (KRaft mode,
+combined broker and controller) intended for development and integration tests.
+
+### Installation Method
+
+**Official website (precompiled archive)**
+
+Resolves the latest supported release from the Apache download index (`latest.sh`), downloads the Scala 2.13 binary
+TGZ archive from the Apache CDN, and verifies it against the SHA-512 checksum published by Apache. After extraction,
+`config/server.properties` gets `log.dirs=<install dir>/kraft-combined-logs`, the `kafka-server` and
+`kafka-initialize` executables are installed and linked into `/usr/local/bin`, and Kafka's `bin/` directory is added to
+`PATH` (for `kafka-topics.sh`, `kafka-console-producer.sh`, and the other Kafka tools). When Java is available, the
+storage is formatted during installation; otherwise it is formatted on the first `kafka-server` run.
+
+Kafka requires Java 17 or newer, which this module does not install.
+
+### Supported ENV
+
+- `KAFKA_INSTALL_DIR`
+    - Installation directory.
+    - Default: `${INSTALL_DIR}/kafka`
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
+
+### Executables
+
+`kafka-server` runs the standalone broker with `config/server.properties`. It listens on `localhost:9092` (controller
+on `localhost:9093`) and formats the storage first when it is not formatted yet.
+
+- Without options, Kafka runs in the foreground; Ctrl+C stops it.
+- `-d, --daemon` runs Kafka in the background; logs go to `<install dir>/logs`.
+- `--stop` stops the running Kafka server (`kafka-server-stop.sh`).
+- `--initialize` runs `kafka-initialize` (asks for confirmation).
+- `--gui` waits for Enter before closing when Kafka stops with an error or Ctrl+C, and after `--stop` or
+  `--initialize`; used by the desktop launcher.
+- `--daemon`, `--stop`, and `--initialize` cannot be combined.
+
+`kafka-initialize` deletes `<install dir>/kraft-combined-logs` and formats a fresh standalone storage with a new cluster
+ID (`kafka-storage.sh format --standalone`). All topics and messages are lost.
+
+- Asks for confirmation; `-y, --yes` skips it. Without a terminal, `--yes` is required.
+- Refuses while the Kafka server is running.
+
+### Desktop Integration
+
+The module installs a `kafka` desktop entry (`Terminal=true`, `Exec=kafka-server --gui`). Launching it opens a terminal
+running the broker in the foreground; closing the terminal stops it, and Ctrl+C stops it and waits for Enter before
+closing. The entry has two actions: **Stop Kafka** (`kafka-server --gui --stop`) and **Re-initialize Storage**
+(`kafka-server --gui --initialize`, asks for confirmation in the terminal).
+The launcher uses the official Apache Kafka logo (`kafka-logo-no-text.png` from https://kafka.apache.org/logos/, an
+Apache Software Foundation trademark), bundled in the module and installed to
+`/usr/share/icons/hicolor/512x512/apps/kafka.png`.
+
+### Upgrade
+
+`mp upgrade` replaces the installation directory with the new release, keeps `kraft-combined-logs`, and re-applies the
+`log.dirs` setting and the executables. Stop the Kafka server first; the upgrade is refused while it runs.
+
+### Official Website
+
+https://kafka.apache.org/
+
+### Documentation
+
+https://kafka.apache.org/quickstart/
 
 ---
 

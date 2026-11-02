@@ -1,0 +1,259 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly INSTALL_PATH="KAFKA_INSTALL_PATH"
+readonly CONFIG_FILE="$INSTALL_PATH/config/server.properties"
+readonly LOG_DIRS="$INSTALL_PATH/kraft-combined-logs"
+
+if [[ -z "${NO_COLOR:-}" ]] &&
+    { [[ -n "${FORCE_COLOR:-}" ]] || [[ -t 1 ]]; }; then
+    readonly COLOR_RED=$'\033[0;31m'
+    readonly COLOR_CYAN=$'\033[0;36m'
+    readonly COLOR_RESET=$'\033[0m'
+else
+    readonly COLOR_RED=""
+    readonly COLOR_CYAN=""
+    readonly COLOR_RESET=""
+fi
+
+__log_info() {
+    printf '%s[INFO]%s %s\n' \
+        "$COLOR_CYAN" \
+        "$COLOR_RESET" \
+        "$*"
+}
+
+__log_error() {
+    printf '%s[ERROR]%s %s\n' \
+        "$COLOR_RED" \
+        "$COLOR_RESET" \
+        "$*" >&2
+}
+
+__usage() {
+    cat <<EOF
+${COLOR_CYAN}Usage:${COLOR_RESET}
+  kafka-server [OPTIONS]
+
+Run a standalone Kafka broker (KRaft, combined broker and controller) for
+development and integration tests.
+
+${COLOR_CYAN}Options:${COLOR_RESET}
+  -h, --help        Display this help message
+  -d, --daemon      Run Kafka in the background
+      --stop        Stop the running Kafka server
+      --initialize  Wipe and re-initialize the Kafka storage (asks first)
+      --gui         Wait for Enter before closing when Kafka stops with an
+                    error or Ctrl+C, and after --stop or --initialize
+
+Without options, Kafka runs in the foreground; press Ctrl+C to stop it.
+
+The broker listens on localhost:9092 and the controller on localhost:9093.
+Data is stored in $LOG_DIRS; when the storage is not formatted yet, it is
+initialized first.
+
+In daemon mode, Kafka logs are written to $INSTALL_PATH/logs.
+
+The desktop launcher runs 'kafka-server --gui' in a terminal.
+
+${COLOR_CYAN}Examples:${COLOR_RESET}
+  kafka-server
+  kafka-server --daemon
+  kafka-server --stop
+  kafka-server --initialize
+EOF
+}
+
+__pause() {
+    local _
+
+    read -r -p "Press Enter to close..." _ || true
+}
+
+__set_command() {
+    local options_name="$1"
+    local -n command_ref="$options_name"
+    local cmd="$2"
+    local option="$3"
+
+    if [[ -n "${command_ref[CMD]}" && "${command_ref[CMD]}" != "$cmd" ]]; then
+        __log_error "Option '$option' cannot be combined with '--${command_ref[CMD]}'."
+        printf "Run 'kafka-server --help' for usage information.\n" >&2
+
+        return 2
+    fi
+
+    command_ref[CMD]="$cmd"
+}
+
+__parse_args() {
+    local options_name="$1"
+    local -n options_ref="$options_name"
+
+    shift
+
+    # An empty CMD means no command option was given; it defaults to start.
+    options_ref=(
+        [CMD]=""
+        [DAEMON]=0
+        [GUI]=0
+    )
+
+    while (($# > 0)); do
+        case "$1" in
+            -h | --help)
+                __usage
+
+                exit 0
+                ;;
+
+            -d | --daemon)
+                options_ref[DAEMON]=1
+                shift
+                ;;
+
+            --stop)
+                __set_command "$options_name" "stop" "$1" || return $?
+                shift
+                ;;
+
+            --initialize)
+                __set_command "$options_name" "initialize" "$1" || return $?
+                shift
+                ;;
+
+            --gui)
+                options_ref[GUI]=1
+                shift
+                ;;
+
+            -*)
+                __log_error "Unknown option: $1"
+                printf "Run 'kafka-server --help' for usage information.\n" >&2
+
+                return 2
+                ;;
+
+            *)
+                __log_error "Unexpected argument: '$1'"
+                printf "Run 'kafka-server --help' for usage information.\n" >&2
+
+                return 2
+                ;;
+        esac
+    done
+
+    if [[ -n "${options_ref[CMD]}" ]] && ((options_ref[DAEMON])); then
+        __log_error "Option '--daemon' cannot be combined with '--${options_ref[CMD]}'."
+        printf "Run 'kafka-server --help' for usage information.\n" >&2
+
+        return 2
+    fi
+
+    options_ref[CMD]="${options_ref[CMD]:-start}"
+}
+
+__stop() {
+    local gui="$1"
+    local status=0
+
+    if ((!gui)); then
+        exec "$INSTALL_PATH/bin/kafka-server-stop.sh"
+    fi
+
+    "$INSTALL_PATH/bin/kafka-server-stop.sh" || status=$?
+    __pause
+
+    return "$status"
+}
+
+__initialize() {
+    local gui="$1"
+    local status=0
+
+    "$INSTALL_PATH/kafka-initialize" || status=$?
+
+    if ((gui)); then
+        __pause
+    fi
+
+    return "$status"
+}
+
+__start() {
+    local gui="$1"
+    local daemon="$2"
+    local status=0
+    local -a start_args=()
+
+    if ! command -v java >/dev/null 2>&1; then
+        __log_error "java is not installed or is not available in PATH; Kafka requires Java 17+."
+
+        if ((gui)); then
+            __pause
+        fi
+
+        return 1
+    fi
+
+    if [[ ! -f "$LOG_DIRS/meta.properties" ]]; then
+        __log_info "Kafka storage is not formatted yet; initializing $LOG_DIRS"
+
+        if ! "$INSTALL_PATH/kafka-initialize" --yes; then
+            if ((gui)); then
+                __pause
+            fi
+
+            return 1
+        fi
+    fi
+
+    if ((daemon)); then
+        start_args+=("-daemon")
+    fi
+
+    if ((!gui)); then
+        exec "$INSTALL_PATH/bin/kafka-server-start.sh" "${start_args[@]}" "$CONFIG_FILE"
+    fi
+
+    # Ctrl+C reaches this wrapper and java alike. A trap handler (unlike the default action) keeps the wrapper
+    # alive, so it can pause afterwards; java still stops on SIGINT.
+    trap ':' INT
+    "$INSTALL_PATH/bin/kafka-server-start.sh" "${start_args[@]}" "$CONFIG_FILE" || status=$?
+    trap - INT
+
+    # Keep the launcher's terminal open after Kafka stops; 130 is Ctrl+C.
+    if ((status != 0)); then
+        if ((status == 130)); then
+            __log_info "Kafka stopped."
+        else
+            __log_error "Kafka exited with status $status."
+        fi
+
+        __pause
+    fi
+
+    return "$status"
+}
+
+main() {
+    local -A options=()
+
+    __parse_args options "$@" || return $?
+
+    case "${options[CMD]}" in
+        stop)
+            __stop "${options[GUI]}"
+            ;;
+
+        initialize)
+            __initialize "${options[GUI]}"
+            ;;
+
+        start)
+            __start "${options[GUI]}" "${options[DAEMON]}"
+            ;;
+    esac
+}
+
+main "$@"
