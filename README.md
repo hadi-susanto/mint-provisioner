@@ -237,7 +237,8 @@ mp ui
 ```
 
 Opens a `whiptail` menu to pick a command (`info`, `install`, `plan`, `outdated`, `upgrade`, `remove`, `purge`), then a
-checklist of modules and of the command's options. `install`, `plan`, and `info` offer every module and mark installed
+module menu and a checklist of the command's options. The module menu offers `Search...` (words matched against the ID,
+name, alias, and description), `All`, and one entry per category; selections are kept across them until `Done`. `install`, `plan`, and `info` offer every module and mark installed
 ones; `outdated`, `upgrade`, `remove`, and `purge` offer installed modules only, and selecting none for `outdated` or
 `upgrade` means every installed module. The resulting `mp` command line is shown for confirmation and then runs as if
 typed, with the command's own prompts. Requires `whiptail` and an interactive terminal of at least 80x24.

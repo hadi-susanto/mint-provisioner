@@ -246,11 +246,14 @@ Options:
 
 Description:
   Opens a whiptail menu to choose a command (info, install, plan, outdated,
-  upgrade, remove, or purge), then a checklist of modules and, when the
-  command has any, a checklist of its options. Install, plan, and info offer
-  every module and mark the installed ones; outdated, upgrade, remove, and
-  purge offer installed modules only. Selecting no module for outdated or
-  upgrade means every installed module.
+  upgrade, remove, or purge), then a module menu and, when the command has
+  any, a checklist of its options. The module menu offers Search... (words
+  matched against the ID, name, alias, and description), All, and one entry
+  per category; each opens a checklist, and selections are kept across them
+  until Done. Install, plan, and info offer every module and mark the
+  installed ones; outdated, upgrade, remove, and purge offer installed modules
+  only. Selecting no module for outdated or upgrade means every installed
+  module.
 
   The resulting mp command line is shown for confirmation, then runs as if
   typed, so each command keeps its own prompts and confirmations. Cancel

@@ -26,8 +26,13 @@ readonly -A __UI_COMMAND_LABELS=(
 # Module catalog and installed state, filled once by __detect_modules.
 declare -a __UI_MODULES=()
 declare -A __UI_NAMES=()
+declare -A __UI_DESCRIPTIONS=()
 declare -A __UI_STATUSES=()
+declare -a __UI_CATEGORIES=()
+declare -A __UI_CATEGORY_NAMES=()
 __UI_DETECTED=0
+# Modules picked in the module menu of the current command (canonical ID -> 1).
+declare -A __UI_SELECTED=()
 # Dialog geometry, set by __load_terminal_size.
 __UI_HEIGHT=0
 __UI_WIDTH=0
@@ -158,6 +163,16 @@ __detect_modules() {
     local gauge_fd
     local gauge_pid
     local done_count=0
+    local -A category_metadata=()
+    local category
+
+    list_categories __UI_CATEGORIES
+    for category in "${__UI_CATEGORIES[@]}"; do
+        __UI_CATEGORY_NAMES["$category"]="$category"
+        if parse_category_metadata "$MP_MODULES/$category" category_metadata 2>/dev/null; then
+            __UI_CATEGORY_NAMES["$category"]="${category_metadata[NAME]}"
+        fi
+    done
 
     list_modules __UI_MODULES || return $?
 
@@ -170,6 +185,7 @@ __detect_modules() {
         status=0
         if parse_module_metadata "$MP_MODULES/$canonical_id" module_metadata 2>/dev/null; then
             __UI_NAMES["$canonical_id"]="${module_metadata[NAME]}"
+            __UI_DESCRIPTIONS["$canonical_id"]="${module_metadata[DESCRIPTION]}"
             module_installed "$canonical_id" module_metadata >/dev/null 2>&1 || status=$?
         else
             __UI_NAMES["$canonical_id"]="$canonical_id"
@@ -228,69 +244,263 @@ __allows_empty_selection() {
 }
 
 ##
-# __choose_modules <command> <modules_name>
+# __module_offered <command> <canonical_id>
 #
-# Shows the module checklist for a command and stores the selected canonical IDs.
+# Checks whether a module is offered for a command. Installed-only commands
+# skip modules detected as not installed; failed detection is still offered.
 #
 # Return:
-#   1 when the checklist was cancelled.
+#   1 when the module is not offered.
+#
+__module_offered() {
+    local command="$1"
+    local canonical_id="$2"
+
+    if __installed_only "$command" && (( ${__UI_STATUSES[$canonical_id]} == 1 )); then
+        return 1
+    fi
+}
+
+__module_label() {
+    local canonical_id="$1"
+    local label="${__UI_NAMES[$canonical_id]}"
+
+    case "${__UI_STATUSES[$canonical_id]}" in
+        0)
+            label+=" [installed]"
+            ;;
+        1)
+            ;;
+        *)
+            label+=" [unknown]"
+            ;;
+    esac
+
+    printf '%s\n' "$label"
+}
+
+##
+# __pick_modules <prompt> <canonical_id>...
+#
+# Shows a checklist of the given modules, checked when already selected, and
+# updates __UI_SELECTED for them. Cancel leaves the selection unchanged.
+#
+__pick_modules() {
+    local prompt="$1"
+    shift
+
+    local -a checklist_items=()
+    local -A checked=()
+    local canonical_id
+    local state
+    local output
+
+    for canonical_id in "$@"; do
+        state="OFF"
+        if [[ -v "__UI_SELECTED[$canonical_id]" ]]; then
+            state="ON"
+        fi
+
+        checklist_items+=("$canonical_id" "$(__module_label "$canonical_id")" "$state")
+    done
+
+    output="$(__ui_whiptail --separate-output --checklist "$prompt\nSpace toggles a module, Enter confirms." \
+        "$__UI_HEIGHT" "$__UI_WIDTH" "$__UI_LIST_HEIGHT" "${checklist_items[@]}")" || return 0
+
+    while IFS= read -r canonical_id; do
+        [[ -n "$canonical_id" ]] || continue
+
+        checked["$canonical_id"]=1
+    done <<<"$output"
+
+    # Only the shown modules change, so unchecking one removes it from the selection.
+    for canonical_id in "$@"; do
+        if [[ -v "checked[$canonical_id]" ]]; then
+            __UI_SELECTED["$canonical_id"]=1
+        else
+            unset "__UI_SELECTED[$canonical_id]"
+        fi
+    done
+}
+
+##
+# __module_matches <query> <canonical_id>
+#
+# Checks whether every word of the query appears, case-insensitively, in the
+# module's canonical ID, name, description, or aliases.
+#
+# Return:
+#   1 when a word does not match.
+#
+__module_matches() {
+    local query="${1,,}"
+    local canonical_id="$2"
+    local -a aliases=()
+    local -a words=()
+    local haystack
+    local word
+
+    resolve_module_aliases "$canonical_id" aliases 2>/dev/null || true
+    haystack="$canonical_id ${__UI_NAMES[$canonical_id]} ${__UI_DESCRIPTIONS[$canonical_id]:-} ${aliases[*]}"
+    haystack="${haystack,,}"
+
+    read -ra words <<<"$query"
+    for word in "${words[@]}"; do
+        [[ "$haystack" == *"$word"* ]] || return 1
+    done
+}
+
+__search_modules() {
+    local command="$1"
+    local -a matches=()
+    local canonical_id
+    local query
+
+    query="$(__ui_whiptail --inputbox \
+        "Search modules (words match ID, name, alias, or description):" \
+        10 "$__UI_WIDTH")" || return 0
+
+    if [[ -z "${query//[[:space:]]/}" ]]; then
+        return 0
+    fi
+
+    for canonical_id in "${__UI_MODULES[@]}"; do
+        __module_offered "$command" "$canonical_id" || continue
+
+        if __module_matches "$query" "$canonical_id"; then
+            matches+=("$canonical_id")
+        fi
+    done
+
+    if (( ${#matches[@]} == 0 )); then
+        __ui_message "No modules match '$query'."
+
+        return 0
+    fi
+
+    __pick_modules "Results for '$query' (${#matches[@]}):" "${matches[@]}"
+}
+
+##
+# __choose_modules <command> <modules_name>
+#
+# Shows the module menu (search, all modules, categories, done) for a command
+# and stores the selected canonical IDs in catalog order. Selections are kept
+# across the menu entries until Done.
+#
+# Return:
+#   1 when the menu was cancelled.
 #   3 when the command has no module to offer.
 #
 __choose_modules() {
     local command="$1"
     local -n modules_ref="$2"
-    local -a checklist_items=()
+    local -a offered=()
+    local -a category_ids=()
+    local -a menu_items=()
+    local -A category_offered=()
+    local -A category_selected=()
     local canonical_id
-    local status
+    local category
+    local count_label="modules"
+    local done_label
     local label
-    local text
-    local output
+    local choice="Search..."
+    local selected_count
+
+    __UI_SELECTED=()
 
     for canonical_id in "${__UI_MODULES[@]}"; do
-        status="${__UI_STATUSES[$canonical_id]}"
-        if __installed_only "$command" && (( status == 1 )); then
-            continue
+        if __module_offered "$command" "$canonical_id"; then
+            offered+=("$canonical_id")
+            category="${canonical_id%%/*}"
+            category_offered["$category"]=$(( ${category_offered[$category]:-0} + 1 ))
         fi
-
-        label="${__UI_NAMES[$canonical_id]}"
-        case "$status" in
-            0)
-                label+=" [installed]"
-                ;;
-            1)
-                ;;
-            *)
-                label+=" [unknown]"
-                ;;
-        esac
-
-        checklist_items+=("$canonical_id" "$label" "OFF")
     done
 
-    if (( ${#checklist_items[@]} == 0 )); then
+    if (( ${#offered[@]} == 0 )); then
         __ui_message "No installed modules to $command."
 
         return 3
     fi
 
-    text="Select modules to $command with Space, then press Enter."
-    if __allows_empty_selection "$command"; then
-        text+="\nSelect none for every installed module."
+    if __installed_only "$command"; then
+        count_label="installed"
     fi
 
     while true; do
-        output="$(__ui_whiptail --separate-output --checklist "$text" \
-            "$__UI_HEIGHT" "$__UI_WIDTH" "$__UI_LIST_HEIGHT" "${checklist_items[@]}")" || return 1
-        modules_ref=()
-        if [[ -n "$output" ]]; then
-            mapfile -t modules_ref <<<"$output"
+        category_selected=()
+        selected_count=0
+        for canonical_id in "${!__UI_SELECTED[@]}"; do
+            category="${canonical_id%%/*}"
+            category_selected["$category"]=$(( ${category_selected[$category]:-0} + 1 ))
+            (( selected_count += 1 ))
+        done
+
+        menu_items=(
+            "Search..." "Find modules by name, ID, alias, or description"
+            "All" "All modules (${#offered[@]} $count_label)"
+        )
+
+        for category in "${__UI_CATEGORIES[@]}"; do
+            [[ -v "category_offered[$category]" ]] || continue
+
+            label="${__UI_CATEGORY_NAMES[$category]} (${category_offered[$category]} $count_label"
+            if [[ -v "category_selected[$category]" ]]; then
+                label+=", ${category_selected[$category]} selected"
+            fi
+
+            menu_items+=("$category" "$label)")
+        done
+
+        if (( selected_count > 0 )); then
+            done_label="Continue with $selected_count selected module(s)"
+        elif __allows_empty_selection "$command"; then
+            done_label="Continue with every installed module"
+        else
+            done_label="Select at least one module first"
         fi
 
-        if (( ${#modules_ref[@]} > 0 )) || __allows_empty_selection "$command"; then
-            return 0
-        fi
+        menu_items+=("Done" "$done_label")
 
-        __ui_message "Select at least one module."
+        choice="$(__ui_whiptail --default-item "$choice" --cancel-button "Back" --menu \
+            "Pick modules to $command by category or search. Selections are kept until Done." \
+            "$__UI_HEIGHT" "$__UI_WIDTH" "$__UI_LIST_HEIGHT" "${menu_items[@]}")" || return 1
+
+        case "$choice" in
+            "Search...")
+                __search_modules "$command"
+                ;;
+            All)
+                __pick_modules "All modules to $command:" "${offered[@]}"
+                ;;
+            Done)
+                if (( selected_count == 0 )) && ! __allows_empty_selection "$command"; then
+                    __ui_message "Select at least one module."
+
+                    continue
+                fi
+
+                modules_ref=()
+                for canonical_id in "${__UI_MODULES[@]}"; do
+                    if [[ -v "__UI_SELECTED[$canonical_id]" ]]; then
+                        modules_ref+=("$canonical_id")
+                    fi
+                done
+
+                return 0
+                ;;
+            *)
+                category_ids=()
+                for canonical_id in "${offered[@]}"; do
+                    if [[ "${canonical_id%%/*}" == "$choice" ]]; then
+                        category_ids+=("$canonical_id")
+                    fi
+                done
+
+                __pick_modules "${__UI_CATEGORY_NAMES[$choice]}: modules to $command:" "${category_ids[@]}"
+                ;;
+        esac
     done
 }
 
