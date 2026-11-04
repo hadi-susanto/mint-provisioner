@@ -4,6 +4,7 @@ Graphical applications for productivity, file management, security, and everyday
 
 ## Contents
 
+- [Audacious](#audacious-audacious)
 - [avda](#avda-avda)
 - [Cryptomator](#cryptomator-cryptomator)
 - [DeaDBeeF](#deadbeef-deadbeef)
@@ -19,8 +20,33 @@ Graphical applications for productivity, file management, security, and everyday
 - [OneDriveGUI](#onedrivegui-onedrive-gui)
 - [onedriver](#onedriver-onedriver)
 - [OTPClient](#otpclient-otpclient)
+- [Qmmp](#qmmp-qmmp)
 - [Sunflower](#sunflower-sunflower)
 - [TLP UI](#tlp-ui-tlp-ui)
+
+---
+
+## Audacious (`audacious`)
+
+Audacious is a lightweight, open-source audio player with a plugin architecture, a Winamp-style skinned interface,
+and support for most common audio formats.
+
+### Installation Method
+
+**Launchpad PPA**
+
+Configures the `ubuntuhandbook1/apps` Launchpad PPA, then installs Audacious using APT.
+
+### Supported ENV
+
+- `AUDACIOUS_USE_APT_ADD_REPOSITORY`
+    - Controls whether the Launchpad repository is added using `add-apt-repository`.
+    - Default:
+      `${USE_APT_ADD_REPOSITORY}`
+
+### Official Website
+
+https://audacious-media-player.org/
 
 ---
 
@@ -467,6 +493,29 @@ None.
 ### Official Website
 
 https://github.com/paolostivanin/OTPClient
+
+---
+
+## Qmmp (`qmmp`)
+
+Qmmp is a Qt-based audio player with a Winamp-like interface, plugin support, and wide audio format coverage.
+
+### Installation Method
+
+**Launchpad PPA**
+
+Configures the `forkotov02/ppa` Launchpad PPA, which tracks the latest Qmmp release, then installs Qmmp using APT.
+
+### Supported ENV
+
+- `QMMP_USE_APT_ADD_REPOSITORY`
+    - Controls whether the Launchpad repository is added using `add-apt-repository`.
+    - Default:
+      `${USE_APT_ADD_REPOSITORY}`
+
+### Official Website
+
+https://qmmp.ylsoftware.com/
 
 ---
 
