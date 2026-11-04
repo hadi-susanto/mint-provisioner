@@ -162,7 +162,8 @@ mp outdated --async N [module...]  # N background workers (default 6, max 9); al
 mp outdated --porcelain          # stdout: MODULE<TAB>INSTALLED<TAB>LATEST per update; table on stderr
 ```
 
-Lists installed modules (or only the selected ones) as a `NAME CURRENT LATEST NOTE` table. The latest version is green
+Lists installed modules (or only the selected ones) as a table of state icon, `NAME (canonical ID)`, `CURRENT`, and `LATEST`, followed by a legend
+(`[↑]` update, `[✓]` current, `[?]` unknown, `[–]` not tracked, `[·]` not installed, `[✗]` failed). The latest version is green
 when an update is available; versions that cannot be resolved show `[unknown]`.
 Nothing is upgraded. Modules with `UPDATE_MODE="apt"` read versions from dpkg and the APT cache; when apt-mode modules are
 checked, the cache is older than 7 days, and a terminal is attached, `mp outdated` offers to run `sudo apt-get update`

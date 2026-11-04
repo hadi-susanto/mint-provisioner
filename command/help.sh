@@ -123,8 +123,8 @@ Arguments:
 Description:
   Resolves modules and runs installed-state detection exactly like
   mp install, then prints one row per module with its action (install,
-  reinstall, skip, blocked or error), SOURCE, the phases that would run,
-  and notes. Detection never prompts, installs, or uses sudo.
+  reinstall, skip, blocked or error), SOURCE, and the phases that would run.
+  Detection never prompts, installs, or uses sudo.
 
   When modules are queued, nothing is blocked, and a terminal is attached,
   mp plan asks "Continue with installation? [y/N]". Answering yes runs
@@ -162,10 +162,10 @@ Arguments:
           every installed module is listed.
 
 Description:
-  Lists installed modules as NAME, CURRENT, LATEST, and NOTE.
-  LATEST is green when an update is available; versions that cannot be
-  resolved show [unknown]. Selected modules that are not installed are listed
-  as not installed. Nothing is upgraded; use
+  Lists installed modules as a state icon, NAME (canonical ID), CURRENT, and
+  LATEST, followed by a legend. LATEST is green when an update is available;
+  versions that cannot be resolved show [unknown]. Selected modules that are
+  not installed are listed as not installed. Nothing is upgraded; use
   mp upgrade for that.
 
   UPDATE_MODE=apt reads versions from dpkg and the APT cache. When apt-mode
