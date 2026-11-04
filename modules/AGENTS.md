@@ -491,8 +491,9 @@ upgrade phase fails.
   `valid_install_target` and without install-only downloads such as icons. Share long download logic between both
   scripts through `lib/workflow/<category>/<module>/` (for example `flameshot_download_deb`, `lapce_download_assets`,
   `claude_code_download`) or a shared workflow (`jetbrains_download_release` in `jetbrains-download.sh`,
-  `hashicorp_download_binary` in `hashicorp-download.sh`). `external` modules resolve the version the same way as
-  `pre-install.sh` (`module_latest_version` or the shared resolver).
+  `hashicorp_download_binary` in `hashicorp-download.sh`, `artcraft_download_release` in `artcraft-download.sh`).
+  `external` modules resolve the version the same way as `pre-install.sh` (`module_latest_version` or the shared
+  resolver).
 - `upgrade.sh` only replaces the installed files and records the registry `VERSION`. Do not recreate desktop entries,
   icons, symlinks, or PATH entries, and do not add install messages. Use the upgrade workflows:
   - `stateful_deb_upgrade <canonical_id> <state_name>` (`$LIB_WORKFLOW/stateful-deb-upgrade.sh`): upgrades from the
