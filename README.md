@@ -124,6 +124,20 @@ mp list modules [options]
 | `-c`, `--category <category>` | Limit results to a category. May be supplied more than once.         |
 | `-s`, `--status <status>`     | Filter by `all`, `installed`, or `not-installed`. Defaults to `all`. |
 
+### Show Module Details
+
+```bash
+mp info <module> [<module>...]   # alias: mp show
+mp info --installed              # every installed module
+mp info --latest <module>        # also resolve installed and latest versions (network)
+```
+
+Prints one page per module: name, canonical ID, description, aliases, `SOURCE`, CLI, `UPDATE_MODE` with its packages
+or repository, installed state, the registry's install path, recorded version and data path, the install and upgrade
+phases the module ships, whether `mp upgrade` and `mp remove` support it, its category documentation, and its GitHub
+releases page. Read-only. Exits `2` for unknown or ambiguous modules and `1` when detection, the registry, or a version
+query fails.
+
 ### Install Modules
 
 ```bash
@@ -264,6 +278,7 @@ mint-provisioner/
 │   ├── complete.sh                     # Hidden 'mp __complete' candidates for shell completion
 │   ├── help.sh                         # Command help
 │   ├── list.sh                         # Category and module catalog listings
+│   ├── info.sh                         # Read-only module details (info, show)
 │   ├── install.sh                      # Module installation command
 │   ├── plan.sh                         # Read-only installation preview
 │   ├── outdated.sh                     # Installed vs latest versions (outdated, update)

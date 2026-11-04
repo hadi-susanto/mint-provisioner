@@ -91,6 +91,9 @@ main() {
         upgrade)
             exec bash "$MP_COMMAND/upgrade.sh" "${args[@]}"
             ;;
+        info | show)
+            exec bash "$MP_COMMAND/info.sh" "${args[@]}"
+            ;;
         doctor)
             exec bash "$MP_COMMAND/doctor.sh" "${args[@]}"
             ;;

@@ -14,6 +14,7 @@ Usage:
 Commands:
   help [command]  Show basic help or details for a command.
   list            List available modules or categories.
+  info            Show the details of one or more modules (alias: show).
   install         Install one or more modules.
   plan            Preview what install would do, without changing anything.
   outdated        List installed modules and their version status (alias: update).
@@ -229,6 +230,39 @@ Description:
 EOF
 }
 
+__info_help() {
+    cat <<'EOF'
+Mint Provisioner
+----------------
+
+Usage:
+  mp info [OPTIONS] MODULE...
+  mp info [OPTIONS] --installed
+  mp show [OPTIONS] MODULE...
+
+Options:
+  --installed  Show every installed module instead of named modules.
+  --latest     Also resolve the installed and latest versions of installed
+               modules, as mp outdated does. Needs the network.
+  -h, --help   Show this help.
+
+Arguments:
+  MODULE  A canonical ID, unique module ID, or registered alias. Cannot be
+          combined with --installed.
+
+Description:
+  Prints one page per module: NAME, canonical ID, DESCRIPTION, aliases,
+  SOURCE, CLI, UPDATE_MODE with its packages or repository, installed state,
+  the registry's install path, recorded version and data path, the install
+  and upgrade phases the module ships, whether mp upgrade and mp remove
+  support it, its category documentation, and its GitHub releases page.
+  Nothing is changed.
+
+  Exits 0 when every module was shown, 1 when detection, the registry, or a
+  version query fails, and 2 for usage errors or unknown modules.
+EOF
+}
+
 __doctor_help() {
     cat <<'EOF'
 Mint Provisioner
@@ -351,6 +385,9 @@ main() {
             ;;
         purge)
             __purge_help
+            ;;
+        info | show)
+            __info_help
             ;;
         doctor)
             __doctor_help
