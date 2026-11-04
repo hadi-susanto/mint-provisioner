@@ -230,6 +230,18 @@ ships `remove.sh`; otherwise it is reported as failed. Do not run these commands
 Interactive questions use `whiptail` dialogs when `whiptail` is installed. Set `DISABLE_WHIPTAIL=true` to force
 plain-text prompts (see the [FAQ](FAQ.md)).
 
+### Menu Interface
+
+```bash
+mp ui
+```
+
+Opens a `whiptail` menu to pick a command (`info`, `install`, `plan`, `outdated`, `upgrade`, `remove`, `purge`), then a
+checklist of modules and of the command's options. `install`, `plan`, and `info` offer every module and mark installed
+ones; `outdated`, `upgrade`, `remove`, and `purge` offer installed modules only, and selecting none for `outdated` or
+`upgrade` means every installed module. The resulting `mp` command line is shown for confirmation and then runs as if
+typed, with the command's own prompts. Requires `whiptail` and an interactive terminal of at least 80x24.
+
 ### Check Your Setup
 
 ```bash
@@ -285,6 +297,7 @@ mint-provisioner/
 │   ├── OUTDATED.md                     # How the 'mp outdated' worker pool works
 │   ├── upgrade.sh                      # Upgrade outdated modules (UPDATE_MODE=apt, github, external, git)
 │   ├── remove.sh                       # Module removal command (remove, uninstall, purge)
+│   ├── ui.sh                           # whiptail menus that build and run an mp command
 │   └── doctor.sh                       # Read-only setup health check
 ├── lib/                                # Reusable framework libraries
 │   ├── common/

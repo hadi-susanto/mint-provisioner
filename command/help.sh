@@ -21,6 +21,7 @@ Commands:
   upgrade         Upgrade installed modules that have an update available.
   remove          Remove one or more modules (alias: uninstall).
   purge           Remove modules and their well-known configuration.
+  ui              Pick a command and modules from whiptail menus.
   doctor          Check the setup and report problems, without changing anything.
 
 Options:
@@ -28,6 +29,8 @@ Options:
 
 Description:
   Modular software installer for Ubuntu and Linux Mint.
+
+Tip: run 'mp ui' to pick a command and modules from menus.
 EOF
 }
 
@@ -230,6 +233,34 @@ Description:
 EOF
 }
 
+__ui_help() {
+    cat <<'EOF'
+Mint Provisioner
+----------------
+
+Usage:
+  mp ui
+
+Options:
+  -h, --help  Show this help.
+
+Description:
+  Opens a whiptail menu to choose a command (info, install, plan, outdated,
+  upgrade, remove, or purge), then a checklist of modules and, when the
+  command has any, a checklist of its options. Install, plan, and info offer
+  every module and mark the installed ones; outdated, upgrade, remove, and
+  purge offer installed modules only. Selecting no module for outdated or
+  upgrade means every installed module.
+
+  The resulting mp command line is shown for confirmation, then runs as if
+  typed, so each command keeps its own prompts and confirmations. Cancel
+  returns to the menu; Quit or Esc in the menu exits.
+
+  Needs whiptail and an interactive terminal of at least 80x24, even when
+  DISABLE_WHIPTAIL=true. Exits 2 when they are unavailable.
+EOF
+}
+
 __info_help() {
     cat <<'EOF'
 Mint Provisioner
@@ -388,6 +419,9 @@ main() {
             ;;
         info | show)
             __info_help
+            ;;
+        ui)
+            __ui_help
             ;;
         doctor)
             __doctor_help

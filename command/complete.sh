@@ -10,7 +10,7 @@ set -euo pipefail
 source "$LIB_COMMON/common.sh"
 source "$LIB_COMMON/resolver.sh"
 
-readonly -a __COMMANDS=(help list info show install plan outdated update upgrade remove uninstall purge doctor)
+readonly -a __COMMANDS=(help list info show install plan outdated update upgrade remove uninstall purge ui doctor)
 readonly -a __INSTALL_OPTIONS=(-f --force -ni --non-interactive --unattended)
 readonly -a __PLAN_OPTIONS=(-f --force -ni --non-interactive --unattended -h --help)
 readonly -a __REMOVE_OPTIONS=(-f --force --purge -h --help)
@@ -19,6 +19,7 @@ readonly -a __OUTDATED_OPTIONS=(-h --help --async --batch --porcelain)
 readonly -a __UPGRADE_OPTIONS=(-y --yes -h --help)
 readonly -a __DOCTOR_OPTIONS=(--offline -h --help)
 readonly -a __INFO_OPTIONS=(--installed --latest -h --help)
+readonly -a __UI_OPTIONS=(-h --help)
 readonly -a __LIST_TARGETS=(category modules)
 readonly -a __LIST_OPTIONS=(-c --category -s --status)
 readonly -a __LIST_STATUSES=(all installed not-installed)
@@ -167,6 +168,9 @@ main() {
             ;;
         info | show)
             __complete_modules __INFO_OPTIONS "$current" "${words[@]}"
+            ;;
+        ui)
+            __print_words "${__UI_OPTIONS[@]}"
             ;;
         doctor)
             __print_words "${__DOCTOR_OPTIONS[@]}"

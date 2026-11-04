@@ -279,6 +279,7 @@ main() {
     __setup_completion
 
     log_info "Mint Provisioner is installed in %s" "$__TARGET_DIR"
+    log_info "Try: mp ui (menus to pick a command and modules)"
     log_info "Open a new terminal for tab completion, then try: mp list modules"
 }
 

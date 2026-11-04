@@ -178,12 +178,13 @@ __check_tools() {
         fi
     done
 
-    if [[ "${DISABLE_WHIPTAIL:-false}" == "true" ]]; then
-        __report OK "whiptail disabled (DISABLE_WHIPTAIL=true); plain-text prompts are used"
-    elif command -v whiptail >/dev/null 2>&1; then
-        __report OK "whiptail found"
+    if ! command -v whiptail >/dev/null 2>&1; then
+        __report WARN "whiptail is missing; mp ui needs it, and prompts use plain text" \
+            "sudo apt install whiptail"
+    elif [[ "${DISABLE_WHIPTAIL:-false}" == "true" ]]; then
+        __report OK "whiptail found; prompts use plain text (DISABLE_WHIPTAIL=true)"
     else
-        __report WARN "whiptail is missing; plain-text prompts are used" "sudo apt install whiptail"
+        __report OK "whiptail found"
     fi
 }
 

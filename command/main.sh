@@ -94,6 +94,9 @@ main() {
         info | show)
             exec bash "$MP_COMMAND/info.sh" "${args[@]}"
             ;;
+        ui)
+            exec bash "$MP_COMMAND/ui.sh" "${args[@]}"
+            ;;
         doctor)
             exec bash "$MP_COMMAND/doctor.sh" "${args[@]}"
             ;;
