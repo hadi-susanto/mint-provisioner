@@ -1,5 +1,8 @@
 # ❓ Frequently Asked Questions
 
+Before anything else, run `mp doctor`. It checks the tools, links, APT cache, GitHub token and rate limit, and registry
+in one pass, and prints a hint for each problem it finds.
+
 ## GitHub Module or `mp outdated` Fails with `403 Rate Limited`
 
 ### Problem

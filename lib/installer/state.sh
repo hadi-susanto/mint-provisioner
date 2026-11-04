@@ -258,3 +258,26 @@ delete_all_states() {
         return 1
     fi
 }
+
+##
+# list_state_ids <ids_name>
+#
+# Lists the canonical IDs of every persisted state file, sorted by path.
+#
+# Parameters:
+#   ids_name - Name of the indexed array that receives canonical IDs.
+#
+list_state_ids() {
+    local -n state_ids_ref="$1"
+    local state_file
+    local canonical_id
+
+    state_ids_ref=()
+
+    for state_file in "$__STATES_DIR"/*/*.env; do
+        [[ -f "$state_file" ]] || continue
+
+        canonical_id="${state_file#"$__STATES_DIR"/}"
+        state_ids_ref+=("${canonical_id%.env}")
+    done
+}

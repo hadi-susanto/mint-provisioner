@@ -20,6 +20,7 @@ Commands:
   upgrade         Upgrade installed modules that have an update available.
   remove          Remove one or more modules (alias: uninstall).
   purge           Remove modules and their well-known configuration.
+  doctor          Check the setup and report problems, without changing anything.
 
 Options:
   -h, --help  Show this help messages.
@@ -228,6 +229,37 @@ Description:
 EOF
 }
 
+__doctor_help() {
+    cat <<'EOF'
+Mint Provisioner
+----------------
+
+Usage:
+  mp doctor [OPTIONS]
+
+Options:
+  --offline   Skip network checks (the GitHub rate-limit query).
+  -h, --help  Show this help.
+
+Description:
+  Checks the Mint Provisioner setup and prints one OK, WARN, or FAIL line per
+  check, with a hint for anything that is not OK. Nothing is changed: no sudo,
+  no installs, no fixes.
+
+  Checks: not running as root, the /usr/local/bin/mp and bash completion links
+  point to this clone, INSTALL_DIR is writable, required tools (git, jq,
+  aria2c, curl, sudo) and whiptail are present, the distribution is
+  Ubuntu-based, the APT cache age, GITHUB_TOKEN and the remaining GitHub API
+  calls, registry entries (module still exists, INSTALL_PATH still exists,
+  VERSION recorded for github and external modules), leftover temporary
+  state, and broken /usr/local/bin links or desktop entries that point into
+  INSTALL_DIR.
+
+  Exits 0 when no check fails (warnings are allowed), 1 when a check fails,
+  and 2 for usage errors.
+EOF
+}
+
 __root_warning() {
     printf '\n%bWARNING: Do not run mp remove or mp purge with sudo or as root.%b\n' \
         "$COLOR_RED" "$COLOR_RESET"
@@ -319,6 +351,9 @@ main() {
             ;;
         purge)
             __purge_help
+            ;;
+        doctor)
+            __doctor_help
             ;;
         *)
             log_error "Unknown help topic: %s" "$help_type"

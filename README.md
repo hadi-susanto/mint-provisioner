@@ -216,6 +216,21 @@ ships `remove.sh`; otherwise it is reported as failed. Do not run these commands
 Interactive questions use `whiptail` dialogs when `whiptail` is installed. Set `DISABLE_WHIPTAIL=true` to force
 plain-text prompts (see the [FAQ](FAQ.md)).
 
+### Check Your Setup
+
+```bash
+mp doctor                        # all checks
+mp doctor --offline              # skip the GitHub rate-limit query
+```
+
+Prints one `OK`, `WARN`, or `FAIL` line per check, with a hint for anything that is not OK, and changes nothing. It
+checks that `mp` is not run as root, that the `/usr/local/bin/mp` and bash completion links point to this clone, that
+`INSTALL_DIR` is writable, that the required tools (`git`, `jq`, `aria2c`, `curl`, `sudo`) and `whiptail` are present,
+the distribution, the APT cache age, `GITHUB_TOKEN` and the remaining GitHub API calls, registry entries (module and
+`INSTALL_PATH` still exist, `VERSION` recorded for `github`/`external` modules), leftover temporary state, and broken
+`/usr/local/bin` links or desktop entries that point into `INSTALL_DIR`. Exits `1` when a check fails; warnings alone
+exit `0`.
+
 ### Shell Completion
 
 Tab completion covers commands, options, `list` targets, categories and statuses, and module IDs (canonical IDs,
@@ -254,7 +269,8 @@ mint-provisioner/
 │   ├── outdated.sh                     # Installed vs latest versions (outdated, update)
 │   ├── OUTDATED.md                     # How the 'mp outdated' worker pool works
 │   ├── upgrade.sh                      # Upgrade outdated modules (UPDATE_MODE=apt, github, external, git)
-│   └── remove.sh                       # Module removal command (remove, uninstall, purge)
+│   ├── remove.sh                       # Module removal command (remove, uninstall, purge)
+│   └── doctor.sh                       # Read-only setup health check
 ├── lib/                                # Reusable framework libraries
 │   ├── common/
 │   │   ├── common.sh                   # Logging and shared utilities

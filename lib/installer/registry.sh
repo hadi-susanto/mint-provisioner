@@ -375,3 +375,26 @@ delete_registry() {
         return 2
     fi
 }
+
+##
+# list_registry_ids <ids_name>
+#
+# Lists the canonical IDs of every persisted registry file, sorted by path.
+#
+# Parameters:
+#   ids_name - Name of the indexed array that receives canonical IDs.
+#
+list_registry_ids() {
+    local -n registry_ids_ref="$1"
+    local registry_file
+    local canonical_id
+
+    registry_ids_ref=()
+
+    for registry_file in "$__REGISTRY_DIR"/*/*.registry; do
+        [[ -f "$registry_file" ]] || continue
+
+        canonical_id="${registry_file#"$__REGISTRY_DIR"/}"
+        registry_ids_ref+=("${canonical_id%.registry}")
+    done
+}
