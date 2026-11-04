@@ -14,18 +14,23 @@ Usage:
 Commands:
   help [command]  Show basic help or details for a command.
   list            List available modules or categories.
+  info            Show the details of one or more modules (alias: show).
   install         Install one or more modules.
   plan            Preview what install would do, without changing anything.
   outdated        List installed modules and their version status (alias: update).
   upgrade         Upgrade installed modules that have an update available.
   remove          Remove one or more modules (alias: uninstall).
   purge           Remove modules and their well-known configuration.
+  ui              Pick a command and modules from whiptail menus.
+  doctor          Check the setup and report problems, without changing anything.
 
 Options:
   -h, --help  Show this help messages.
 
 Description:
   Modular software installer for Ubuntu and Linux Mint.
+
+Tip: run 'mp ui' to pick a command and modules from menus.
 EOF
 }
 
@@ -123,8 +128,8 @@ Arguments:
 Description:
   Resolves modules and runs installed-state detection exactly like
   mp install, then prints one row per module with its action (install,
-  reinstall, skip, blocked or error), SOURCE, the phases that would run,
-  and notes. Detection never prompts, installs, or uses sudo.
+  reinstall, skip, blocked or error), SOURCE, and the phases that would run.
+  Detection never prompts, installs, or uses sudo.
 
   When modules are queued, nothing is blocked, and a terminal is attached,
   mp plan asks "Continue with installation? [y/N]". Answering yes runs
@@ -162,10 +167,10 @@ Arguments:
           every installed module is listed.
 
 Description:
-  Lists installed modules as NAME, CURRENT, LATEST, and NOTE.
-  LATEST is green when an update is available; versions that cannot be
-  resolved show [unknown]. Selected modules that are not installed are listed
-  as not installed. Nothing is upgraded; use
+  Lists installed modules as a state icon, NAME (canonical ID), CURRENT, and
+  LATEST, followed by a legend. LATEST is green when an update is available;
+  versions that cannot be resolved show [unknown]. Selected modules that are
+  not installed are listed as not installed. Nothing is upgraded; use
   mp upgrade for that.
 
   UPDATE_MODE=apt reads versions from dpkg and the APT cache. When apt-mode
@@ -225,6 +230,101 @@ Description:
   Exits 0 when every upgrade succeeded or nothing needed upgrading, 1 when an
   upgrade, detection, or version query fails, and 2 for usage errors, unknown
   modules, or a missing terminal without --yes.
+EOF
+}
+
+__ui_help() {
+    cat <<'EOF'
+Mint Provisioner
+----------------
+
+Usage:
+  mp ui
+
+Options:
+  -h, --help  Show this help.
+
+Description:
+  Opens a whiptail menu to choose a command (info, install, plan, outdated,
+  upgrade, remove, or purge), then a module menu and, when the command has
+  any, a checklist of its options. The module menu offers Search... (words
+  matched against the ID, name, alias, and description), All, and one entry
+  per category; each opens a checklist, and selections are kept across them
+  until Done. Install, plan, and info offer every module and mark the
+  installed ones; outdated, upgrade, remove, and purge offer installed modules
+  only. Selecting no module for outdated or upgrade means every installed
+  module.
+
+  The resulting mp command line is shown for confirmation, then runs as if
+  typed, so each command keeps its own prompts and confirmations. Cancel
+  returns to the menu; Quit or Esc in the menu exits.
+
+  Needs whiptail and an interactive terminal of at least 80x24, even when
+  DISABLE_WHIPTAIL=true. Exits 2 when they are unavailable.
+EOF
+}
+
+__info_help() {
+    cat <<'EOF'
+Mint Provisioner
+----------------
+
+Usage:
+  mp info [OPTIONS] MODULE...
+  mp info [OPTIONS] --installed
+  mp show [OPTIONS] MODULE...
+
+Options:
+  --installed  Show every installed module instead of named modules.
+  --latest     Also resolve the installed and latest versions of installed
+               modules, as mp outdated does. Needs the network.
+  -h, --help   Show this help.
+
+Arguments:
+  MODULE  A canonical ID, unique module ID, or registered alias. Cannot be
+          combined with --installed.
+
+Description:
+  Prints one page per module: NAME, canonical ID, DESCRIPTION, aliases,
+  SOURCE, CLI, UPDATE_MODE with its packages or repository, installed state,
+  the registry's install path, recorded version and data path, the install
+  and upgrade phases the module ships, whether mp upgrade and mp remove
+  support it, its category documentation, and its GitHub releases page.
+  Nothing is changed.
+
+  Exits 0 when every module was shown, 1 when detection, the registry, or a
+  version query fails, and 2 for usage errors or unknown modules.
+EOF
+}
+
+__doctor_help() {
+    cat <<'EOF'
+Mint Provisioner
+----------------
+
+Usage:
+  mp doctor [OPTIONS]
+
+Options:
+  --offline   Skip network checks (the GitHub rate-limit query).
+  -h, --help  Show this help.
+
+Description:
+  Checks the Mint Provisioner setup and prints one OK, WARN, or FAIL line per
+  check, with a hint for anything that is not OK. Nothing is changed: no sudo,
+  no installs, no fixes.
+
+  Checks: not running as root, the /usr/local/bin/mp and bash completion links
+  point to this clone, INSTALL_DIR is writable, required tools (git, jq,
+  aria2c, curl, sudo) and whiptail are present, the distribution is
+  Ubuntu-based, the APT cache age, GITHUB_TOKEN and the remaining GitHub API
+  calls, registry entries (module still exists, INSTALL_PATH still exists,
+  VERSION recorded for github and external modules), leftover temporary
+  state, and broken /usr/local/bin links or desktop entries that point into
+  INSTALL_DIR.
+
+  Exits 0 when no check fails (warnings are allowed), 1 when a check fails,
+  and 2 for usage errors.
 EOF
 }
 
@@ -319,6 +419,15 @@ main() {
             ;;
         purge)
             __purge_help
+            ;;
+        info | show)
+            __info_help
+            ;;
+        ui)
+            __ui_help
+            ;;
+        doctor)
+            __doctor_help
             ;;
         *)
             log_error "Unknown help topic: %s" "$help_type"

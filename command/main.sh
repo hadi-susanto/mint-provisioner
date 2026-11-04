@@ -91,6 +91,15 @@ main() {
         upgrade)
             exec bash "$MP_COMMAND/upgrade.sh" "${args[@]}"
             ;;
+        info | show)
+            exec bash "$MP_COMMAND/info.sh" "${args[@]}"
+            ;;
+        ui)
+            exec bash "$MP_COMMAND/ui.sh" "${args[@]}"
+            ;;
+        doctor)
+            exec bash "$MP_COMMAND/doctor.sh" "${args[@]}"
+            ;;
         __complete)
             # Hidden: candidates for completion/mp.bash and completion/_mp.
             exec bash "$MP_COMMAND/complete.sh" "${args[@]}"

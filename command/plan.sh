@@ -70,8 +70,8 @@ __validate_options() {
 ##
 # __plan_row <non_interactive> <canonical_id> <action> <row_name>
 #
-# Fills the PHASES and NOTES columns of one plan row and marks the row
-# blocked when non-interactive mode is selected but unsupported.
+# Fills the PHASES column of one plan row and marks the row blocked when
+# non-interactive mode is selected but unsupported.
 #
 __plan_row() {
     local non_interactive="$1"
@@ -80,40 +80,24 @@ __plan_row() {
     local -n row_ref="$4"
     local module_dir="$MP_MODULES/$canonical_id"
     local -a phases=()
-    local -a notes=()
     local -a install_phases=()
     local joined
 
     row_ref=(
         [ACTION]="$action"
         [PHASES]="-"
-        [NOTES]=""
     )
 
-    case "$action" in
-        error)
-            row_ref[NOTES]="detection failed"
-
-            return 0
-            ;;
-        skip)
-            row_ref[NOTES]="already installed"
-
-            return 0
-            ;;
-        reinstall)
-            notes+=("already installed")
-            ;;
-    esac
+    if [[ "$action" == "error" || "$action" == "skip" ]]; then
+        return 0
+    fi
 
     if (( non_interactive )) && ! module_supports_non_interactive "$canonical_id"; then
         row_ref[ACTION]="blocked"
-        notes+=("no non-interactive support")
     elif (( non_interactive )) && [[ -e "$module_dir/non-interactive.sh" ]]; then
         phases+=("non-interactive")
     elif [[ -e "$module_dir/interactive.sh" ]]; then
         phases+=("interactive")
-        notes+=("prompts")
     fi
 
     list_install_phases "$canonical_id" install_phases
@@ -121,11 +105,6 @@ __plan_row() {
 
     joined=$(printf '%s,' "${phases[@]}")
     row_ref[PHASES]="${joined%,}"
-
-    if (( ${#notes[@]} > 0 )); then
-        joined=$(printf '%s; ' "${notes[@]}")
-        row_ref[NOTES]="${joined%; }"
-    fi
 
     return 0
 }
@@ -148,7 +127,6 @@ __print_plan() {
     local failed=0
     local module_width=6
     local source_width=6
-    local phases_width=6
     local -A seen=()
     local -A row=()
     local -A counts=(
@@ -161,7 +139,6 @@ __print_plan() {
     local -a ids=()
     local -a actions=()
     local -a phases=()
-    local -a notes=()
     local source
     local color
     local color_reset
@@ -178,7 +155,6 @@ __print_plan() {
         ids+=("$canonical_id")
         actions+=("${row[ACTION]}")
         phases+=("${row[PHASES]}")
-        notes+=("${row[NOTES]}")
         counts["${row[ACTION]}"]=$(( counts["${row[ACTION]}"] + 1 ))
 
         if (( ${#canonical_id} > module_width )); then
@@ -190,14 +166,10 @@ __print_plan() {
             source_width=${#source}
         fi
 
-        if (( ${#row[PHASES]} > phases_width )); then
-            phases_width=${#row[PHASES]}
-        fi
     done
 
-    printf '%-9s  %-*s  %-*s  %-*s  %s\n' "ACTION" \
-        "$module_width" "MODULE" "$source_width" "SOURCE" \
-        "$phases_width" "PHASES" "NOTES"
+    printf '%-9s  %-*s  %-*s  %s\n' "ACTION" \
+        "$module_width" "MODULE" "$source_width" "SOURCE" "PHASES"
 
     for index in "${!ids[@]}"; do
         canonical_id="${ids[$index]}"
@@ -217,10 +189,10 @@ __print_plan() {
                 ;;
         esac
 
-        printf '%s%-9s  %-*s  %-*s  %-*s  %s%s\n' "$color" "$action" \
+        printf '%s%-9s  %-*s  %-*s  %s%s\n' "$color" "$action" \
             "$module_width" "$canonical_id" \
             "$source_width" "${INSTALL_PLAN_SOURCES[$canonical_id]:--}" \
-            "$phases_width" "${phases[$index]}" "${notes[$index]}" "$color_reset"
+            "${phases[$index]}" "$color_reset"
     done
 
     printf '\n%d to install, %d to reinstall, %d skipped' \
@@ -237,6 +209,10 @@ __print_plan() {
     fi
 
     printf '\n'
+
+    if (( counts[blocked] > 0 )); then
+        log_error "Blocked modules do not support non-interactive mode"
+    fi
 
     return "$failed"
 }

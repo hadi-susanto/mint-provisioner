@@ -338,12 +338,42 @@ __inspect_modules_async() {
 }
 
 ##
+# __state_icon <state>
+#
+# Output:
+#   Prints the colored three-character icon of a version state.
+#
+__state_icon() {
+    case "$1" in
+        outdated)
+            printf '%b[↑]%b' "$COLOR_GREEN" "$COLOR_RESET"
+            ;;
+        current)
+            printf '[✓]'
+            ;;
+        untracked)
+            printf '[–]'
+            ;;
+        missing)
+            printf '[·]'
+            ;;
+        error)
+            printf '%b[✗]%b' "$COLOR_RED" "$COLOR_RESET"
+            ;;
+        *)
+            printf '%b[?]%b' "$COLOR_YELLOW" "$COLOR_RESET"
+            ;;
+    esac
+}
+
+##
 # __print_versions <explicit>
 #
-# Prints the version table and summary from the inspection globals. NAME is
-# blue and LATEST is green when an update is available. Widths are computed
-# without color codes. Not-installed modules are printed only when explicitly
-# selected.
+# Prints the version table, legend, and summary from the inspection globals.
+# Each row starts with a state icon, then "NAME (canonical ID)" with NAME in
+# blue; LATEST is green when an update is available. Widths are computed
+# without color codes. The legend lists only the icons present in the table.
+# Not-installed modules are printed only when explicitly selected.
 #
 __print_versions() {
     local explicit="$1"
@@ -366,7 +396,9 @@ __print_versions() {
     local latest_reset
     local name_width=4
     local installed_width=7
-    local latest_width=6
+    local legend=""
+    local legend_state
+    local legend_text
 
     for canonical_id in "${__SHOWN_IDS[@]}"; do
         state="${__VERSION_STATES[$canonical_id]}"
@@ -377,9 +409,8 @@ __print_versions() {
         ids+=("$canonical_id")
         counts["$state"]=$(( counts["$state"] + 1 ))
 
-        label="${__VERSION_NAMES[$canonical_id]}"
+        label="${__VERSION_NAMES[$canonical_id]} ($canonical_id)"
         installed="${__VERSION_INSTALLED[$canonical_id]:-[unknown]}"
-        latest="${__VERSION_LATEST[$canonical_id]:-[unknown]}"
 
         if (( ${#label} > name_width )); then
             name_width=${#label}
@@ -387,10 +418,6 @@ __print_versions() {
 
         if (( ${#installed} > installed_width )); then
             installed_width=${#installed}
-        fi
-
-        if (( ${#latest} > latest_width )); then
-            latest_width=${#latest}
         fi
     done
 
@@ -400,9 +427,8 @@ __print_versions() {
         return 0
     fi
 
-    printf '%-*s  %-*s  %-*s  %s\n' \
-        "$name_width" "NAME" "$installed_width" "CURRENT" \
-        "$latest_width" "LATEST" "NOTE"
+    printf '    %-*s  %-*s  %s\n' \
+        "$name_width" "NAME" "$installed_width" "CURRENT" "LATEST"
 
     for canonical_id in "${ids[@]}"; do
         label="${__VERSION_NAMES[$canonical_id]}"
@@ -414,14 +440,38 @@ __print_versions() {
             latest_reset="$COLOR_RESET"
         fi
 
-        printf '%b%s%b%*s  %-*s  %b%s%b%*s  %s\n' \
+        printf '%s %b%s%b %b(%s)%b%*s  %-*s  %b%s%b\n' \
+            "$(__state_icon "${__VERSION_STATES[$canonical_id]}")" \
             "$COLOR_BLUE" "$label" "$COLOR_RESET" \
-            "$(( name_width - ${#label} ))" "" \
+            "$COLOR_CYAN" "$canonical_id" "$COLOR_RESET" \
+            "$(( name_width - ${#label} - ${#canonical_id} - 3 ))" "" \
             "$installed_width" "${__VERSION_INSTALLED[$canonical_id]:-[unknown]}" \
-            "$latest_color" "$latest" "$latest_reset" \
-            "$(( latest_width - ${#latest} ))" "" \
-            "${__VERSION_NOTES[$canonical_id]}"
+            "$latest_color" "$latest" "$latest_reset"
     done
+
+    for legend_state in outdated current unknown untracked missing error; do
+        if (( counts[$legend_state] == 0 )); then
+            continue
+        fi
+
+        case "$legend_state" in
+            outdated) legend_text="update available" ;;
+            current) legend_text="up to date" ;;
+            unknown) legend_text="unknown" ;;
+            untracked) legend_text="not tracked" ;;
+            missing) legend_text="not installed" ;;
+            error) legend_text="failed" ;;
+        esac
+
+        legend+="$(__state_icon "$legend_state") $legend_text  "
+    done
+
+    # Unsupported modules share the unknown icon.
+    if [[ "$legend" != *"unknown"* ]] && (( counts[unsupported] > 0 )); then
+        legend+="$(__state_icon unknown) unknown  "
+    fi
+
+    printf '\n%s\n' "${legend%  }"
 
     printf '\n%d update available, %d up to date, %d unknown' \
         "${counts[outdated]}" "${counts[current]}" \

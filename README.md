@@ -124,6 +124,20 @@ mp list modules [options]
 | `-c`, `--category <category>` | Limit results to a category. May be supplied more than once.         |
 | `-s`, `--status <status>`     | Filter by `all`, `installed`, or `not-installed`. Defaults to `all`. |
 
+### Show Module Details
+
+```bash
+mp info <module> [<module>...]   # alias: mp show
+mp info --installed              # every installed module
+mp info --latest <module>        # also resolve installed and latest versions (network)
+```
+
+Prints one page per module: name, canonical ID, description, aliases, `SOURCE`, CLI, `UPDATE_MODE` with its packages
+or repository, installed state, the registry's install path, recorded version and data path, the install and upgrade
+phases the module ships, whether `mp upgrade` and `mp remove` support it, its category documentation, and its GitHub
+releases page. Read-only. Exits `2` for unknown or ambiguous modules and `1` when detection, the registry, or a version
+query fails.
+
 ### Install Modules
 
 ```bash
@@ -162,7 +176,8 @@ mp outdated --async N [module...]  # N background workers (default 6, max 9); al
 mp outdated --porcelain          # stdout: MODULE<TAB>INSTALLED<TAB>LATEST per update; table on stderr
 ```
 
-Lists installed modules (or only the selected ones) as a `NAME CURRENT LATEST NOTE` table. The latest version is green
+Lists installed modules (or only the selected ones) as a table of state icon, `NAME (canonical ID)`, `CURRENT`, and `LATEST`, followed by a legend
+(`[↑]` update, `[✓]` current, `[?]` unknown, `[–]` not tracked, `[·]` not installed, `[✗]` failed). The latest version is green
 when an update is available; versions that cannot be resolved show `[unknown]`.
 Nothing is upgraded. Modules with `UPDATE_MODE="apt"` read versions from dpkg and the APT cache; when apt-mode modules are
 checked, the cache is older than 7 days, and a terminal is attached, `mp outdated` offers to run `sudo apt-get update`
@@ -215,6 +230,34 @@ ships `remove.sh`; otherwise it is reported as failed. Do not run these commands
 Interactive questions use `whiptail` dialogs when `whiptail` is installed. Set `DISABLE_WHIPTAIL=true` to force
 plain-text prompts (see the [FAQ](FAQ.md)).
 
+### Menu Interface
+
+```bash
+mp ui
+```
+
+Opens a `whiptail` menu to pick a command (`info`, `install`, `plan`, `outdated`, `upgrade`, `remove`, `purge`), then a
+module menu and a checklist of the command's options. The module menu offers `Search...` (words matched against the ID,
+name, alias, and description), `All`, and one entry per category; selections are kept across them until `Done`. `install`, `plan`, and `info` offer every module and mark installed
+ones; `outdated`, `upgrade`, `remove`, and `purge` offer installed modules only, and selecting none for `outdated` or
+`upgrade` means every installed module. The resulting `mp` command line is shown for confirmation and then runs as if
+typed, with the command's own prompts. Requires `whiptail` and an interactive terminal of at least 80x24.
+
+### Check Your Setup
+
+```bash
+mp doctor                        # all checks
+mp doctor --offline              # skip the GitHub rate-limit query
+```
+
+Prints one `OK`, `WARN`, or `FAIL` line per check, with a hint for anything that is not OK, and changes nothing. It
+checks that `mp` is not run as root, that the `/usr/local/bin/mp` and bash completion links point to this clone, that
+`INSTALL_DIR` is writable, that the required tools (`git`, `jq`, `aria2c`, `curl`, `sudo`) and `whiptail` are present,
+the distribution, the APT cache age, `GITHUB_TOKEN` and the remaining GitHub API calls, registry entries (module and
+`INSTALL_PATH` still exist, `VERSION` recorded for `github`/`external` modules), leftover temporary state, and broken
+`/usr/local/bin` links or desktop entries that point into `INSTALL_DIR`. Exits `1` when a check fails; warnings alone
+exit `0`.
+
 ### Shell Completion
 
 Tab completion covers commands, options, `list` targets, categories and statuses, and module IDs (canonical IDs,
@@ -248,12 +291,15 @@ mint-provisioner/
 │   ├── complete.sh                     # Hidden 'mp __complete' candidates for shell completion
 │   ├── help.sh                         # Command help
 │   ├── list.sh                         # Category and module catalog listings
+│   ├── info.sh                         # Read-only module details (info, show)
 │   ├── install.sh                      # Module installation command
 │   ├── plan.sh                         # Read-only installation preview
 │   ├── outdated.sh                     # Installed vs latest versions (outdated, update)
 │   ├── OUTDATED.md                     # How the 'mp outdated' worker pool works
 │   ├── upgrade.sh                      # Upgrade outdated modules (UPDATE_MODE=apt, github, external, git)
-│   └── remove.sh                       # Module removal command (remove, uninstall, purge)
+│   ├── remove.sh                       # Module removal command (remove, uninstall, purge)
+│   ├── ui.sh                           # whiptail menus that build and run an mp command
+│   └── doctor.sh                       # Read-only setup health check
 ├── lib/                                # Reusable framework libraries
 │   ├── common/
 │   │   ├── common.sh                   # Logging and shared utilities
