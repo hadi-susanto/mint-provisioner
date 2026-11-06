@@ -256,6 +256,12 @@ sources. Only AMD64 is supported.
   * Must be writable by the current user; the resolved path is recorded in the
     module registry after installation.
 
+### System Toolkit Integration
+
+This module has additional features that can be enabled by running SysKit (`syskit-cfg install cli/kubectl` enables
+shell completion). See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
+
 ### Removal
 
 `mp purge` also deletes `~/.kube` (kubeconfig and cache).
