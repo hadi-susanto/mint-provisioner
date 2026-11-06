@@ -13,6 +13,7 @@ services from a development machine.
 - [K9s](#k9s-k9s)
 - [kubectl](#kubectl-kubectl)
 - [mkcert](#mkcert-mkcert)
+- [ngrok](#ngrok-ngrok)
 - [Vault](#vault-vault)
 
 ---
@@ -286,6 +287,36 @@ GitHub releases.
 ### Official Website
 
 https://github.com/FiloSottile/mkcert
+
+---
+
+## ngrok (`ngrok`)
+
+ngrok creates secure tunnels that share a local web server or service on a public URL, for demos, webhooks, and
+testing from other devices.
+
+### Installation Method
+
+**Official APT repository**
+
+Installs the `ngrok` agent from ngrok's official APT repository, using its signing key.
+
+### Supported ENV
+
+None.
+
+### Post-install Guide
+
+The module does not configure an account. After installation, add your authtoken and start a tunnel:
+
+```bash
+ngrok config add-authtoken <token>
+ngrok http 3000
+```
+
+### Official Website
+
+https://ngrok.com/use-cases/share-localhost
 
 ---
 
