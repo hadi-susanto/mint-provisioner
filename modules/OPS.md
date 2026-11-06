@@ -12,7 +12,10 @@ services from a development machine.
 - [Google Cloud CLI](#google-cloud-cli-gcloud)
 - [K9s](#k9s-k9s)
 - [kubectl](#kubectl-kubectl)
+- [kubectl-convert](#kubectl-convert-kubectl-convert)
 - [mkcert](#mkcert-mkcert)
+- [ngrok](#ngrok-ngrok)
+- [SOPS](#sops-sops)
 - [Vault](#vault-vault)
 
 ---
@@ -240,7 +243,9 @@ kubectl is the Kubernetes command-line tool for running commands against cluster
 **Official website (precompiled binary)**
 
 Resolves the latest stable release from `dl.k8s.io/release/stable.txt`, downloads the `linux/amd64` binary, and
-verifies it against the SHA-256 published beside it. No APT repository is configured. Only AMD64 is supported.
+verifies it against the SHA-256 published beside it. No APT repository is configured on purpose: the package repo pins
+a minor version in its URL, and `gcloud`'s Google repo also ships a `kubectl` package, so apt could silently switch
+sources. Only AMD64 is supported.
 
 ### Supported ENV
 
@@ -251,6 +256,12 @@ verifies it against the SHA-256 published beside it. No APT repository is config
   * Must be writable by the current user; the resolved path is recorded in the
     module registry after installation.
 
+### System Toolkit Integration
+
+This module has additional features that can be enabled by running SysKit (`syskit-cfg install cli/kubectl` enables
+shell completion). See the
+[System Toolkit payload catalog](https://github.com/hadi-susanto/system-toolkit/tree/main/payload).
+
 ### Removal
 
 `mp purge` also deletes `~/.kube` (kubeconfig and cache).
@@ -258,6 +269,34 @@ verifies it against the SHA-256 published beside it. No APT repository is config
 ### Official Website
 
 https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
+
+---
+
+## kubectl-convert (`kubectl-convert`)
+
+kubectl-convert is the kubectl plugin that converts manifests between Kubernetes API versions, which helps migrate
+them to non-deprecated APIs. Run it as `kubectl convert` or `kubectl-convert`.
+
+### Installation Method
+
+**Official website (precompiled binary)**
+
+Uses the same latest stable release as `kubectl`: downloads the `linux/amd64` binary from `dl.k8s.io` and verifies it
+against the SHA-256 published beside it. Upstream publishes no `.deb` for it, so there is no APT option. Only AMD64 is
+supported.
+
+### Supported ENV
+
+* `KUBECTL_CONVERT_INSTALL_DIR`
+
+  * Installation directory.
+  * Default: `${INSTALL_DIR}/kubectl-convert`
+  * Must be writable by the current user; the resolved path is recorded in the
+    module registry after installation.
+
+### Official Website
+
+https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/#install-kubectl-convert-plugin
 
 ---
 
@@ -286,6 +325,67 @@ GitHub releases.
 ### Official Website
 
 https://github.com/FiloSottile/mkcert
+
+---
+
+## ngrok (`ngrok`)
+
+ngrok creates secure tunnels that share a local web server or service on a public URL, for demos, webhooks, and
+testing from other devices.
+
+### Installation Method
+
+**Official APT repository**
+
+Installs the `ngrok` agent from ngrok's official APT repository, using its signing key.
+
+### Supported ENV
+
+None.
+
+### Post-install Guide
+
+The module does not configure an account. After installation, add your authtoken and start a tunnel:
+
+```bash
+ngrok config add-authtoken <token>
+ngrok http 3000
+```
+
+### Official Website
+
+https://ngrok.com/use-cases/share-localhost
+
+---
+
+## SOPS (`sops`)
+
+SOPS is an editor of encrypted files. It encrypts only the values of YAML, JSON, ENV, INI, and binary files, so secrets
+can be committed to Git and still produce readable diffs. It works with age, PGP, and cloud KMS keys.
+
+### Installation Method
+
+**GitHub latest release (precompiled binary)**
+
+Downloads the latest `linux.amd64` binary from the official GitHub releases page, verifies its SHA-256 digest, and
+creates a symbolic link for the executable. Only AMD64 is supported.
+
+### Supported ENV
+
+* `SOPS_INSTALL_DIR`
+
+  * Installation directory.
+  * Default: `${INSTALL_DIR}/sops`
+  * Must be writable by the current user; the resolved path is recorded in the
+    module registry after installation.
+
+### Removal
+
+`mp purge` does not delete `~/.config/sops`: it can hold your age private keys (`age/keys.txt`).
+
+### Official Website
+
+https://github.com/getsops/sops
 
 ---
 
