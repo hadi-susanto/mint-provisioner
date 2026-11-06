@@ -46,38 +46,41 @@ kubectl_latest_version() {
 }
 
 ##
-# kubectl_download_binary <canonical_id>
+# kubectl_download_binary <canonical_id> [<binary>]
 #
-# Downloads the latest linux/amd64 kubectl binary, verifies it against the
-# checksum published next to it, and stores its path in the BINARY_FILE state
-# together with VERSION. Used by pre-install.sh and pre-upgrade.sh.
+# Downloads the latest linux/amd64 kubectl release binary, verifies it against
+# the checksum published next to it, and stores its path in the BINARY_FILE
+# state together with VERSION. Used by pre-install.sh and pre-upgrade.sh of
+# kubectl and kubectl-convert.
 #
 # Parameters:
 #   canonical_id - Canonical module ID.
+#   binary - Release binary name: kubectl (default) or kubectl-convert.
 #
 # Return:
 #   1 - The architecture is unsupported, or a lookup or download failed.
 #
 kubectl_download_binary() {
     local canonical_id="$1"
+    local binary="${2:-kubectl}"
     local tag="download:$canonical_id"
     local version
     local url
     local checksum
 
     if [[ "$(dpkg --print-architecture)" != "amd64" ]]; then
-        tlog_error "$tag" "kubectl binary installation supports amd64 only"
+        tlog_error "$tag" "%s binary installation supports amd64 only" "$binary"
 
         return 1
     fi
 
     version="$(kubectl_latest_version "$canonical_id")" || return $?
-    tlog_info "$tag" "Latest kubectl version: %s" "$version"
+    tlog_info "$tag" "Latest %s version: %s" "$binary" "$version"
 
-    url="$__KUBECTL_RELEASE_URL/$version/bin/linux/amd64/kubectl"
+    url="$__KUBECTL_RELEASE_URL/$version/bin/linux/amd64/$binary"
 
     if ! checksum="$(curl -fsSL "$url.sha256")"; then
-        tlog_error "$tag" "Failed to download the kubectl checksum: %s" "$url.sha256"
+        tlog_error "$tag" "Failed to download the %s checksum: %s" "$binary" "$url.sha256"
 
         return 1
     fi
@@ -85,7 +88,7 @@ kubectl_download_binary() {
     checksum="${checksum%%[[:space:]]*}"
 
     if [[ ! "$checksum" =~ ^[[:xdigit:]]{64}$ ]]; then
-        tlog_error "$tag" "Invalid kubectl checksum from %s" "$url.sha256"
+        tlog_error "$tag" "Invalid %s checksum from %s" "$binary" "$url.sha256"
 
         return 1
     fi

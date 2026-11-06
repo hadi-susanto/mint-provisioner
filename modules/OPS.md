@@ -12,6 +12,7 @@ services from a development machine.
 - [Google Cloud CLI](#google-cloud-cli-gcloud)
 - [K9s](#k9s-k9s)
 - [kubectl](#kubectl-kubectl)
+- [kubectl-convert](#kubectl-convert-kubectl-convert)
 - [mkcert](#mkcert-mkcert)
 - [ngrok](#ngrok-ngrok)
 - [Vault](#vault-vault)
@@ -241,7 +242,9 @@ kubectl is the Kubernetes command-line tool for running commands against cluster
 **Official website (precompiled binary)**
 
 Resolves the latest stable release from `dl.k8s.io/release/stable.txt`, downloads the `linux/amd64` binary, and
-verifies it against the SHA-256 published beside it. No APT repository is configured. Only AMD64 is supported.
+verifies it against the SHA-256 published beside it. No APT repository is configured on purpose: the package repo pins
+a minor version in its URL, and `gcloud`'s Google repo also ships a `kubectl` package, so apt could silently switch
+sources. Only AMD64 is supported.
 
 ### Supported ENV
 
@@ -259,6 +262,34 @@ verifies it against the SHA-256 published beside it. No APT repository is config
 ### Official Website
 
 https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
+
+---
+
+## kubectl-convert (`kubectl-convert`)
+
+kubectl-convert is the kubectl plugin that converts manifests between Kubernetes API versions, which helps migrate
+them to non-deprecated APIs. Run it as `kubectl convert` or `kubectl-convert`.
+
+### Installation Method
+
+**Official website (precompiled binary)**
+
+Uses the same latest stable release as `kubectl`: downloads the `linux/amd64` binary from `dl.k8s.io` and verifies it
+against the SHA-256 published beside it. Upstream publishes no `.deb` for it, so there is no APT option. Only AMD64 is
+supported.
+
+### Supported ENV
+
+* `KUBECTL_CONVERT_INSTALL_DIR`
+
+  * Installation directory.
+  * Default: `${INSTALL_DIR}/kubectl-convert`
+  * Must be writable by the current user; the resolved path is recorded in the
+    module registry after installation.
+
+### Official Website
+
+https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/#install-kubectl-convert-plugin
 
 ---
 
