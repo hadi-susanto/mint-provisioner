@@ -15,6 +15,7 @@ services from a development machine.
 - [kubectl-convert](#kubectl-convert-kubectl-convert)
 - [mkcert](#mkcert-mkcert)
 - [ngrok](#ngrok-ngrok)
+- [SOPS](#sops-sops)
 - [Vault](#vault-vault)
 
 ---
@@ -348,6 +349,37 @@ ngrok http 3000
 ### Official Website
 
 https://ngrok.com/use-cases/share-localhost
+
+---
+
+## SOPS (`sops`)
+
+SOPS is an editor of encrypted files. It encrypts only the values of YAML, JSON, ENV, INI, and binary files, so secrets
+can be committed to Git and still produce readable diffs. It works with age, PGP, and cloud KMS keys.
+
+### Installation Method
+
+**GitHub latest release (precompiled binary)**
+
+Downloads the latest `linux.amd64` binary from the official GitHub releases page, verifies its SHA-256 digest, and
+creates a symbolic link for the executable. Only AMD64 is supported.
+
+### Supported ENV
+
+* `SOPS_INSTALL_DIR`
+
+  * Installation directory.
+  * Default: `${INSTALL_DIR}/sops`
+  * Must be writable by the current user; the resolved path is recorded in the
+    module registry after installation.
+
+### Removal
+
+`mp purge` does not delete `~/.config/sops`: it can hold your age private keys (`age/keys.txt`).
+
+### Official Website
+
+https://github.com/getsops/sops
 
 ---
 
