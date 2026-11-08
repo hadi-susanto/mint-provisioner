@@ -14,9 +14,10 @@ __github_fetch_latest_release() {
     local repository="$3"
     local api_url="https://api.github.com/repos/$owner/$repository/releases/latest"
     local -a curl_args=(-fsSL)
+    local github_token="${MP_GITHUB_TOKEN:-${GITHUB_TOKEN:-}}"
 
-    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
-        curl_args+=(-H "Authorization: Bearer $GITHUB_TOKEN")
+    if [[ -n "$github_token" ]]; then
+        curl_args+=(-H "Authorization: Bearer $github_token")
     fi
 
     if ! curl "${curl_args[@]}" "$api_url"; then

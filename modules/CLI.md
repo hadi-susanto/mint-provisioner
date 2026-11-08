@@ -13,6 +13,8 @@ applications.
 - [Eza](#eza-eza)
 - [Git](#git-git)
 - [GitHub CLI](#github-cli-github-cli-alias-gh)
+- [gocatcli](#gocatcli-gocatcli)
+- [gocatcli-ex](#gocatcli-ex-gocatcli-ex)
 - [k6](#k6-k6)
 - [MKVToolNix](#mkvtoolnix-mkvtoolnix-alias-mkvmerge)
 - [mycli](#mycli-mycli)
@@ -189,6 +191,58 @@ Installs the `gh` package from GitHub's official APT repository (`https://cli.gi
 ### Official Website
 
 https://cli.github.com
+
+---
+
+## gocatcli (`gocatcli`)
+
+gocatcli is an offline catalog indexer for removable media such as external drives, USB sticks, and DVDs. It stores a
+searchable index of file names and metadata so content can be browsed, searched, and mounted via FUSE without the media
+being connected.
+
+### Installation Method
+
+**GitHub latest release (precompiled archive)**
+
+Downloads the latest Linux x86_64 archive from the official GitHub releases page, extracts it, and creates a symbolic
+link for the executable.
+
+### Supported ENV
+
+- `GOCATCLI_INSTALL_DIR`
+    - Installation directory.
+    - Default: `${INSTALL_DIR}/gocatcli`
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
+
+### Official Website
+
+- [GitHub - deadc0de6/gocatcli](https://github.com/deadc0de6/gocatcli)
+
+---
+
+## gocatcli-ex (`gocatcli-ex`)
+
+gocatcli-ex is an extended fork of [gocatcli](#gocatcli-gocatcli) that adds gzip-compressed catalogs, storage renaming,
+and mountpoint handling. It uses the same catalog format and `GOCATCLI_` environment variables as `gocatcli`, so both
+modules can be installed side by side.
+
+### Installation Method
+
+**GitHub latest release (precompiled archive)**
+
+Downloads the latest Linux x86_64 archive from the fork's GitHub releases page, extracts it, and creates a symbolic link
+for the `gocatcli-ex` executable.
+
+### Supported ENV
+
+- `GOCATCLI_EX_INSTALL_DIR`
+    - Installation directory.
+    - Default: `${INSTALL_DIR}/gocatcli-ex`
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
+
+### Official Website
+
+- [GitHub - hadi-susanto/gocatcli-ex](https://github.com/hadi-susanto/gocatcli-ex)
 
 ---
 

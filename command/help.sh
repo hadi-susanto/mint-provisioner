@@ -181,7 +181,8 @@ Description:
   UPDATE_MODE=github compares the release recorded at install time with the
   latest GitHub release; modules installed before versions were recorded are
   reported as having an update available. Unauthenticated GitHub API calls
-  are limited to 60 per hour; set GITHUB_TOKEN to raise the limit.
+  are limited to 60 per hour; set MP_GITHUB_TOKEN (or GITHUB_TOKEN) to raise
+  the limit.
 
   UPDATE_MODE=external compares the recorded version with the version printed
   by the module's latest.sh, which queries the vendor. UPDATE_MODE=git
@@ -317,7 +318,7 @@ Description:
   Checks: not running as root, the /usr/local/bin/mp and bash completion links
   point to this clone, INSTALL_DIR is writable, required tools (git, jq,
   aria2c, curl, sudo) and whiptail are present, the distribution is
-  Ubuntu-based, the APT cache age, GITHUB_TOKEN and the remaining GitHub API
+  Ubuntu-based, the APT cache age, MP_GITHUB_TOKEN/GITHUB_TOKEN and the remaining GitHub API
   calls, registry entries (module still exists, INSTALL_PATH still exists,
   VERSION recorded for github and external modules), leftover temporary
   state, and broken /usr/local/bin links or desktop entries that point into
