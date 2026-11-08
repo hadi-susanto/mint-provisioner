@@ -241,8 +241,34 @@ __check_apt() {
     __report OK "APT cache is $age day(s) old"
 }
 
+##
+# __github_token_var
+#
+# Prints the name of the environment variable that supplies the GitHub token.
+# MP_GITHUB_TOKEN takes priority over GITHUB_TOKEN.
+#
+# Return:
+#   1 - Neither variable is set.
+#
+__github_token_var() {
+    if [[ -n "${MP_GITHUB_TOKEN:-}" ]]; then
+        printf '%s\n' "MP_GITHUB_TOKEN"
+
+        return 0
+    fi
+
+    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+        printf '%s\n' "GITHUB_TOKEN"
+
+        return 0
+    fi
+
+    return 1
+}
+
 __check_github_rate_limit() {
     local -a curl_args=(-sS --max-time 10 -w '\n%{http_code}')
+    local token_var
     local response
     local http_code
     local body
@@ -250,17 +276,17 @@ __check_github_rate_limit() {
     local limit
     local reset
 
-    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
-        curl_args+=(-H "Authorization: Bearer $GITHUB_TOKEN")
+    if token_var="$(__github_token_var)"; then
+        curl_args+=(-H "Authorization: Bearer ${!token_var}")
     fi
 
     response="$(curl "${curl_args[@]}" "$__GITHUB_RATE_LIMIT_URL" 2>/dev/null)" || true
     http_code="${response##*$'\n'}"
     body="${response%$'\n'*}"
 
-    if [[ "$http_code" == "401" && -n "${GITHUB_TOKEN:-}" ]]; then
-        __report FAIL "GitHub rejected GITHUB_TOKEN (HTTP 401)" \
-            "Create a new token or unset GITHUB_TOKEN; see FAQ.md"
+    if [[ "$http_code" == "401" && -n "$token_var" ]]; then
+        __report FAIL "GitHub rejected $token_var (HTTP 401)" \
+            "Create a new token or unset $token_var; see FAQ.md"
 
         return 0
     fi
@@ -277,7 +303,7 @@ __check_github_rate_limit() {
 
     if (( remaining < __GITHUB_MIN_REMAINING )); then
         __report WARN "GitHub API calls remaining: $remaining/$limit" \
-            "Resets at $(date -d "@$reset" '+%H:%M'); set GITHUB_TOKEN to raise the limit"
+            "Resets at $(date -d "@$reset" '+%H:%M'); set MP_GITHUB_TOKEN to raise the limit"
 
         return 0
     fi
@@ -288,12 +314,14 @@ __check_github_rate_limit() {
 __check_github() {
     local offline="$1"
 
+    local token_var
+
     __print_section "GitHub"
 
-    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
-        __report OK "GITHUB_TOKEN is set"
+    if token_var="$(__github_token_var)"; then
+        __report OK "$token_var is set"
     else
-        __report WARN "GITHUB_TOKEN is not set; GitHub API calls are limited to 60 per hour" \
+        __report WARN "MP_GITHUB_TOKEN/GITHUB_TOKEN is not set; GitHub API calls are limited to 60 per hour" \
             "See FAQ.md for creating a token"
     fi
 

@@ -183,7 +183,7 @@ Nothing is upgraded. Modules with `UPDATE_MODE="apt"` read versions from dpkg an
 checked, the cache is older than 7 days, and a terminal is attached, `mp outdated` offers to run `sudo apt-get update`
 first. Modules with `UPDATE_MODE="github"` compare the release recorded at install time with the latest GitHub
 release; installs that predate version recording are reported as having an update available. Unauthenticated GitHub
-API calls are limited to 60 per hour, so set `GITHUB_TOKEN` when checking many modules. Modules with
+API calls are limited to 60 per hour, so set `MP_GITHUB_TOKEN` (or `GITHUB_TOKEN`) when checking many modules. Modules with
 `UPDATE_MODE="external"` compare the recorded version with the vendor's latest version printed by the module's
 `latest.sh`. Modules with `UPDATE_MODE="git"` compare the cloned commit with the latest commit of the same branch,
 and `UPDATE_MODE="none"` marks modules whose version is not tracked. Modules are inspected by a pool of background
@@ -253,7 +253,7 @@ mp doctor --offline              # skip the GitHub rate-limit query
 Prints one `OK`, `WARN`, or `FAIL` line per check, with a hint for anything that is not OK, and changes nothing. It
 checks that `mp` is not run as root, that the `/usr/local/bin/mp` and bash completion links point to this clone, that
 `INSTALL_DIR` is writable, that the required tools (`git`, `jq`, `aria2c`, `curl`, `sudo`) and `whiptail` are present,
-the distribution, the APT cache age, `GITHUB_TOKEN` and the remaining GitHub API calls, registry entries (module and
+the distribution, the APT cache age, `MP_GITHUB_TOKEN`/`GITHUB_TOKEN` and the remaining GitHub API calls, registry entries (module and
 `INSTALL_PATH` still exist, `VERSION` recorded for `github`/`external` modules), leftover temporary state, and broken
 `/usr/local/bin` links or desktop entries that point into `INSTALL_DIR`. Exits `1` when a check fails; warnings alone
 exit `0`.

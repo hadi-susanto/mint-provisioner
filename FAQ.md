@@ -24,17 +24,37 @@ limit quickly.
 ### Solution
 
 Create a GitHub Personal Access Token (PAT) and provide it through the
-`GITHUB_TOKEN` environment variable.
+`MP_GITHUB_TOKEN` or `GITHUB_TOKEN` environment variable. When both are set,
+`MP_GITHUB_TOKEN` wins, so you can give Mint Provisioner its own token without
+touching the `GITHUB_TOKEN` that other tools (such as `gh`) use.
 
 The token does **not** require any permissions. A token without
 permissions is sufficient for authenticated requests to public
-repositories.
+repositories, and it raises the limit from 60 to 5,000 requests per hour.
+
+#### Create a Token With No Privileges
+
+1. Open <https://github.com/settings/personal-access-tokens/new> (**Settings →
+   Developer settings → Personal access tokens → Fine-grained tokens →
+   Generate new token**).
+2. Enter a **Token name** (for example `mint-provisioner`) and pick an
+   **Expiration**.
+3. Leave **Repository access** on **Public repositories (read-only)**.
+4. Do not add anything under **Permissions**. Leave every permission unset.
+5. Click **Generate token** and copy the `github_pat_...` value. GitHub shows
+   it only once.
+
+A classic token also works: open <https://github.com/settings/tokens/new>,
+leave every scope unchecked, and generate it (`ghp_...`).
 
 For example:
 
 ```bash
-export GITHUB_TOKEN="github_pat_..."
+export MP_GITHUB_TOKEN="github_pat_..."
 ```
+
+To keep it across sessions, add that line to `~/.bashrc`. The token is stored
+in plain text there, which is acceptable only because it grants no access.
 
 Then run the Mint Provisioner command again:
 
@@ -46,8 +66,8 @@ mp outdated
 Alternatively, provide the token for a single invocation:
 
 ```bash
-GITHUB_TOKEN="github_pat_..." mp install ...
-GITHUB_TOKEN="github_pat_..." mp outdated
+MP_GITHUB_TOKEN="github_pat_..." mp install ...
+MP_GITHUB_TOKEN="github_pat_..." mp outdated
 ```
 
 > **Note:** Mint Provisioner only requires the token for GitHub API
