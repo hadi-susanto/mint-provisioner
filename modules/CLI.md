@@ -17,7 +17,6 @@ applications.
 - [gocatcli-ex](#gocatcli-ex-gocatcli-ex)
 - [k6](#k6-k6)
 - [MKVToolNix](#mkvtoolnix-mkvtoolnix-alias-mkvmerge)
-- [mycli](#mycli-mycli)
 - [OneDrive Client](#onedrive-client-onedrive)
 - [OpenConnect SAML](#openconnect-saml-openconnect-saml)
 - [pay-respects](#pay-respects-pay-respects)
@@ -314,43 +313,6 @@ This module has additional features that can be enabled by running SysKit. See t
 ### Official Website
 
 https://mkvtoolnix.download/
-
----
-
-## mycli (`mycli`)
-
-mycli is a terminal client for MySQL and MariaDB with auto-completion and syntax highlighting.
-
-### Installation Method
-
-**pipx (PyPI)**
-
-Installs the following APT packages:
-
-- `pipx`
-- `python3-venv`
-
-Then installs the latest `mycli` release from PyPI, pinned to the version resolved during pre-install, with pipx into a
-dedicated directory and creates a symbolic link to the executable in `/usr/local/bin`. No environment or shell rc files
-are modified.
-
-mycli requires Python 3.11 or newer; pre-install fails with a clear error on older systems (such as Linux Mint 21).
-
-### Supported ENV
-
-- `PIPX_INSTALL_DIR`
-    - Directory used as `PIPX_HOME`; pipx creates the package environment under `venvs/mycli`.
-    - Default: `${INSTALL_DIR}/pipx`
-    - Shared with other pipx modules. Removing `mycli` uninstalls only its own environment; the directory is kept.
-    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
-
-### Removal
-
-`mp purge` also deletes `~/.myclirc` and `~/.config/mycli`.
-
-### Official Website
-
-https://github.com/dbcli/mycli
 
 ---
 
