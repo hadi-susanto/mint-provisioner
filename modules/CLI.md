@@ -14,7 +14,6 @@ applications.
 - [GitHub CLI](#github-cli-github-cli-alias-gh)
 - [gocatcli](#gocatcli-gocatcli)
 - [gocatcli-ex](#gocatcli-ex-gocatcli-ex)
-- [k6](#k6-k6)
 - [MKVToolNix](#mkvtoolnix-mkvtoolnix-alias-mkvmerge)
 - [OneDrive Client](#onedrive-client-onedrive)
 - [OpenConnect SAML](#openconnect-saml-openconnect-saml)
@@ -214,23 +213,6 @@ for the `gocatcli-ex` executable.
 ### Official Website
 
 - [GitHub - hadi-susanto/gocatcli-ex](https://github.com/hadi-susanto/gocatcli-ex)
-
----
-
-## k6 (`k6`)
-
-k6 is Grafana's open-source load-testing tool. Tests are written in JavaScript and run from the command line to measure
-the performance and reliability of APIs and web applications.
-
-### Installation Method
-
-**Official APT repository**
-
-Installs the `k6` package from Grafana's official APT repository (`https://dl.k6.io/deb`).
-
-### Official Website
-
-https://grafana.com/docs/k6/
 
 ---
 
