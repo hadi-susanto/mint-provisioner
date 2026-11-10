@@ -516,7 +516,7 @@ upgrade phase fails.
 - A module that needs a privileged step on the new binary (Vault `setcap`) writes a custom `upgrade.sh`: copy to a
   staging file next to the target, apply the step, `mv -f` it into place, then call `record_version_registry`.
 - Tools that update themselves may skip `pre-upgrade.sh`: `dev/sdkman` runs `sdk selfupdate force` in a child shell and
-  records `var/version` as `VERSION`. `cli/openconnect-saml` reinstalls the pinned version with pipx into the
+  records `var/version` as `VERSION`. `sys/openconnect-saml` reinstalls the pinned version with pipx into the
   registry `INSTALL_PATH`.
 - `git` modules have no `pre-upgrade.sh`. `upgrade.sh` calls `git_pull_upgrade <canonical_id> [previous_name]`
   (`$LIB_WORKFLOW/git-pull-upgrade.sh`), which fast-forwards the clone at registry `INSTALL_PATH` to the tip of its

@@ -16,7 +16,6 @@ applications.
 - [gocatcli-ex](#gocatcli-ex-gocatcli-ex)
 - [MKVToolNix](#mkvtoolnix-mkvtoolnix-alias-mkvmerge)
 - [OneDrive Client](#onedrive-client-onedrive)
-- [OpenConnect SAML](#openconnect-saml-openconnect-saml)
 - [pay-respects](#pay-respects-pay-respects)
 - [Procs](#procs-procs)
 - [rclone](#rclone-rclone)
@@ -308,40 +307,6 @@ For a graphical account manager, install [OneDriveGUI](GUI.md#onedrivegui-onedri
 ### Official Website
 
 https://github.com/abraunegg/onedrive
-
----
-
-## OpenConnect SAML (`openconnect-saml`)
-
-OpenConnect SAML is a command-line OpenConnect client wrapper that handles SAML/SSO authentication for VPN gateways.
-The tool itself is a pure CLI; the `gui` extra only enables opening a browser window to complete the authentication.
-
-### Installation Method
-
-**pipx (PyPI)**
-
-Installs the following APT packages, adding `openconnect` only when it is not already available:
-
-- `pipx`
-- `python3-venv`
-- `libxcb-cursor0`
-- `openconnect` (only when missing)
-
-Then installs the latest `openconnect-saml[gui]` release from PyPI, pinned to the version resolved during
-pre-install, with pipx into a dedicated directory and creates a symbolic link to the executable in `/usr/local/bin`. No environment or shell rc files are modified.
-
-### Supported ENV
-
-- `PIPX_INSTALL_DIR`
-    - Directory used as `PIPX_HOME`; pipx creates the package environment under `venvs/openconnect-saml`.
-    - Default: `${INSTALL_DIR}/pipx`
-    - The pipx binary directory is not overridden. `/usr/local/bin/openconnect-saml` links to the executable in the
-      package environment.
-    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
-
-### Official Website
-
-https://github.com/mschabhuettl/openconnect-saml
 
 ---
 
