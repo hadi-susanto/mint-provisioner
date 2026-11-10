@@ -16,7 +16,7 @@ if ! python3 -c 'import sys; raise SystemExit(sys.version_info < (3, 10))'; then
 fi
 
 if ! command -v tlp >/dev/null 2>&1; then
-    tlog_error "pre-install:$CANONICAL_ID" "TLP is required but not installed. Install it first using: mp install cli/tlp"
+    tlog_error "pre-install:$CANONICAL_ID" "TLP is required but not installed. Install it first using: mp install sys/tlp"
 
     exit 1
 fi

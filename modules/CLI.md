@@ -23,7 +23,6 @@ applications.
 - [Procs](#procs-procs)
 - [rclone](#rclone-rclone)
 - [ripgrep](#ripgrep-ripgrep)
-- [TLP](#tlp-tlp)
 - [yq](#yq-yq)
 
 ---
@@ -495,47 +494,6 @@ and installs it with APT. The package provides `rg`, the man page, and shell com
 ### Official Website
 
 https://github.com/BurntSushi/ripgrep
-
----
-
-## TLP (`tlp`)
-
-TLP is an advanced power-management utility for Linux laptops. It applies optimized settings for battery life and
-performance without requiring extensive manual configuration, while still providing detailed configuration options for
-advanced users.
-
-### Installation Method
-
-**APT packages (Linux Mint / Ubuntu repository)**
-
-Installs the following packages from the native distribution repository:
-
-- `tlp`
-- `tlp-rdw`
-
-The installer also enables and starts `tlp.service`.
-
-### Installed Configuration
-
-After installation, the module displays commands for checking battery support and modifying the TLP configuration:
-
-```bash
-sudo tlp-stat --battery
-```
-
-```bash
-sudo nano /etc/tlp.conf
-```
-
-The optional graphical configuration interface can be installed separately:
-
-```bash
-mp install gui/tlp-ui
-```
-
-### Official Website
-
-https://linrunner.de/tlp/
 
 ---
 

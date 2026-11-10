@@ -10,6 +10,7 @@ help configure, maintain, and optimize the operating system.
 - [DNSCrypt Proxy](#dnscrypt-proxy-dnscrypt-proxy-alias-dnscrypt)
 - [Nerd Fonts](#nerd-fonts-nerd-font)
 - [System Toolkit](#system-toolkit-system-toolkit-alias-syskit)
+- [TLP](#tlp-tlp)
 
 ---
 
@@ -199,3 +200,44 @@ symbolic links for them under `/usr/local/bin`.
 ### Official Website
 
 https://github.com/hadi-susanto/system-toolkit
+
+---
+
+## TLP (`tlp`)
+
+TLP is an advanced power-management utility for Linux laptops. It applies optimized settings for battery life and
+performance without requiring extensive manual configuration, while still providing detailed configuration options for
+advanced users.
+
+### Installation Method
+
+**APT packages (Linux Mint / Ubuntu repository)**
+
+Installs the following packages from the native distribution repository:
+
+- `tlp`
+- `tlp-rdw`
+
+The installer also enables and starts `tlp.service`.
+
+### Installed Configuration
+
+After installation, the module displays commands for checking battery support and modifying the TLP configuration:
+
+```bash
+sudo tlp-stat --battery
+```
+
+```bash
+sudo nano /etc/tlp.conf
+```
+
+The optional graphical configuration interface can be installed separately:
+
+```bash
+mp install gui/tlp-ui
+```
+
+### Official Website
+
+https://linrunner.de/tlp/
