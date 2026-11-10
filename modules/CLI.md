@@ -20,6 +20,7 @@ applications.
 - [Procs](#procs-procs)
 - [rclone](#rclone-rclone)
 - [ripgrep](#ripgrep-ripgrep)
+- [UPX](#upx-upx)
 - [yq](#yq-yq)
 
 ---
@@ -415,6 +416,31 @@ and installs it with APT. The package provides `rg`, the man page, and shell com
 ### Official Website
 
 https://github.com/BurntSushi/ripgrep
+
+---
+
+## UPX (`upx`)
+
+UPX (Ultimate Packer for eXecutables) compresses and decompresses executable files. Compressed binaries stay
+self-contained and run as before, which makes UPX useful for shrinking release builds.
+
+### Installation Method
+
+**GitHub latest release (precompiled archive)**
+
+Downloads `upx-<version>-amd64_linux.tar.xz` from the latest upx/upx GitHub release, verifies its SHA-256 digest, and
+extracts the `upx` binary. Only AMD64 is supported.
+
+### Supported ENV
+
+- `UPX_INSTALL_DIR`
+    - Installation directory.
+    - Default: `${INSTALL_DIR}/upx`
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
+
+### Official Website
+
+https://upx.github.io/
 
 ---
 

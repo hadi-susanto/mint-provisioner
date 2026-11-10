@@ -9,7 +9,7 @@ modules, see the [module contributor guide](CONTRIBUTING.md).
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **135 modules** across **12 categories**. A category is part of a module's canonical
+Mint Provisioner currently provides **136 modules** across **12 categories**. A category is part of a module's canonical
 ID:
 
 ```text
@@ -30,7 +30,7 @@ official project links.
 
 | Category                        | ID     | Modules                                                                                                                                                                                                          |
 |---------------------------------|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [Command Line](CLI.md)          | `cli`  | `bat`, `delta`, `difftastic`, `eza`, `git`, `github-cli`, `gocatcli`, `gocatcli-ex`, `mkvtoolnix`, `onedrive`, `pay-respects`, `procs`, `rclone`, `ripgrep`, `yq`                                                                                                                            |
+| [Command Line](CLI.md)          | `cli`  | `bat`, `delta`, `difftastic`, `eza`, `git`, `github-cli`, `gocatcli`, `gocatcli-ex`, `mkvtoolnix`, `onedrive`, `pay-respects`, `procs`, `rclone`, `ripgrep`, `upx`, `yq`                                                                                                                            |
 | [Database](DB.md)               | `db`   | `dbeaver-community`, `dbgate-community`, `memcached`, `mongodb-community`, `mongodb-compass`, `mycli`, `mysql`, `mysql-tools`, `pg-admin`, `pgcli`, `postgresql`, `redis`, `redis-insight`                                      |
 | [Development](DEV.md)           | `dev`  | `adb`, `apache-maven`, `bruno`, `httptoolkit`, `kafdrop`, `kafka`, `mise`, `postman`, `sdkman`, `yaak`                                                                                                           |
 | [Desktop Applications](GUI.md)  | `gui`  | `audacious`, `avda`, `cryptomator`, `deadbeef`, `desk-otp`, `double-commander`, `flameshot`, `fman`, `insync`, `keepass-xc`, `lapce`, `meld`, `mu-commander`, `onedrive-gui`, `onedriver`, `otpclient`, `qmmp`, `sunflower`, `tlp-ui` |
