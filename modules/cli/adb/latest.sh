@@ -11,11 +11,22 @@ if ! repository="$(curl -fsSL "$repository_url")"; then
     exit 1
 fi
 
-# The platform-tools revision is split into major, minor and micro elements.
+# The feed lists one platform-tools package per channel (channel-0 = stable, others =
+# preview). The revision is split into major, minor and micro elements.
 version="$(
-    sed -n '/<remotePackage path="platform-tools">/,/<\/revision>/p' <<<"$repository" |
-        sed -n 's/.*<\(major\|minor\|micro\)>\([0-9]*\)<.*/\2/p' |
-        paste -sd '.'
+    awk '
+        /<remotePackage path="platform-tools">/ { in_pkg = 1; rev = "" }
+        in_pkg && match($0, /<(major|minor|micro)>[0-9]+</) {
+            value = substr($0, RSTART, RLENGTH)
+            gsub(/[^0-9]/, "", value)
+            rev = (rev == "" ? value : rev "." value)
+        }
+        in_pkg && /<channelRef ref="channel-0"\/>/ { stable = 1 }
+        in_pkg && /<\/remotePackage>/ {
+            if (stable) { print rev; exit }
+            in_pkg = 0; stable = 0
+        }
+    ' <<<"$repository"
 )"
 
 if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
