@@ -9,7 +9,9 @@ help configure, maintain, and optimize the operating system.
 - [Dconf Editor](#dconf-editor-dconf-editor)
 - [DNSCrypt Proxy](#dnscrypt-proxy-dnscrypt-proxy-alias-dnscrypt)
 - [Nerd Fonts](#nerd-fonts-nerd-font)
+- [OpenConnect SAML](#openconnect-saml-openconnect-saml)
 - [System Toolkit](#system-toolkit-system-toolkit-alias-syskit)
+- [TLP](#tlp-tlp)
 
 ---
 
@@ -170,6 +172,40 @@ https://www.nerdfonts.com/
 
 ---
 
+## OpenConnect SAML (`openconnect-saml`)
+
+OpenConnect SAML is a command-line OpenConnect client wrapper that handles SAML/SSO authentication for VPN gateways.
+The tool itself is a pure CLI; the `gui` extra only enables opening a browser window to complete the authentication.
+
+### Installation Method
+
+**pipx (PyPI)**
+
+Installs the following APT packages, adding `openconnect` only when it is not already available:
+
+- `pipx`
+- `python3-venv`
+- `libxcb-cursor0`
+- `openconnect` (only when missing)
+
+Then installs the latest `openconnect-saml[gui]` release from PyPI, pinned to the version resolved during
+pre-install, with pipx into a dedicated directory and creates a symbolic link to the executable in `/usr/local/bin`. No environment or shell rc files are modified.
+
+### Supported ENV
+
+- `PIPX_INSTALL_DIR`
+    - Directory used as `PIPX_HOME`; pipx creates the package environment under `venvs/openconnect-saml`.
+    - Default: `${INSTALL_DIR}/pipx`
+    - The pipx binary directory is not overridden. `/usr/local/bin/openconnect-saml` links to the executable in the
+      package environment.
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
+
+### Official Website
+
+https://github.com/mschabhuettl/openconnect-saml
+
+---
+
 ## System Toolkit (`system-toolkit`) [alias: `syskit`]
 
 System Toolkit, or SysKit, manages system configuration, shell integrations, and standalone executable scripts
@@ -199,3 +235,44 @@ symbolic links for them under `/usr/local/bin`.
 ### Official Website
 
 https://github.com/hadi-susanto/system-toolkit
+
+---
+
+## TLP (`tlp`)
+
+TLP is an advanced power-management utility for Linux laptops. It applies optimized settings for battery life and
+performance without requiring extensive manual configuration, while still providing detailed configuration options for
+advanced users.
+
+### Installation Method
+
+**APT packages (Linux Mint / Ubuntu repository)**
+
+Installs the following packages from the native distribution repository:
+
+- `tlp`
+- `tlp-rdw`
+
+The installer also enables and starts `tlp.service`.
+
+### Installed Configuration
+
+After installation, the module displays commands for checking battery support and modifying the TLP configuration:
+
+```bash
+sudo tlp-stat --battery
+```
+
+```bash
+sudo nano /etc/tlp.conf
+```
+
+The optional graphical configuration interface can be installed separately:
+
+```bash
+mp install gui/tlp-ui
+```
+
+### Official Website
+
+https://linrunner.de/tlp/

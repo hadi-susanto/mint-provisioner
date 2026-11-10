@@ -6,7 +6,6 @@ applications.
 
 ## Contents
 
-- [Android Debug Bridge](#android-debug-bridge-adb)
 - [Bat](#bat-bat)
 - [Delta](#delta-delta)
 - [Difftastic](#difftastic-difftastic-alias-difft)
@@ -15,43 +14,14 @@ applications.
 - [GitHub CLI](#github-cli-github-cli-alias-gh)
 - [gocatcli](#gocatcli-gocatcli)
 - [gocatcli-ex](#gocatcli-ex-gocatcli-ex)
-- [k6](#k6-k6)
 - [MKVToolNix](#mkvtoolnix-mkvtoolnix-alias-mkvmerge)
-- [mycli](#mycli-mycli)
 - [OneDrive Client](#onedrive-client-onedrive)
-- [OpenConnect SAML](#openconnect-saml-openconnect-saml)
 - [pay-respects](#pay-respects-pay-respects)
-- [pgcli](#pgcli-pgcli)
 - [Procs](#procs-procs)
 - [rclone](#rclone-rclone)
 - [ripgrep](#ripgrep-ripgrep)
-- [TLP](#tlp-tlp)
+- [UPX](#upx-upx)
 - [yq](#yq-yq)
-
----
-
-## Android Debug Bridge (`adb`)
-
-Android Debug Bridge (ADB) is Google's official command-line toolkit for communicating with Android devices. It provides
-debugging, application deployment, shell access, file transfer, log collection, and Fastboot support.
-
-### Installation Method
-
-**Official website (precompiled archive)**
-
-Resolves the latest Android Platform Tools version from Google's SDK repository manifest (`latest.sh`) and downloads
-the matching `platform-tools_r<version>-linux.zip` archive from Google's official distribution server.
-
-### Supported ENV
-
-- `ADB_INSTALL_DIR`
-    - Installation directory.
-    - Default: `${INSTALL_DIR}/adb`
-    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
-
-### Official Website
-
-https://developer.android.com/tools/releases/platform-tools
 
 ---
 
@@ -246,23 +216,6 @@ for the `gocatcli-ex` executable.
 
 ---
 
-## k6 (`k6`)
-
-k6 is Grafana's open-source load-testing tool. Tests are written in JavaScript and run from the command line to measure
-the performance and reliability of APIs and web applications.
-
-### Installation Method
-
-**Official APT repository**
-
-Installs the `k6` package from Grafana's official APT repository (`https://dl.k6.io/deb`).
-
-### Official Website
-
-https://grafana.com/docs/k6/
-
----
-
 ## MKVToolNix (`mkvtoolnix`) [alias: `mkvmerge`]
 
 MKVToolNix is a collection of command-line and graphical tools for creating, inspecting, modifying, splitting, and
@@ -317,43 +270,6 @@ https://mkvtoolnix.download/
 
 ---
 
-## mycli (`mycli`)
-
-mycli is a terminal client for MySQL and MariaDB with auto-completion and syntax highlighting.
-
-### Installation Method
-
-**pipx (PyPI)**
-
-Installs the following APT packages:
-
-- `pipx`
-- `python3-venv`
-
-Then installs the latest `mycli` release from PyPI, pinned to the version resolved during pre-install, with pipx into a
-dedicated directory and creates a symbolic link to the executable in `/usr/local/bin`. No environment or shell rc files
-are modified.
-
-mycli requires Python 3.11 or newer; pre-install fails with a clear error on older systems (such as Linux Mint 21).
-
-### Supported ENV
-
-- `PIPX_INSTALL_DIR`
-    - Directory used as `PIPX_HOME`; pipx creates the package environment under `venvs/mycli`.
-    - Default: `${INSTALL_DIR}/pipx`
-    - Shared with other pipx modules. Removing `mycli` uninstalls only its own environment; the directory is kept.
-    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
-
-### Removal
-
-`mp purge` also deletes `~/.myclirc` and `~/.config/mycli`.
-
-### Official Website
-
-https://github.com/dbcli/mycli
-
----
-
 ## OneDrive Client (`onedrive`)
 
 OneDrive Client is a free, open-source Microsoft OneDrive sync client for Linux by abraunegg. It supports personal,
@@ -395,40 +311,6 @@ https://github.com/abraunegg/onedrive
 
 ---
 
-## OpenConnect SAML (`openconnect-saml`)
-
-OpenConnect SAML is a command-line OpenConnect client wrapper that handles SAML/SSO authentication for VPN gateways.
-The tool itself is a pure CLI; the `gui` extra only enables opening a browser window to complete the authentication.
-
-### Installation Method
-
-**pipx (PyPI)**
-
-Installs the following APT packages, adding `openconnect` only when it is not already available:
-
-- `pipx`
-- `python3-venv`
-- `libxcb-cursor0`
-- `openconnect` (only when missing)
-
-Then installs the latest `openconnect-saml[gui]` release from PyPI, pinned to the version resolved during
-pre-install, with pipx into a dedicated directory and creates a symbolic link to the executable in `/usr/local/bin`. No environment or shell rc files are modified.
-
-### Supported ENV
-
-- `PIPX_INSTALL_DIR`
-    - Directory used as `PIPX_HOME`; pipx creates the package environment under `venvs/openconnect-saml`.
-    - Default: `${INSTALL_DIR}/pipx`
-    - The pipx binary directory is not overridden. `/usr/local/bin/openconnect-saml` links to the executable in the
-      package environment.
-    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
-
-### Official Website
-
-https://github.com/mschabhuettl/openconnect-saml
-
----
-
 ## pay-respects (`pay-respects`)
 
 pay-respects is a fast, lightweight Rust command-line typo corrector, similar to `thefuck`. After a failed command it
@@ -460,42 +342,6 @@ This module has additional features that can be enabled by running SysKit. See t
 ### Official Website
 
 https://github.com/iffse/pay-respects
-
----
-
-## pgcli (`pgcli`)
-
-pgcli is a terminal client for PostgreSQL with auto-completion and syntax highlighting.
-
-### Installation Method
-
-**pipx (PyPI)**
-
-Installs the following APT packages:
-
-- `pipx`
-- `python3-venv`
-- `libpq5`
-
-Then installs the latest `pgcli` release from PyPI, pinned to the version resolved during pre-install, with pipx into a
-dedicated directory and creates a symbolic link to the executable in `/usr/local/bin`. No environment or shell rc files
-are modified.
-
-### Supported ENV
-
-- `PIPX_INSTALL_DIR`
-    - Directory used as `PIPX_HOME`; pipx creates the package environment under `venvs/pgcli`.
-    - Default: `${INSTALL_DIR}/pipx`
-    - Shared with other pipx modules. Removing `pgcli` uninstalls only its own environment; the directory is kept.
-    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
-
-### Removal
-
-`mp purge` also deletes `~/.config/pgcli`.
-
-### Official Website
-
-https://github.com/dbcli/pgcli
 
 ---
 
@@ -573,44 +419,28 @@ https://github.com/BurntSushi/ripgrep
 
 ---
 
-## TLP (`tlp`)
+## UPX (`upx`)
 
-TLP is an advanced power-management utility for Linux laptops. It applies optimized settings for battery life and
-performance without requiring extensive manual configuration, while still providing detailed configuration options for
-advanced users.
+UPX (Ultimate Packer for eXecutables) compresses and decompresses executable files. Compressed binaries stay
+self-contained and run as before, which makes UPX useful for shrinking release builds.
 
 ### Installation Method
 
-**APT packages (Linux Mint / Ubuntu repository)**
+**GitHub latest release (precompiled archive)**
 
-Installs the following packages from the native distribution repository:
+Downloads `upx-<version>-amd64_linux.tar.xz` from the latest upx/upx GitHub release, verifies its SHA-256 digest, and
+extracts the `upx` binary. Only AMD64 is supported.
 
-- `tlp`
-- `tlp-rdw`
+### Supported ENV
 
-The installer also enables and starts `tlp.service`.
-
-### Installed Configuration
-
-After installation, the module displays commands for checking battery support and modifying the TLP configuration:
-
-```bash
-sudo tlp-stat --battery
-```
-
-```bash
-sudo nano /etc/tlp.conf
-```
-
-The optional graphical configuration interface can be installed separately:
-
-```bash
-mp install gui/tlp-ui
-```
+- `UPX_INSTALL_DIR`
+    - Installation directory.
+    - Default: `${INSTALL_DIR}/upx`
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
 
 ### Official Website
 
-https://linrunner.de/tlp/
+https://upx.github.io/
 
 ---
 

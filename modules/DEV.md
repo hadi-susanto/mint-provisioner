@@ -5,6 +5,7 @@ up and maintain a productive development environment.
 
 ## Contents
 
+- [Android Debug Bridge](#android-debug-bridge-adb)
 - [Apache Maven](#apache-maven-apache-maven-alias-maven-alias-mvn)
 - [Bruno](#bruno-bruno)
 - [HTTP Toolkit](#http-toolkit-httptoolkit)
@@ -14,6 +15,31 @@ up and maintain a productive development environment.
 - [Postman](#postman-postman)
 - [SDKMAN!](#sdkman-sdkman)
 - [Yaak](#yaak-yaak)
+
+---
+
+## Android Debug Bridge (`adb`)
+
+Android Debug Bridge (ADB) is Google's official command-line toolkit for communicating with Android devices. It provides
+debugging, application deployment, shell access, file transfer, log collection, and Fastboot support.
+
+### Installation Method
+
+**Official website (precompiled archive)**
+
+Resolves the latest Android Platform Tools version from Google's SDK repository manifest (`latest.sh`) and downloads
+the matching `platform-tools_r<version>-linux.zip` archive from Google's official distribution server.
+
+### Supported ENV
+
+- `ADB_INSTALL_DIR`
+    - Installation directory.
+    - Default: `${INSTALL_DIR}/adb`
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
+
+### Official Website
+
+https://developer.android.com/tools/releases/platform-tools
 
 ---
 

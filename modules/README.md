@@ -9,7 +9,7 @@ modules, see the [module contributor guide](CONTRIBUTING.md).
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **135 modules** across **12 categories**. A category is part of a module's canonical
+Mint Provisioner currently provides **136 modules** across **12 categories**. A category is part of a module's canonical
 ID:
 
 ```text
@@ -30,16 +30,16 @@ official project links.
 
 | Category                        | ID     | Modules                                                                                                                                                                                                          |
 |---------------------------------|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [Command Line](CLI.md)          | `cli`  | `adb`, `bat`, `delta`, `difftastic`, `eza`, `git`, `github-cli`, `gocatcli`, `gocatcli-ex`, `k6`, `mkvtoolnix`, `mycli`, `onedrive`, `openconnect-saml`, `pay-respects`, `pgcli`, `procs`, `rclone`, `ripgrep`, `tlp`, `yq`                                                                  |
-| [Database](DB.md)               | `db`   | `dbeaver-community`, `dbgate-community`, `memcached`, `mongodb-community`, `mongodb-compass`, `mysql`, `mysql-tools`, `pg-admin`, `postgresql`, `redis`, `redis-insight`                                                        |
-| [Development](DEV.md)           | `dev`  | `apache-maven`, `bruno`, `httptoolkit`, `kafdrop`, `kafka`, `mise`, `postman`, `sdkman`, `yaak`                                                                                                                  |
+| [Command Line](CLI.md)          | `cli`  | `bat`, `delta`, `difftastic`, `eza`, `git`, `github-cli`, `gocatcli`, `gocatcli-ex`, `mkvtoolnix`, `onedrive`, `pay-respects`, `procs`, `rclone`, `ripgrep`, `upx`, `yq`                                                                                                                            |
+| [Database](DB.md)               | `db`   | `dbeaver-community`, `dbgate-community`, `memcached`, `mongodb-community`, `mongodb-compass`, `mycli`, `mysql`, `mysql-tools`, `pg-admin`, `pgcli`, `postgresql`, `redis`, `redis-insight`                                      |
+| [Development](DEV.md)           | `dev`  | `adb`, `apache-maven`, `bruno`, `httptoolkit`, `kafdrop`, `kafka`, `mise`, `postman`, `sdkman`, `yaak`                                                                                                           |
 | [Desktop Applications](GUI.md)  | `gui`  | `audacious`, `avda`, `cryptomator`, `deadbeef`, `desk-otp`, `double-commander`, `flameshot`, `fman`, `insync`, `keepass-xc`, `lapce`, `meld`, `mu-commander`, `onedrive-gui`, `onedriver`, `otpclient`, `qmmp`, `sunflower`, `tlp-ui` |
 | [IDE](IDE.md)                   | `ide`  | `android-studio`, `clion`, `cudatext`, `datagrip`, `geany`, `goland`, `gram`, `idea`, `phpstorm`, `pycharm`, `rider`, `rubymine`, `rustrover`, `vscode`, `vscodium`, `webstorm`                                                    |
-| [System Administration](SYS.md) | `sys`  | `apt-fast`, `dconf-editor`, `dnscrypt-proxy`, `nerd-font`, `system-toolkit`                                                                                                                                      |
+| [System Administration](SYS.md) | `sys`  | `apt-fast`, `dconf-editor`, `dnscrypt-proxy`, `nerd-font`, `openconnect-saml`, `system-toolkit`, `tlp`                                                                                                           |
 | [Terminal](TERM.md)             | `term` | `alacritty`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `terminator`, `zsh`                                                                                                                |
 | [Terminal UI](TUI.md)           | `tui`  | `bottom`, `du-analyzer`, `du-rust`, `duf`, `git-ui`, `lazy-git`                                                                                                                                                  |
 | [Web](WEB.md)                   | `web`  | `brave-browser`, `brave-origin`, `firefox`, `firefox-pwa`, `google-chrome`, `librewolf`, `microsoft-edge`                                                                                                        |
-| [DevOps Tools](OPS.md)          | `ops`  | `argocd`, `cloudflared`, `consul`, `docker`, `gcloud`, `k9s`, `kubectl`, `kubectl-convert`, `mkcert`, `ngrok`, `sops`, `vault`                                                                                                                                         |
+| [DevOps Tools](OPS.md)          | `ops`  | `argocd`, `cloudflared`, `consul`, `docker`, `gcloud`, `k6`, `k9s`, `kubectl`, `kubectl-convert`, `mkcert`, `ngrok`, `sops`, `vault`                                                                                                                                   |
 | [ArtCraft](ART.md)             | `art`  | `cadcraft`, `craft-anything`, `deckcraft`, `designcraft`, `effectcraft`, `figcraft`, `filmcraft`, `gridcraft`, `lightcraft`, `materialcraft`, `pdfcraft`, `photocraft`, `soundcraft`, `texturecraft`, `vectorcraft`, `wordcraft` |
 | [Miscellaneous](MISC.md)        | `misc` | `any-desk`, `claude-code`, `codex`, `junie`, `virtual-box`                                                                                                                                                       |
 

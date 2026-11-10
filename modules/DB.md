@@ -10,9 +10,11 @@ servers, database clients, management utilities, and other tools for working wit
 - [Memcached](#memcached-memcached)
 - [MongoDB Compass](#mongodb-compass-mongodb-compass-alias-compass)
 - [MongoDB Community](#mongodb-community-mongodb-community-alias-mongodb)
+- [mycli](#mycli-mycli)
 - [MySQL Connectors](#mysql-connectors-mysql-tools)
 - [MySQL Server](#mysql-server-mysql)
 - [pgAdmin 4](#pgadmin-4-pg-admin-alias-pgadmin)
+- [pgcli](#pgcli-pgcli)
 - [PostgreSQL Server](#postgresql-server-postgresql)
 - [Redis](#redis-redis)
 - [Redis Insight](#redis-insight-redis-insight)
@@ -130,6 +132,43 @@ server versions independently of the default Ubuntu package repositories.
 ### Official Website
 
 https://www.mongodb.com/
+
+---
+
+## mycli (`mycli`)
+
+mycli is a terminal client for MySQL and MariaDB with auto-completion and syntax highlighting.
+
+### Installation Method
+
+**pipx (PyPI)**
+
+Installs the following APT packages:
+
+- `pipx`
+- `python3-venv`
+
+Then installs the latest `mycli` release from PyPI, pinned to the version resolved during pre-install, with pipx into a
+dedicated directory and creates a symbolic link to the executable in `/usr/local/bin`. No environment or shell rc files
+are modified.
+
+mycli requires Python 3.11 or newer; pre-install fails with a clear error on older systems (such as Linux Mint 21).
+
+### Supported ENV
+
+- `PIPX_INSTALL_DIR`
+    - Directory used as `PIPX_HOME`; pipx creates the package environment under `venvs/mycli`.
+    - Default: `${INSTALL_DIR}/pipx`
+    - Shared with other pipx modules. Removing `mycli` uninstalls only its own environment; the directory is kept.
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
+
+### Removal
+
+`mp purge` also deletes `~/.myclirc` and `~/.config/mycli`.
+
+### Official Website
+
+https://github.com/dbcli/mycli
 
 ---
 
@@ -309,6 +348,42 @@ sudo /usr/pgadmin4/bin/setup-web.sh
 ### Official Website
 
 https://www.pgadmin.org/
+
+---
+
+## pgcli (`pgcli`)
+
+pgcli is a terminal client for PostgreSQL with auto-completion and syntax highlighting.
+
+### Installation Method
+
+**pipx (PyPI)**
+
+Installs the following APT packages:
+
+- `pipx`
+- `python3-venv`
+- `libpq5`
+
+Then installs the latest `pgcli` release from PyPI, pinned to the version resolved during pre-install, with pipx into a
+dedicated directory and creates a symbolic link to the executable in `/usr/local/bin`. No environment or shell rc files
+are modified.
+
+### Supported ENV
+
+- `PIPX_INSTALL_DIR`
+    - Directory used as `PIPX_HOME`; pipx creates the package environment under `venvs/pgcli`.
+    - Default: `${INSTALL_DIR}/pipx`
+    - Shared with other pipx modules. Removing `pgcli` uninstalls only its own environment; the directory is kept.
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
+
+### Removal
+
+`mp purge` also deletes `~/.config/pgcli`.
+
+### Official Website
+
+https://github.com/dbcli/pgcli
 
 ---
 

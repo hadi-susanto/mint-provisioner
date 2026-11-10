@@ -10,6 +10,7 @@ services from a development machine.
 - [Consul](#consul-consul)
 - [Docker](#docker-docker)
 - [Google Cloud CLI](#google-cloud-cli-gcloud)
+- [k6](#k6-k6)
 - [K9s](#k9s-k9s)
 - [kubectl](#kubectl-kubectl)
 - [kubectl-convert](#kubectl-convert-kubectl-convert)
@@ -200,6 +201,23 @@ Installs the Google Cloud CLI from Google's official APT package repository.
 ### Official Website
 
 https://cloud.google.com/sdk
+
+---
+
+## k6 (`k6`)
+
+k6 is Grafana's open-source load-testing tool. Tests are written in JavaScript and run from the command line to measure
+the performance and reliability of APIs and web applications.
+
+### Installation Method
+
+**Official APT repository**
+
+Installs the `k6` package from Grafana's official APT repository (`https://dl.k6.io/deb`).
+
+### Official Website
+
+https://grafana.com/docs/k6/
 
 ---
 
