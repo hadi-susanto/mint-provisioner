@@ -14,6 +14,7 @@ servers, database clients, management utilities, and other tools for working wit
 - [MySQL Connectors](#mysql-connectors-mysql-tools)
 - [MySQL Server](#mysql-server-mysql)
 - [pgAdmin 4](#pgadmin-4-pg-admin-alias-pgadmin)
+- [pgcli](#pgcli-pgcli)
 - [PostgreSQL Server](#postgresql-server-postgresql)
 - [Redis](#redis-redis)
 - [Redis Insight](#redis-insight-redis-insight)
@@ -347,6 +348,42 @@ sudo /usr/pgadmin4/bin/setup-web.sh
 ### Official Website
 
 https://www.pgadmin.org/
+
+---
+
+## pgcli (`pgcli`)
+
+pgcli is a terminal client for PostgreSQL with auto-completion and syntax highlighting.
+
+### Installation Method
+
+**pipx (PyPI)**
+
+Installs the following APT packages:
+
+- `pipx`
+- `python3-venv`
+- `libpq5`
+
+Then installs the latest `pgcli` release from PyPI, pinned to the version resolved during pre-install, with pipx into a
+dedicated directory and creates a symbolic link to the executable in `/usr/local/bin`. No environment or shell rc files
+are modified.
+
+### Supported ENV
+
+- `PIPX_INSTALL_DIR`
+    - Directory used as `PIPX_HOME`; pipx creates the package environment under `venvs/pgcli`.
+    - Default: `${INSTALL_DIR}/pipx`
+    - Shared with other pipx modules. Removing `pgcli` uninstalls only its own environment; the directory is kept.
+    - Must be writable by the current user; the resolved path is recorded in the module registry after installation.
+
+### Removal
+
+`mp purge` also deletes `~/.config/pgcli`.
+
+### Official Website
+
+https://github.com/dbcli/pgcli
 
 ---
 
