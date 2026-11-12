@@ -523,10 +523,9 @@ upgrade phase fails.
   branch on `origin` with `git pull --ff-only` (shallow clones grow by the new commits), then runs `git gc`. Local
   commits or a rewritten upstream branch fail the upgrade without touching the clone. It refuses when tracked files
   have local edits (file mode changes are ignored, untracked files
-  such as `.venv` or compiled data are kept). When a rebuild step follows (Meld `meld_compile_runtime_data`,
-  OneDriveGUI `onedrive_gui_install_requirements`), pass `previous_name` and call `git_restore_commit <canonical_id>
-  <commit>` when the step fails, then rebuild the restored sources. Nothing is recorded: `mp outdated` reads the
-  clone's `HEAD`.
+  such as `.venv` or compiled data are kept). When a rebuild step follows (Meld `meld_compile_runtime_data`), pass
+  `previous_name` and call `git_restore_commit <canonical_id> <commit>` when the step fails, then rebuild the restored
+  sources. Nothing is recorded: `mp outdated` reads the clone's `HEAD`.
 
 ## Removal (`remove.sh`)
 

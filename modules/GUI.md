@@ -405,38 +405,41 @@ multiple OneDrive profiles, starts and stops sync processes, shows sync status, 
 
 ### Installation Method
 
-**GitHub repository (source installation)**
+**pipx (GitHub release tag)**
 
-Performs a shallow clone of the official OneDriveGUI GitHub repository and runs it from Python source; the AppImage is
-not used. OneDriveGUI is not a Python package, so pipx cannot install it. Instead, its requirements are installed into a
-private virtual environment at `.venv` inside the installation directory.
+Resolves the latest OneDriveGUI release tag on GitHub, then installs that tag with pipx from the official repository
+(`git+https://github.com/bpozdena/OneDriveGUI.git@<tag>`) into a dedicated pipx home. OneDriveGUI is not published on
+PyPI, and the AppImage is not used.
 
 The module requires:
 
 - Python 3.10 or newer
-- Git
+- Git (pip uses it to fetch the release tag)
 - An existing OneDrive Client installation (`mp install cli/onedrive`)
 
 The following runtime packages are installed using APT:
 
+- `pipx`
 - `python3-venv`
 - `libxcb-cursor0`
 
 ### Supported ENV
 
-- `ONEDRIVE_GUI_INSTALL_DIR`
-    - Directory where the OneDriveGUI Git repository is cloned; the virtual environment is created in its `.venv`.
-    - Default: `${INSTALL_DIR}/onedrive-gui`
+- `PIPX_INSTALL_DIR`
+    - Directory used as `PIPX_HOME`; pipx creates the package environment under `venvs/onedrive-gui`.
+    - Default: `${INSTALL_DIR}/pipx`
+    - Shared with other pipx modules. Removing `onedrive-gui` uninstalls only its own environment; the directory is kept.
 
 ### Installed Configuration
 
-- Installs the `onedrivegui` launcher into the installation directory and links it as `/usr/local/bin/onedrivegui`.
-- The launcher runs `src/OneDriveGUI.py` with the virtual environment's Python.
-- OneDriveGUI's own "start on login" option finds `onedrivegui` on `PATH`, so the autostart entry it writes stays valid.
+- Links the package's `onedrive-gui` command as `/usr/local/bin/onedrive-gui`.
+- OneDriveGUI's own "start on login" option finds `onedrive-gui` on `PATH`, so the autostart entry it writes stays valid.
+- `mp upgrade gui/onedrive-gui` reinstalls the newest release tag with pipx.
+- `mp purge` also deletes `~/.config/onedrive-gui` and `~/.config/autostart/OneDriveGUI.desktop`.
 
 ### Desktop Integration
 
-- Installs `onedrive-gui.desktop` with the OneDriveGUI icon from the cloned repository.
+- Installs `onedrive-gui.desktop` with the OneDriveGUI icon shipped in the installed package.
 - Refreshes the desktop application database and icon cache when the required utilities are available.
 
 ### Official Website
