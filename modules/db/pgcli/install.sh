@@ -35,8 +35,8 @@ main() {
     load_states "$CANONICAL_ID" || return $?
     version="$(get_state "VERSION")" || return $?
     __ensure_dependencies || return $?
-    pipx_package_install "$CANONICAL_ID" "$install_path" "pgcli" "pgcli" "$version" || return $?
-    symlink_binary "$CANONICAL_ID" "$(pipx_package_binary "$install_path" "pgcli" "pgcli")" || return $?
+    pipx_package_install "$CANONICAL_ID" "$install_path" "pgcli" "pgcli==$version" || return $?
+    symlink_binary "$CANONICAL_ID" "$(pipx_package_binary "$install_path" "pgcli")" || return $?
     set_registry "INSTALL_PATH" "$install_path" || return $?
     save_registry "$CANONICAL_ID" || return $?
     record_version_registry "$CANONICAL_ID"

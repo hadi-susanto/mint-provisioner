@@ -55,22 +55,21 @@ pypi_latest_version() {
 }
 
 ##
-# pipx_package_binary <install_path> <package> <binary>
+# pipx_package_binary <install_path> <package>
 #
 # Parameters:
 #   install_path - pipx home (PIPX_HOME).
-#   package - Package name, which names the venv.
-#   binary - Executable name inside the venv.
+#   package - Package name, which names the venv and its executable.
 #
 # Output:
 #   Prints the executable path inside the pipx home.
 #
 pipx_package_binary() {
-    printf '%s\n' "$1/venvs/$2/bin/$3"
+    printf '%s\n' "$1/venvs/$2/bin/$2"
 }
 
 ##
-# pipx_package_install <canonical_id> <install_path> <package> <binary> <version> [<extras>]
+# pipx_package_install <canonical_id> <install_path> <package> <requirement>
 #
 # Installs or replaces a package with pipx (pipx install --force) in the pipx
 # home install_path. Other venvs in the pipx home are not touched.
@@ -78,10 +77,9 @@ pipx_package_binary() {
 # Parameters:
 #   canonical_id - Canonical module ID used for logging.
 #   install_path - pipx home (PIPX_HOME).
-#   package - PyPI package name.
-#   binary - Executable name expected inside the venv.
-#   version - Package version to install.
-#   extras - Optional comma-separated extras, such as "gui"; the venv keeps the package name.
+#   package - Package name, which names the venv and the executable expected inside it.
+#   requirement - Requirement passed to pipx, such as "mycli==1.27.0", "openconnect-saml[gui]==0.9", or
+#       "onedrive-gui @ git+https://github.com/bpozdena/OneDriveGUI.git@v2.4.0".
 #
 # Return:
 #   1 - The directory could not be created, pipx failed, or the executable is missing.
@@ -90,18 +88,11 @@ pipx_package_install() {
     local canonical_id="$1"
     local install_path="$2"
     local package="$3"
-    local binary="$4"
-    local version="$5"
-    local extras="${6:-}"
+    local requirement="$4"
     local tag="pipx:$canonical_id"
     local executable
-    local requirement="$package"
 
-    executable="$(pipx_package_binary "$install_path" "$package" "$binary")"
-
-    if [[ -n "$extras" ]]; then
-        requirement+="[$extras]"
-    fi
+    executable="$(pipx_package_binary "$install_path" "$package")"
 
     if ! mkdir -p "$install_path"; then
         tlog_error "$tag" "Failed to create installation directory: %s" "$install_path"
@@ -109,8 +100,8 @@ pipx_package_install() {
         return 1
     fi
 
-    tlog_info "$tag" "Installing %s %s with pipx into %s" "$package" "$version" "$install_path"
-    if ! PIPX_HOME="$install_path" pipx install --force "$requirement==$version"; then
+    tlog_info "$tag" "Installing %s with pipx into %s" "$requirement" "$install_path"
+    if ! PIPX_HOME="$install_path" pipx install --force "$requirement"; then
         tlog_error "$tag" "pipx failed to install %s" "$package"
 
         return 1
