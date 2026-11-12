@@ -24,5 +24,5 @@ if ! load_registry "$CANONICAL_ID" || ! install_path="$(get_registry "INSTALL_PA
     exit 1
 fi
 
-pipx_package_install "$CANONICAL_ID" "$install_path" "mycli" "mycli" "$version" || exit $?
+pipx_package_install "$CANONICAL_ID" "$install_path" "mycli" "mycli==$version" || exit $?
 record_version_registry "$CANONICAL_ID"
