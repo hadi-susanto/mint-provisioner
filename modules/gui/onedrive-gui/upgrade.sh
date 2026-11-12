@@ -2,23 +2,28 @@
 set -euo pipefail
 
 source "$LIB_INSTALLER/registry.sh"
-source "$LIB_WORKFLOW/git-pull-upgrade.sh"
-source "$LIB_WORKFLOW/gui/onedrive-gui/installer.sh"
+source "$LIB_INSTALLER/state.sh"
+source "$LIB_WORKFLOW/pipx-package.sh"
+source "$LIB_WORKFLOW/version-registry.sh"
 
-previous_commit=""
+tag="upgrade:$CANONICAL_ID"
 
+if ! command -v pipx >/dev/null 2>&1; then
+    tlog_error "$tag" "pipx is required to upgrade OneDriveGUI"
+
+    exit 1
+fi
+
+load_states "$CANONICAL_ID" || exit $?
+version="$(get_state "VERSION")" || exit $?
+
+# INSTALL_PATH is a pipx home that may hold other venvs, so it is never swapped.
 if ! load_registry "$CANONICAL_ID" || ! install_path="$(get_registry "INSTALL_PATH")"; then
-    tlog_error "upgrade:$CANONICAL_ID" "Installation path is not recorded in the registry"
+    tlog_error "$tag" "Installation path is not recorded in the registry"
 
     exit 1
 fi
 
-git_pull_upgrade "$CANONICAL_ID" previous_commit || exit $?
-
-if ! onedrive_gui_install_requirements "$CANONICAL_ID" "$install_path"; then
-    # Go back to the previous sources and their requirements so OneDriveGUI still starts.
-    git_restore_commit "$CANONICAL_ID" "$previous_commit" || exit 1
-    onedrive_gui_install_requirements "$CANONICAL_ID" "$install_path" || true
-
-    exit 1
-fi
+pipx_package_install "$CANONICAL_ID" "$install_path" "onedrive-gui" \
+    "onedrive-gui @ git+https://github.com/bpozdena/OneDriveGUI.git@$version" || exit $?
+record_version_registry "$CANONICAL_ID"

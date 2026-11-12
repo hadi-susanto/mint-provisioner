@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+source "$LIB_INSTALLER/github.sh"
+source "$LIB_INSTALLER/state.sh"
 source "$LIB_WORKFLOW/install-target.sh"
 
 if ! command -v python3 >/dev/null 2>&1; then
@@ -21,11 +23,17 @@ if ! command -v onedrive >/dev/null 2>&1; then
     exit 1
 fi
 
+# pip needs git to install OneDriveGUI from its Git source.
 if ! command -v git >/dev/null 2>&1; then
     tlog_error "pre-install:$CANONICAL_ID" "git is required but not installed."
 
     exit 1
 fi
 
-install_dir="${ONEDRIVE_GUI_INSTALL_DIR:-$INSTALL_DIR/onedrive-gui}"
-valid_install_target "$CANONICAL_ID" "$install_dir" "ONEDRIVE_GUI_INSTALL_DIR"
+install_dir="${PIPX_INSTALL_DIR:-$INSTALL_DIR/pipx}"
+valid_install_target "$CANONICAL_ID" "$install_dir" "PIPX_INSTALL_DIR" || exit $?
+
+version="$(github_latest_release_version "$CANONICAL_ID" "bpozdena" "OneDriveGUI")" || exit $?
+tlog_info "pre-install:$CANONICAL_ID" "Latest OneDriveGUI release: %s" "$version"
+set_state "VERSION" "$version" || exit $?
+save_states "$CANONICAL_ID" || exit $?
