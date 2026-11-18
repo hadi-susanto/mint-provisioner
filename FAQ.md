@@ -73,6 +73,26 @@ MP_GITHUB_TOKEN="github_pat_..." mp outdated
 > **Note:** Mint Provisioner only requires the token for GitHub API
 > authentication. It does not require access to private repositories.
 
+## GitLab Module or `mp outdated` Fails Against gitlab.com
+
+### Problem
+
+A module with `UPDATE_MODE="gitlab"` (for example `cli/gitlab-cli`) fails to
+find its release, or `mp outdated` reports `version query failed` for it.
+
+### Solution
+
+Modules installed from gitlab.com read public release data, which normally
+works without a token. When gitlab.com throttles or rejects anonymous API
+requests, create a GitLab personal access token with only the `read_api`
+scope at <https://gitlab.com/-/user_settings/personal_access_tokens> and
+provide it through `MP_GITLAB_TOKEN` or `GITLAB_TOKEN` (`MP_GITLAB_TOKEN`
+wins when both are set):
+
+```bash
+MP_GITLAB_TOKEN="glpat-..." mp outdated
+```
+
 ## Interactive Prompts Look Broken or Render Oddly
 
 ### Problem

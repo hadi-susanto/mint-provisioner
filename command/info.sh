@@ -125,6 +125,9 @@ __print_update_mode() {
         github)
             __print_field "Update mode" "github (repository: ${mode_metadata_ref[UPDATE_REPOSITORY]})"
             ;;
+        gitlab)
+            __print_field "Update mode" "gitlab (project: ${mode_metadata_ref[UPDATE_REPOSITORY]})"
+            ;;
         *)
             __print_field "Update mode" "$mode"
             ;;
@@ -212,9 +215,14 @@ __print_links() {
         __print_field "Docs" "$MP_ROOT/$docs"
     fi
 
-    if [[ -n "${links_metadata_ref[UPDATE_REPOSITORY]:-}" ]]; then
-        __print_field "Releases" "https://github.com/${links_metadata_ref[UPDATE_REPOSITORY]}/releases"
-    fi
+    case "${links_metadata_ref[UPDATE_MODE]:-}" in
+        github)
+            __print_field "Releases" "https://github.com/${links_metadata_ref[UPDATE_REPOSITORY]}/releases"
+            ;;
+        gitlab)
+            __print_field "Releases" "https://gitlab.com/${links_metadata_ref[UPDATE_REPOSITORY]}/-/releases"
+            ;;
+    esac
 }
 
 ##

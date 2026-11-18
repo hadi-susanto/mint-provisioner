@@ -184,7 +184,8 @@ checked, the cache is older than 7 days, and a terminal is attached, `mp outdate
 first. Modules with `UPDATE_MODE="github"` compare the release recorded at install time with the latest GitHub
 release; installs that predate version recording are reported as having an update available. Unauthenticated GitHub
 API calls are limited to 60 per hour, so set `MP_GITHUB_TOKEN` (or `GITHUB_TOKEN`) when checking many modules. Modules with
-`UPDATE_MODE="external"` compare the recorded version with the vendor's latest version printed by the module's
+`UPDATE_MODE="gitlab"` do the same with the latest gitlab.com release (`MP_GITLAB_TOKEN` or `GITLAB_TOKEN` is optional).
+Modules with `UPDATE_MODE="external"` compare the recorded version with the vendor's latest version printed by the module's
 `latest.sh`. Modules with `UPDATE_MODE="git"` compare the cloned commit with the latest commit of the same branch,
 and `UPDATE_MODE="none"` marks modules whose version is not tracked. Modules are inspected by a pool of background
 workers that share one queue (6 by default; `--async N` or `--batch N` sets 1-9), which shortens runs dominated by
@@ -203,8 +204,8 @@ mp upgrade -y [module...]        # skip the confirmation (sudo must be cached or
 Runs `mp outdated --porcelain` to find modules with an available update, lists them, asks
 `Upgrade N module(s)? [y/N]`, then upgrades them one at a time and prints a result summary. Module install scripts are
 not run again. Upgrades are dispatched on `UPDATE_MODE`: for `apt`, every installed `UPDATE_PACKAGE` candidate is
-upgraded with `apt-get install --only-upgrade` (`apt-fast` when available); for `github` and `external`, the module's
-`pre-upgrade.sh` downloads the new release and `upgrade.sh` replaces the installed files in place (desktop entries,
+upgraded with `apt-get install --only-upgrade` (`apt-fast` when available); for `github`, `gitlab`, and `external`, the
+module's `pre-upgrade.sh` downloads the new release and `upgrade.sh` replaces the installed files in place (desktop entries,
 symlinks, and user configuration are kept) and records the new version. An application still running from its install
 directory (for example a JetBrains IDE) is not replaced; close it and run `mp upgrade` again. For `git`, `upgrade.sh`
 moves the clone to the latest commit of its branch; a clone with local edits to tracked files is left untouched.
@@ -254,7 +255,7 @@ Prints one `OK`, `WARN`, or `FAIL` line per check, with a hint for anything that
 checks that `mp` is not run as root, that the `/usr/local/bin/mp` and bash completion links point to this clone, that
 `INSTALL_DIR` is writable, that the required tools (`git`, `jq`, `aria2c`, `curl`, `sudo`) and `whiptail` are present,
 the distribution, the APT cache age, `MP_GITHUB_TOKEN`/`GITHUB_TOKEN` and the remaining GitHub API calls, registry entries (module and
-`INSTALL_PATH` still exist, `VERSION` recorded for `github`/`external` modules), leftover temporary state, and broken
+`INSTALL_PATH` still exist, `VERSION` recorded for `github`/`gitlab`/`external` modules), leftover temporary state, and broken
 `/usr/local/bin` links or desktop entries that point into `INSTALL_DIR`. Exits `1` when a check fails; warnings alone
 exit `0`.
 
@@ -296,7 +297,7 @@ mint-provisioner/
 │   ├── plan.sh                         # Read-only installation preview
 │   ├── outdated.sh                     # Installed vs latest versions (outdated, update)
 │   ├── OUTDATED.md                     # How the 'mp outdated' worker pool works
-│   ├── upgrade.sh                      # Upgrade outdated modules (UPDATE_MODE=apt, github, external, git)
+│   ├── upgrade.sh                      # Upgrade outdated modules (UPDATE_MODE=apt, github, gitlab, external, git)
 │   ├── remove.sh                       # Module removal command (remove, uninstall, purge)
 │   ├── ui.sh                           # whiptail menus that build and run an mp command
 │   └── doctor.sh                       # Read-only setup health check
@@ -329,8 +330,8 @@ mint-provisioner/
 │   │   ├── state.sh                    # Persistent module state
 │   │   └── ...                         # Download, path, prompt, and system helpers
 │   ├── updater/                        # Version lookups and upgrades for mp outdated and mp upgrade
-│   │   ├── versioning.sh               # Dispatch on UPDATE_MODE (apt, github, external, git, none)
-│   │   ├── upgrader.sh                 # Upgrade dispatch on UPDATE_MODE (apt, github, external, git)
+│   │   ├── versioning.sh               # Dispatch on UPDATE_MODE (apt, github, gitlab, external, git, none)
+│   │   ├── upgrader.sh                 # Upgrade dispatch on UPDATE_MODE (apt, github, gitlab, external, git)
 │   │   ├── execution.sh                # Upgrade lifecycle: pre-upgrade, upgrade, cleanup
 │   │   ├── apt-versioning.sh           # dpkg installed version, APT candidate, cache age and refresh
 │   │   ├── recorded-versioning.sh      # Registry VERSION recorded at install time

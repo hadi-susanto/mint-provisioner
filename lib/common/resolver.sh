@@ -24,6 +24,7 @@ declare -Ar __MINT_PROVISIONER_MODULE_ALIASES=(
     [chrome]="web/google-chrome"
     [edge]="web/microsoft-edge"
     [gh]="cli/github-cli"
+    [glab]="cli/gitlab-cli"
     [keepass]="gui/keepass-xc"
     [keepassxc]="gui/keepass-xc"
     [maven]="dev/apache-maven"

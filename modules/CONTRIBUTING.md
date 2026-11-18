@@ -30,13 +30,14 @@ category directory when several modules need them.
    SOURCE="github"
    ```
 
-   `SOURCE` must be one of `native`, `ppa`, `apt`, `github`, `sourceforge`, or `external`.
+   `SOURCE` must be one of `native`, `ppa`, `apt`, `github`, `gitlab`, `sourceforge`, or `external`.
 
    Source values mean:
    - `native`: Supported directly by operating-system package sources without extra setup.
    - `ppa`: Uses a Launchpad PPA repository.
    - `apt`: Uses a third-party APT repository outside Launchpad PPA.
    - `github`: Downloads an artifact from GitHub or installs from a GitHub repository.
+   - `gitlab`: Downloads an artifact from a gitlab.com release.
    - `sourceforge`: Downloads an artifact from SourceForge.
    - `external`: Downloads an artifact from a third-party vendor source.
 
@@ -67,7 +68,7 @@ category directory when several modules need them.
     - `pre-install.sh` for prerequisites, repositories, keys, downloads, and temporary setup.
     - `post-install.sh` for installation-adjacent adjustments after successful installation.
     - `cleanup.sh` for temporary state, downloads, and intermediate files.
-    - `pre-upgrade.sh` and `upgrade.sh` so `mp upgrade` can upgrade an `UPDATE_MODE="github"`, `"external"`, or `"git"` module: download the
+    - `pre-upgrade.sh` and `upgrade.sh` so `mp upgrade` can upgrade an `UPDATE_MODE="github"`, `"gitlab"`, `"external"`, or `"git"` module: download the
       new release, then replace the installed files with `stateful_deb_upgrade`, `stateful_extract_upgrade`, or
       `stateful_binary_upgrade` (see "Upgrade Phases" in `modules/AGENTS.md`).
     - `remove.sh` to support `mp remove`, `mp uninstall`, and `mp purge`. Undo exactly what the install phases created
@@ -97,6 +98,9 @@ Choose the `UPDATE_MODE` that matches how the module installs:
   when the package depends on an installation choice (every installed one is checked and upgraded).
 - `github`: release assets found with `github_find_release_asset`. Set `UPDATE_REPOSITORY="owner/repo"` and pass
   `"${asset[VERSION]}"` as the last argument of `stateful_download` for the main download.
+- `gitlab`: gitlab.com release assets found with `gitlab_find_release_asset` (`lib/installer/gitlab.sh`). Set
+  `UPDATE_REPOSITORY` to the project path (`group/project`, nested groups allowed) and pass `"${asset[VERSION]}"` the
+  same way.
 - `external`: vendor downloads. Add a read-only `latest.sh` that prints the latest version, resolve the version in
   `pre-install.sh` with `module_latest_version` (`lib/workflow/latest-version.sh`), build the download URL from it,
   and pass it to `stateful_download`.
@@ -104,7 +108,7 @@ Choose the `UPDATE_MODE` that matches how the module installs:
   `upgrade.sh` that calls `git_pull_upgrade` (see "Upgrade Phases" in `modules/AGENTS.md`).
 - `none`: modules without one meaningful version.
 
-For `github` and `external`, `stateful_deb_install`, `stateful_extract_install`, and `stateful_binary_install` record
+For `github`, `gitlab`, and `external`, `stateful_deb_install`, `stateful_extract_install`, and `stateful_binary_install` record
 the version as registry `VERSION`. A custom `install.sh` must call `record_version_registry "$CANONICAL_ID"`
 (`lib/workflow/version-registry.sh`). The full rules are in [AGENTS.md](AGENTS.md).
 

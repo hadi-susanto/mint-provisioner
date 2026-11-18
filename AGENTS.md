@@ -24,6 +24,7 @@
   - `ppa`: Uses a Launchpad PPA repository.
   - `apt`: Uses a third-party APT repository outside Launchpad PPA.
   - `github`: Artifact or installer obtained from GitHub.
+  - `gitlab`: Artifact or installer obtained from GitLab (gitlab.com releases).
   - `sourceforge`: Artifact or installer obtained from SourceForge.
   - `external`: Artifact or installer hosted by a third-party vendor directly.
 
