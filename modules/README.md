@@ -9,7 +9,7 @@ modules, see the [module contributor guide](CONTRIBUTING.md).
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **136 modules** across **12 categories**. A category is part of a module's canonical
+Mint Provisioner currently provides **137 modules** across **12 categories**. A category is part of a module's canonical
 ID:
 
 ```text
@@ -30,7 +30,7 @@ official project links.
 
 | Category                        | ID     | Modules                                                                                                                                                                                                          |
 |---------------------------------|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [Command Line](CLI.md)          | `cli`  | `bat`, `delta`, `difftastic`, `eza`, `git`, `github-cli`, `gocatcli`, `gocatcli-ex`, `mkvtoolnix`, `onedrive`, `pay-respects`, `procs`, `rclone`, `ripgrep`, `upx`, `yq`                                                                                                                            |
+| [Command Line](CLI.md)          | `cli`  | `bat`, `delta`, `difftastic`, `eza`, `git`, `github-cli`, `gitlab-cli`, `gocatcli`, `gocatcli-ex`, `mkvtoolnix`, `onedrive`, `pay-respects`, `procs`, `rclone`, `ripgrep`, `upx`, `yq`                                                                                                              |
 | [Database](DB.md)               | `db`   | `dbeaver-community`, `dbgate-community`, `memcached`, `mongodb-community`, `mongodb-compass`, `mycli`, `mysql`, `mysql-tools`, `pg-admin`, `pgcli`, `postgresql`, `redis`, `redis-insight`                                      |
 | [Development](DEV.md)           | `dev`  | `adb`, `apache-maven`, `bruno`, `httptoolkit`, `kafdrop`, `kafka`, `mise`, `postman`, `sdkman`, `yaak`                                                                                                           |
 | [Desktop Applications](GUI.md)  | `gui`  | `audacious`, `avda`, `cryptomator`, `deadbeef`, `desk-otp`, `double-commander`, `flameshot`, `fman`, `insync`, `keepass-xc`, `lapce`, `meld`, `mu-commander`, `onedrive-gui`, `onedriver`, `otpclient`, `qmmp`, `sunflower`, `tlp-ui` |
@@ -97,8 +97,8 @@ phases, then runs `cleanup.sh` when present. The framework records the result, c
 prints a summary, and exits non-zero if any module failed.
 
 `mp upgrade` upgrades `UPDATE_MODE="apt"` modules with `apt-get install --only-upgrade` and, for `github`,
-`external`, and `git` modules that ship `upgrade.sh`, runs `pre-upgrade.sh → upgrade.sh → cleanup.sh` (see "Upgrade
-Phases" in `modules/AGENTS.md`). Install, interactive, and post-install phases do not run again.
+`gitlab`, `external`, and `git` modules that ship `upgrade.sh`, runs `pre-upgrade.sh → upgrade.sh → cleanup.sh` (see
+"Upgrade Phases" in `modules/AGENTS.md`). Install, interactive, and post-install phases do not run again.
 
 `mp remove` (alias `mp uninstall`) and `mp purge` run only the module's `remove.sh`, with `PURGE=true` for purge (after the
 user types `PURGE` to confirm). The framework deletes the module's registry after `remove.sh`
@@ -141,7 +141,7 @@ registry data, files, package variants, or multiple application artifacts.
 | `post-install.sh`    |    No    | Apply an installation-adjacent adjustment after a successful installation.                                   |
 | `cleanup.sh`         |    No    | Remove temporary state, downloads, and intermediate files; also runs after `mp upgrade` phases.              |
 | `pre-upgrade.sh`     |    No    | Download the new release for `mp upgrade` into the states `upgrade.sh` reads.                                |
-| `upgrade.sh`         |    No    | Replace installed files and record `VERSION` for `mp upgrade`; required for `github`/`external`/`git`.       |
+| `upgrade.sh`         |    No    | Replace installed files and record `VERSION` for `mp upgrade`; needed by `github`/`gitlab`/`external`/`git`. |
 | `remove.sh`          |    No    | Undo the installation for `mp remove`, `mp uninstall`, and `mp purge`; modules without it cannot be removed. |
 | `latest.sh`          |    No    | Print the latest available version for `mp outdated` and `pre-install.sh` (`UPDATE_MODE="external"`).        |
 
@@ -154,13 +154,14 @@ upgrades anything. Each module declares how its versions are found with `UPDATE_
 |---------------|------------------------------------------------------|------------------------------------------------------|
 | `apt`         | dpkg version of each installed `UPDATE_PACKAGE`      | APT candidate (offers `apt-get update` after 7 days) |
 | `github`      | Registry `VERSION` recorded at install time          | Latest release tag of `UPDATE_REPOSITORY`            |
+| `gitlab`      | Registry `VERSION` recorded at install time          | Latest gitlab.com release tag of `UPDATE_REPOSITORY` |
 | `external`    | Registry `VERSION` recorded at install time          | Output of the module's `latest.sh`                   |
 | `git`         | Commit of the clone at registry `INSTALL_PATH`       | Latest commit of the same branch on `origin`         |
 | `none`        | Not tracked (`-`)                                    | Not tracked (`-`)                                    |
 
-For `github` and `external`, `pre-install.sh` passes the downloaded version to `stateful_download` and the install
-workflows record it as registry `VERSION`. Installs that predate this have no recorded version and are reported as
-having an update available. `latest.sh` must be read-only, print one version line to stdout, and stay silent on
+For `github`, `gitlab`, and `external`, `pre-install.sh` passes the downloaded version to `stateful_download` and the
+install workflows record it as registry `VERSION`. Installs that predate this have no recorded version and are reported
+as having an update available. `latest.sh` must be read-only, print one version line to stdout, and stay silent on
 success. See "Latest Version Detection" in [AGENTS.md](AGENTS.md) for the full contract.
 
 ### Interactive setup
@@ -229,11 +230,12 @@ UPDATE_REPOSITORY="example/example-app"
 |---------------------|:--------:|---------------------------------------------------------------------------------------------------------------|
 | `NAME`              |   Yes    | Human-readable module name.                                                                                   |
 | `DESCRIPTION`       |   Yes    | Concise user-facing description.                                                                              |
-| `SOURCE`            |   Yes    | Installation source: `native`, `ppa`, `apt`, `github`, `external`, or `sourceforge`.                          |
+| `SOURCE`            |   Yes    | Installation source: `native`, `ppa`, `apt`, `github`, `gitlab`, `external`, or `sourceforge`.                |
 | `CLI`               |    No    | Comma-separated executable names used for default installed-state detection. Every command must be non-empty. |
-| `UPDATE_MODE`       |    No    | `mp outdated` version tracking: `apt`, `github`, `external`, `git`, or `none`; every catalog module sets it.  |
+| `UPDATE_MODE`       |    No    | Version tracking: `apt`, `github`, `gitlab`, `external`, `git`, or `none`; every catalog module sets it.      |
 | `UPDATE_PACKAGE`    |   apt    | Debian package(s) to check; comma-separated candidates without spaces, every installed one counts.            |
 | `UPDATE_REPOSITORY` |  github  | `owner/repo` whose latest release tag is the latest version.                                                  |
+|                     |  gitlab  | gitlab.com project path (`group/project`, nested groups allowed) whose latest release tag is the latest one.  |
 
 Omit `CLI` when the module ID basename is the executable name. Add it when the executable differs from that basename or
 when all of several commands must be present. Use `installed.sh` instead when command availability alone is not an

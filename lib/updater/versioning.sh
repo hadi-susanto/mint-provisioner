@@ -10,6 +10,7 @@ source "$LIB_COMMON/common.sh"
 source "$LIB_COMMON/metadata.sh"
 source "$LIB_UPDATER/apt-versioning.sh"
 source "$LIB_INSTALLER/github.sh"
+source "$LIB_INSTALLER/gitlab.sh"
 source "$LIB_UPDATER/git-versioning.sh"
 source "$LIB_UPDATER/recorded-versioning.sh"
 source "$LIB_WORKFLOW/latest-version.sh"
@@ -162,6 +163,22 @@ __resolve_github_versions() {
     __resolve_recorded_versions "$canonical_id" "$latest" "$versions_name"
 }
 
+__resolve_gitlab_versions() {
+    local canonical_id="$1"
+    local project="$2"
+    local versions_name="$3"
+    local -n versions_ref="$versions_name"
+    local latest
+
+    if ! latest="$(gitlab_latest_release_version "$canonical_id" "$project")"; then
+        versions_ref[NOTE]="version query failed"
+
+        return 1
+    fi
+
+    __resolve_recorded_versions "$canonical_id" "$latest" "$versions_name"
+}
+
 __resolve_external_versions() {
     local canonical_id="$1"
     local versions_name="$2"
@@ -245,6 +262,10 @@ resolve_module_versions() {
             ;;
         github)
             __resolve_github_versions \
+                "$canonical_id" "${metadata_ref[UPDATE_REPOSITORY]}" "$versions_name" || return $?
+            ;;
+        gitlab)
+            __resolve_gitlab_versions \
                 "$canonical_id" "${metadata_ref[UPDATE_REPOSITORY]}" "$versions_name" || return $?
             ;;
         external)

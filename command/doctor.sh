@@ -372,7 +372,7 @@ __check_registry_entry() {
     parse_module_metadata "$MP_MODULES/$canonical_id" module_metadata 2>/dev/null || return "$status"
 
     case "${module_metadata[UPDATE_MODE]:-}" in
-        github | external)
+        github | gitlab | external)
             if ! has_registry VERSION; then
                 __report WARN "$canonical_id: no VERSION recorded; always reported as outdated" \
                     "Run: mp upgrade $canonical_id"

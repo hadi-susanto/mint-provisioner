@@ -182,7 +182,8 @@ Description:
   latest GitHub release; modules installed before versions were recorded are
   reported as having an update available. Unauthenticated GitHub API calls
   are limited to 60 per hour; set MP_GITHUB_TOKEN (or GITHUB_TOKEN) to raise
-  the limit.
+  the limit. UPDATE_MODE=gitlab does the same with the latest gitlab.com
+  release; set MP_GITLAB_TOKEN (or GITLAB_TOKEN) for authenticated calls.
 
   UPDATE_MODE=external compares the recorded version with the version printed
   by the module's latest.sh, which queries the vendor. UPDATE_MODE=git
@@ -218,8 +219,8 @@ Description:
   and prints a result summary. Module install scripts are not run again.
 
   UPDATE_MODE=apt upgrades every installed package from UPDATE_PACKAGE with
-  apt-get install --only-upgrade (apt-fast when available). UPDATE_MODE=github
-  and UPDATE_MODE=external run the module's pre-upgrade.sh and upgrade.sh,
+  apt-get install --only-upgrade (apt-fast when available). UPDATE_MODE=github,
+  UPDATE_MODE=gitlab, and UPDATE_MODE=external run the module's pre-upgrade.sh and upgrade.sh,
   which download the new release and replace the installed files in place,
   keeping user configuration. An application still running from its install
   directory is not replaced. UPDATE_MODE=git runs upgrade.sh, which moves the
@@ -320,7 +321,7 @@ Description:
   aria2c, curl, sudo) and whiptail are present, the distribution is
   Ubuntu-based, the APT cache age, MP_GITHUB_TOKEN/GITHUB_TOKEN and the remaining GitHub API
   calls, registry entries (module still exists, INSTALL_PATH still exists,
-  VERSION recorded for github and external modules), leftover temporary
+  VERSION recorded for github, gitlab, and external modules), leftover temporary
   state, and broken /usr/local/bin links or desktop entries that point into
   INSTALL_DIR.
 

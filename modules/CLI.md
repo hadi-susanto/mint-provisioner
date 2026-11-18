@@ -12,6 +12,7 @@ applications.
 - [Eza](#eza-eza)
 - [Git](#git-git)
 - [GitHub CLI](#github-cli-github-cli-alias-gh)
+- [GitLab CLI](#gitlab-cli-gitlab-cli-alias-glab)
 - [gocatcli](#gocatcli-gocatcli)
 - [gocatcli-ex](#gocatcli-ex-gocatcli-ex)
 - [MKVToolNix](#mkvtoolnix-mkvtoolnix-alias-mkvmerge)
@@ -161,6 +162,24 @@ Installs the `gh` package from GitHub's official APT repository (`https://cli.gi
 ### Official Website
 
 https://cli.github.com
+
+---
+
+## GitLab CLI (`gitlab-cli`) [alias: `glab`]
+
+GitLab CLI (`glab`) brings merge requests, issues, CI/CD pipelines, releases, and other GitLab workflows to the
+terminal.
+
+### Installation Method
+
+**GitLab latest release (.deb)**
+
+Downloads the latest AMD64 Debian package from the official gitlab.com releases page, verifies it against the release's
+`checksums.txt`, and installs it using APT. `mp upgrade` replaces it with the newest release the same way.
+
+### Official Website
+
+https://gitlab.com/gitlab-org/cli
 
 ---
 

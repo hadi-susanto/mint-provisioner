@@ -16,7 +16,7 @@
   ├── post-install.sh    # Optional: Apply post-install system adjustments
   ├── cleanup.sh         # Optional: Remove installation-only state or artifacts (also runs after upgrade)
   ├── pre-upgrade.sh     # Optional: Download the new release for `mp upgrade`
-  ├── upgrade.sh         # Optional: Replace the installed files for `mp upgrade`; required for UPDATE_MODE="github" upgrades
+  ├── upgrade.sh         # Optional: Replace the installed files for `mp upgrade`; required for UPDATE_MODE="github"/"gitlab" upgrades
   └── remove.sh          # Uninstall the software (required for `mp remove|uninstall|purge`; every catalog module has one)
   ```
 
@@ -44,12 +44,13 @@ When creating or updating `metadata.conf`, follow these rules:
   - `ppa`: The package is provided by a Launchpad PPA repository.
   - `apt`: The package is provided by a third-party APT repository outside Launchpad PPA.
   - `github`: The module downloads an artifact from GitHub or installs from a GitHub repository.
+  - `gitlab`: The module downloads an artifact from a gitlab.com release.
   - `sourceforge`: The module downloads an artifact from SourceForge.
   - `external`: The module downloads an artifact directly from a third-party vendor source.
 - `UPDATE_MODE` is optional and opts the module into `mp outdated` and `mp upgrade`. `mp upgrade` supports `apt` (it
-  runs `apt_upgrade` on every installed `UPDATE_PACKAGE` candidate; no phase script runs), `github`, and `external` (both
-  run the module's `pre-upgrade.sh` → `upgrade.sh` → `cleanup.sh`; see "Upgrade Phases"), and `git` (`upgrade.sh`
-  only). Supported values:
+  runs `apt_upgrade` on every installed `UPDATE_PACKAGE` candidate; no phase script runs), `github`, `gitlab`, and
+  `external` (all run the module's `pre-upgrade.sh` → `upgrade.sh` → `cleanup.sh`; see "Upgrade Phases"), and `git`
+  (`upgrade.sh` only). Supported values:
   - `apt`: Versions come from dpkg and the APT cache. Requires `UPDATE_PACKAGE`, the main Debian package passed to
     `apt_install` (for example `UPDATE_PACKAGE="keepassxc"`). When the package depends on an installation choice, list
     every candidate separated by commas without spaces (for example `UPDATE_PACKAGE="code,code-insiders"`). Every
@@ -64,6 +65,9 @@ When creating or updating `metadata.conf`, follow these rules:
     A custom `install.sh` must call `record_version_registry "$CANONICAL_ID"` from
     `$LIB_WORKFLOW/version-registry.sh` after a successful install. A module without a recorded `VERSION` is
     reported as having an update available.
+  - `gitlab`: Same as `github` for gitlab.com releases. `UPDATE_REPOSITORY` is the project path, nested groups
+    allowed (for example `UPDATE_REPOSITORY="gitlab-org/cli"`), and the version comes from
+    `gitlab_find_release_asset`.
   - `external`: Compares the registry `VERSION` with the version printed by the module's `latest.sh` (see
     "Latest Version Detection"). `pre-install.sh` resolves the version with `module_latest_version` from
     `$LIB_WORKFLOW/latest-version.sh`, builds the download URL from it, and passes it as the `version` argument of
@@ -76,7 +80,7 @@ When creating or updating `metadata.conf`, follow these rules:
   - `none`: Explicit opt-out for modules without a single meaningful version, such as `sys/nerd-font`. Always
     reported as `-` with no update.
   Modules without `UPDATE_MODE` are listed by `mp outdated` with unknown versions.
-- In `modules/README.md` and category documentation, display source names in human-readable form: `Native`, `PPA`, `APT`, `GitHub`, `SourceForge`, and `External`.
+- In `modules/README.md` and category documentation, display source names in human-readable form: `Native`, `PPA`, `APT`, `GitHub`, `GitLab`, `SourceForge`, and `External`.
 
 ### Module Documentation
 
@@ -404,9 +408,13 @@ These rules apply to modules that download `.deb` packages or archives such as
     `[SHA256]` (GitHub's `sha256:` asset digest) and `[VERSION]` (the release tag) in an associative array. Ensure the regular expression identifies
     exactly one release asset. Use `github_find_release` (URL only) only when the asset is not downloaded, such as a
     checksum file.
+  - For gitlab.com releases, use `gitlab_find_release_asset <canonical_id> <project> <regex> <result_name>
+    [sums_name]` (`lib/installer/gitlab.sh`). It fills the same `[URL]`, `[SHA256]`, and `[VERSION]` keys. GitLab
+    publishes no per-asset digest, so pass the release's checksum list asset name (for example `checksums.txt`) as
+    `sums_name` to fill `[SHA256]`; without it `[SHA256]` is empty.
   - For external vendor sources, pass the vendor's published SHA-256 checksum when one exists. For a
     `SHA256SUMS`-style list, use `fetch_sha256_from_sums <canonical_id> <sums_url> <file_name>` (`downloader.sh`).
-    Do not use the GitHub helpers for non-GitHub sources.
+    Do not use the GitHub or GitLab helpers for other sources.
   - When a checksum is empty, the download is logged as not verified and continues. A mismatch always fails and
     deletes the file.
 - When `download_file` (`lib/installer/downloader.sh`) is called directly, call `verify_sha256 <canonical_id> <file>
@@ -482,7 +490,7 @@ For archives containing multiple binaries or a required directory structure:
 
 ## Upgrade Phases (`pre-upgrade.sh`, `upgrade.sh`)
 
-`mp upgrade` runs these for `UPDATE_MODE="github"`, `"external"`, and `"git"` modules that ship `upgrade.sh`
+`mp upgrade` runs these for `UPDATE_MODE="github"`, `"gitlab"`, `"external"`, and `"git"` modules that ship `upgrade.sh`
 (modules without it are reported as not upgradable yet), followed by the module's `cleanup.sh`, which runs even when an
 upgrade phase fails.
 
