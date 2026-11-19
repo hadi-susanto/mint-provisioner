@@ -9,7 +9,7 @@ modules, see the [module contributor guide](CONTRIBUTING.md).
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **137 modules** across **12 categories**. A category is part of a module's canonical
+Mint Provisioner currently provides **138 modules** across **12 categories**. A category is part of a module's canonical
 ID:
 
 ```text
@@ -33,7 +33,7 @@ official project links.
 | [Command Line](CLI.md)          | `cli`  | `bat`, `delta`, `difftastic`, `eza`, `git`, `github-cli`, `gitlab-cli`, `gocatcli`, `gocatcli-ex`, `mkvtoolnix`, `onedrive`, `pay-respects`, `procs`, `rclone`, `ripgrep`, `upx`, `yq`                                                                                                              |
 | [Database](DB.md)               | `db`   | `dbeaver-community`, `dbgate-community`, `memcached`, `mongodb-community`, `mongodb-compass`, `mycli`, `mysql`, `mysql-tools`, `pg-admin`, `pgcli`, `postgresql`, `redis`, `redis-insight`                                      |
 | [Development](DEV.md)           | `dev`  | `adb`, `apache-maven`, `bruno`, `httptoolkit`, `kafdrop`, `kafka`, `mise`, `postman`, `sdkman`, `yaak`                                                                                                           |
-| [Desktop Applications](GUI.md)  | `gui`  | `audacious`, `avda`, `cryptomator`, `deadbeef`, `desk-otp`, `double-commander`, `flameshot`, `fman`, `insync`, `keepass-xc`, `lapce`, `meld`, `mu-commander`, `onedrive-gui`, `onedriver`, `otpclient`, `qmmp`, `sunflower`, `tlp-ui` |
+| [Desktop Applications](GUI.md)  | `gui`  | `audacious`, `avda`, `cryptomator`, `deadbeef`, `desk-otp`, `double-commander`, `flameshot`, `fman`, `foldersync`, `insync`, `keepass-xc`, `lapce`, `meld`, `mu-commander`, `onedrive-gui`, `onedriver`, `otpclient`, `qmmp`, `sunflower`, `tlp-ui` |
 | [IDE](IDE.md)                   | `ide`  | `android-studio`, `clion`, `cudatext`, `datagrip`, `geany`, `goland`, `gram`, `idea`, `phpstorm`, `pycharm`, `rider`, `rubymine`, `rustrover`, `vscode`, `vscodium`, `webstorm`                                                    |
 | [System Administration](SYS.md) | `sys`  | `apt-fast`, `dconf-editor`, `dnscrypt-proxy`, `nerd-font`, `openconnect-saml`, `system-toolkit`, `tlp`                                                                                                           |
 | [Terminal](TERM.md)             | `term` | `alacritty`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `terminator`, `zsh`                                                                                                                |

@@ -12,6 +12,7 @@ Graphical applications for productivity, file management, security, and everyday
 - [Double Commander](#double-commander-double-commander-alias-db-cmd)
 - [Flameshot](#flameshot-flameshot)
 - [fman](#fman-fman)
+- [FolderSync Desktop](#foldersync-desktop-foldersync)
 - [Insync](#insync-insync)
 - [KeePassXC](#keepassxc-keepass-xc-alias-keepass-alias-keepassxc)
 - [Lapce](#lapce-lapce)
@@ -232,6 +233,46 @@ https://github.com/mherrmann/fman
 ### Official Website
 
 https://fman.io/
+
+---
+
+## FolderSync Desktop (`foldersync`)
+
+FolderSync Desktop syncs and backs up folders between local disks, cloud storage services, and servers on a schedule
+or on demand. It is the desktop edition of the FolderSync Android app and includes a command-line interface for
+scripted runs.
+
+### Installation Method
+
+**GitHub latest release (.deb)**
+
+Downloads the latest Debian package for the machine architecture (`amd64` or `arm64`) from the official
+`tacitdynamics/foldersync-desktop-production` GitHub releases, verifies its SHA-256 digest, then installs it using APT.
+
+The package installs `/usr/bin/foldersync-desktop` and its own desktop entry, and registers the vendor APT repository
+(`/etc/apt/sources.list.d/tacit-dynamics-aps-foldersync-desktop.sources`, signed by
+`/etc/apt/trusted.gpg.d/tacit-dynamics-aps-foldersync-desktop.asc`). Updates therefore arrive through APT:
+`mp outdated` compares the installed package with the APT candidate, and `mp upgrade gui/foldersync` (or a regular
+`apt upgrade`) installs them.
+
+### Cleanup
+
+- Removes the downloaded `.deb` package.
+- Removes the module state file.
+
+### Removal
+
+`mp remove` removes the package and keeps the vendor APT source and signing key. `mp purge` purges the package, which
+also deletes that source and key, and deletes `~/.foldersync` (logs and database) and
+`~/.java/.userPrefs/dk/tacit/desktop/foldersync` (settings).
+
+### External Source
+
+https://github.com/tacitdynamics/foldersync-desktop-production
+
+### Official Website
+
+https://foldersync.io/desktop
 
 ---
 
