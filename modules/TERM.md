@@ -9,6 +9,7 @@ Terminal emulators, shells, prompts, themes, and tools that enhance the terminal
 - [Kitty](#kitty-kitty)
 - [Oh My Posh](#oh-my-posh-oh-my-posh-alias-omp)
 - [Powerlevel10k](#powerlevel10k-power-level-10k-alias-plvl10k)
+- [Rio](#rio-rio)
 - [Starship](#starship-starship)
 - [Terminator](#terminator-terminator)
 - [Zsh](#zsh-zsh)
@@ -186,6 +187,32 @@ source "/path/to/installed/power-level-10k/powerlevel10k.zsh-theme"
 ### Official Website
 
 https://github.com/romkatv/powerlevel10k
+
+---
+
+## Rio (`rio`)
+
+Rio is a hardware-accelerated GPU terminal emulator powered by WebGPU, focused on performance and modern terminal
+features such as splits, tabs, and image protocols.
+
+### Installation Method
+
+**GitHub latest release (.deb package)**
+
+Downloads the latest `rioterm` `.deb` for the system architecture (`amd64` or `arm64`) from the official GitHub release
+page, verifies its SHA-256 digest, and installs it with APT. Rio publishes separate Wayland and X11 builds: the Wayland
+build is selected when the session is Wayland (`XDG_SESSION_TYPE=wayland` or `WAYLAND_DISPLAY` is set), otherwise the
+X11 build. `mp upgrade` detects the variant again.
+
+### Supported ENV
+
+- `RIO_DISPLAY_SERVER`
+    - Forces the build variant (`wayland` or `x11`), for example when installing over SSH or from a TTY.
+    - Default: detected from the current session
+
+### Official Website
+
+https://rioterm.com/
 
 ---
 
