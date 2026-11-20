@@ -9,7 +9,7 @@ modules, see the [module contributor guide](CONTRIBUTING.md).
 
 ## 🗂️ Module Catalog
 
-Mint Provisioner currently provides **138 modules** across **12 categories**. A category is part of a module's canonical
+Mint Provisioner currently provides **139 modules** across **12 categories**. A category is part of a module's canonical
 ID:
 
 ```text
@@ -36,7 +36,7 @@ official project links.
 | [Desktop Applications](GUI.md)  | `gui`  | `audacious`, `avda`, `cryptomator`, `deadbeef`, `desk-otp`, `double-commander`, `flameshot`, `fman`, `foldersync`, `insync`, `keepass-xc`, `lapce`, `meld`, `mu-commander`, `onedrive-gui`, `onedriver`, `otpclient`, `qmmp`, `sunflower`, `tlp-ui` |
 | [IDE](IDE.md)                   | `ide`  | `android-studio`, `clion`, `cudatext`, `datagrip`, `geany`, `goland`, `gram`, `idea`, `phpstorm`, `pycharm`, `rider`, `rubymine`, `rustrover`, `vscode`, `vscodium`, `webstorm`                                                    |
 | [System Administration](SYS.md) | `sys`  | `apt-fast`, `dconf-editor`, `dnscrypt-proxy`, `nerd-font`, `openconnect-saml`, `system-toolkit`, `tlp`                                                                                                           |
-| [Terminal](TERM.md)             | `term` | `alacritty`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `starship`, `terminator`, `zsh`                                                                                                                |
+| [Terminal](TERM.md)             | `term` | `alacritty`, `ghostty`, `kitty`, `oh-my-posh`, `power-level-10k`, `rio`, `starship`, `terminator`, `zsh`                                                                                                                |
 | [Terminal UI](TUI.md)           | `tui`  | `bottom`, `du-analyzer`, `du-rust`, `duf`, `git-ui`, `lazy-git`                                                                                                                                                  |
 | [Web](WEB.md)                   | `web`  | `brave-browser`, `brave-origin`, `firefox`, `firefox-pwa`, `google-chrome`, `librewolf`, `microsoft-edge`                                                                                                        |
 | [DevOps Tools](OPS.md)          | `ops`  | `argocd`, `cloudflared`, `consul`, `docker`, `gcloud`, `k6`, `k9s`, `kubectl`, `kubectl-convert`, `mkcert`, `ngrok`, `sops`, `vault`                                                                                                                                   |
