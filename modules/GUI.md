@@ -17,6 +17,7 @@ Graphical applications for productivity, file management, security, and everyday
 - [KeePassXC](#keepassxc-keepass-xc-alias-keepass-alias-keepassxc)
 - [Lapce](#lapce-lapce)
 - [Meld](#meld-meld)
+- [mergediff](#mergediff-mergediff)
 - [Mu Commander](#mu-commander-mu-commander-alias-mu-cmd)
 - [OneDriveGUI](#onedrivegui-onedrive-gui)
 - [onedriver](#onedriver-onedriver)
@@ -419,6 +420,53 @@ The following runtime packages are installed using APT:
 ### Official Website
 
 https://meldmerge.org/
+
+---
+
+## mergediff (`mergediff`)
+
+mergediff is a lightweight 3-way merge and 2-way diff tool with a native window, inspired by the JetBrains merge tool.
+It shows Local, Result, and Remote panes with an editable Result, applies non-conflicting changes in one click, and
+works as a Git `mergetool` and `difftool`. Started without arguments, it opens a scratch diff for pasted text.
+
+### Installation Method
+
+**GitHub latest release (.deb)**
+
+Downloads the latest `mergediff_<date>_linux_amd64.deb` from the official GitHub releases page (verified with the
+GitHub SHA256 digest), then installs it using APT. The package declares its runtime libraries (GTK 4 and WebKitGTK 6.0
+on Ubuntu 24.04), so APT installs them, and they follow the package when a future release changes them.
+
+### Desktop Integration
+
+The package installs `/usr/bin/mergediff`, `mergediff.desktop` into `/usr/share/applications` (the launcher opens the
+scratch diff), and the icon into `/usr/share/icons/hicolor/scalable/apps/mergediff.svg`.
+
+### Git Configuration
+
+The module does not change the Git configuration. To use mergediff as the Git merge and diff tool:
+
+```sh
+git config --global merge.tool mergediff
+git config --global mergetool.mergediff.cmd 'mergediff "$BASE" "$LOCAL" "$REMOTE" -o "$MERGED"'
+git config --global mergetool.mergediff.trustExitCode true
+git config --global diff.tool mergediff
+git config --global difftool.mergediff.cmd 'mergediff "$LOCAL" "$REMOTE"'
+```
+
+### Cleanup
+
+- Removes the downloaded `.deb` package.
+- Removes the module state file.
+
+### Removal
+
+`mp remove` removes the `mergediff` package. `mp purge` purges it and also deletes `~/.config/mergediff` (settings) and
+the other `mergediff` user directories under `~/.local/share` and `~/.cache`.
+
+### Official Website
+
+https://github.com/hadi-susanto/mergediff
 
 ---
 
